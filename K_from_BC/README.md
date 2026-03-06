@@ -91,6 +91,58 @@ The extracted files use columns:
 
 `r corr_x err_x corr_y err_y`
 
+## Triangle-side twisted-BC symmetry test
+
+New executable:
+
+- `K_from_BC/ising_flat_crit_k_from_bc_triangle_sides.cc`
+
+Goal:
+
+- Test only the two side directions of the imposed right-triangle geometry.
+- Use twisted boundary conditions so these two real-geometry directions are
+  periodic and directly comparable.
+
+Twisted BC convention:
+
+- `(x + Nx, y) ~ (x, y + twist_shift)`
+
+Measured channels in output typed `.dat`:
+
+- `0`: raw `x` direction
+- `1`: raw oblique side direction (the imposed real-`y` direction)
+- `4`: connected `x`
+- `5`: connected oblique side
+
+Build and run example:
+
+```bash
+g++ -std=c++14 -O3 -Wall -Wno-sign-compare -I include \
+  K_from_BC/ising_flat_crit_k_from_bc_triangle_sides.cc \
+  -o /tmp/ising_kbc_triangle_sides
+
+/tmp/ising_kbc_triangle_sides \
+  --n_x 48 --n_y 64 \
+  --lx 1.0 --ly 0.75 --use_sinh_rule 1 \
+  --twist_shift 48 --oblique_sign 1 \
+  --n_therm 2000 --n_traj 20000 --n_skip 20
+```
+
+This mode computes couplings from a right-triangle `sinh(2k)=l*/l` mapping via
+`--lx --ly` and reports `symmetry_check_rms_z_connected` in stdout.
+
+Plot helper:
+
+- `K_from_BC/plot_triangle_side_directions.py`
+
+Example:
+
+```bash
+python K_from_BC/plot_triangle_side_directions.py \
+  --typed ising_flat_crit_k_from_bc/triangle_sides_twist_Nx48_Ny64_s48_ob1_lx1.000_ly0.750_k0.347_0.281_0.575.dat \
+  --output K_from_BC/triangle_side_twist_connected.png
+```
+
 
 ## Downloadable results bundle
 

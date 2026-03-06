@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 def load(path):
-    data = {0: [], 1: [], 3: [], 4: [], 5: []}
+    data = {0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: []}
     with open(path) as f:
         for line in f:
             t, r, c, e = line.split()
@@ -14,7 +14,22 @@ def load(path):
     return data
 
 
-def svg_plot(data, title, out_path, length_by_type=None, caption=''):
+def periodic_extend(pts, wraps):
+    if wraps <= 1 or not pts:
+        return pts
+    vals = [None] * (max(r for r, _, _ in pts) + 1)
+    for r, c, e in pts:
+        vals[r] = (c, e)
+
+    out = []
+    period = len(vals)
+    for r in range(period * wraps):
+        c, e = vals[r % period]
+        out.append((r, c, e))
+    return out
+
+
+def svg_plot(data, title, out_path, length_by_type=None, caption='', wraps=1):
     W, H = 900, 590
     ml, mr, mt, mb = 80, 30, 55, 95
     pw, ph = W - ml - mr, H - mt - mb
@@ -23,22 +38,35 @@ def svg_plot(data, title, out_path, length_by_type=None, caption=''):
     labels = {
         0: 'x direction',
         1: 'y direction',
-        3: 'oblique (x-y) direction',
+        2: 'oblique (x+y) direction',
+        3: 'oblique (y-x) direction',
         4: 'connected x (jackknife)',
         5: 'connected y (jackknife)',
+        6: 'connected oblique x+y (jackknife)',
+        7: 'connected oblique y-x (jackknife)',
     }
-    colors = {0: '#1f77b4', 1: '#ff7f0e', 3: '#2ca02c', 4: '#1f77b4', 5: '#ff7f0e'}
+    colors = {
+        0: '#1f77b4',
+        1: '#ff7f0e',
+        2: '#2ca02c',
+        3: '#d62728',
+        4: '#1f77b4',
+        5: '#ff7f0e',
+        6: '#2ca02c',
+        7: '#d62728',
+    }
 
     allx, ally = [], []
-    if data.get(4) or data.get(5):
-        draw_order = [4, 5, 3]
+    if data.get(4) or data.get(5) or data.get(6) or data.get(7):
+        draw_order = [4, 5, 6, 7]
     else:
-        draw_order = [0, 1, 3]
+        draw_order = [0, 1, 2, 3]
 
     for t in draw_order:
         pts = data.get(t, [])
         if not pts:
             continue
+        pts = periodic_extend(pts, wraps)
         if length_by_type is not None and t in length_by_type and length_by_type[t] > 0:
             L = float(length_by_type[t])
             xs = [r / L for r, _, _ in pts]
@@ -148,6 +176,8 @@ def main():
                     help='Ly for type 1 (y-direction) when using --normalize_fraction.')
     ap.add_argument('--caption', default='',
                     help='Optional caption line rendered below the x-axis label.')
+    ap.add_argument('--wraps', type=int, default=1,
+                    help='Number of lattice wraps to plot using periodic extension (default: 1).')
     args = ap.parse_args()
 
     data = load(args.input)
@@ -156,12 +186,19 @@ def main():
         length_by_type = {}
         if args.nx > 0:
             length_by_type[0] = args.nx
+            length_by_type[2] = args.nx
             length_by_type[3] = args.nx
             length_by_type[4] = args.nx
+            length_by_type[6] = args.nx
+            length_by_type[7] = args.nx
         if args.ny > 0:
             length_by_type[1] = args.ny
             length_by_type[5] = args.ny
-    svg_plot(data, args.title, args.output, length_by_type=length_by_type, caption=args.caption)
+    if args.wraps < 1:
+        raise ValueError('--wraps must be >= 1')
+
+    svg_plot(data, args.title, args.output, length_by_type=length_by_type,
+             caption=args.caption, wraps=args.wraps)
     print(args.output)
 
 
