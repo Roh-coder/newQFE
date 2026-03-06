@@ -101,6 +101,63 @@ double find_crit(double k1, double k2, double k3) {
   return beta / k_mean;
 }
 
+double MeanFromSamples(const std::vector<double>& v) {
+  if (v.empty()) return 0.0;
+  double s = 0.0;
+  for (double x : v) s += x;
+  return s / double(v.size());
+}
+
+double JackknifeErrorMean(const std::vector<double>& v) {
+  int n = int(v.size());
+  if (n <= 1) return 0.0;
+  double total = 0.0;
+  for (double x : v) total += x;
+  double mean = total / double(n);
+  double sumsq = 0.0;
+  for (double x : v) {
+    double leave = (total - x) / double(n - 1);
+    double d = leave - mean;
+    sumsq += d * d;
+  }
+  return std::sqrt((double(n) - 1.0) / double(n) * sumsq);
+}
+
+void JackknifeConnectedCorr(const std::vector<double>& corr_samples,
+                           const std::vector<double>& mag_samples,
+                           double* mean_out, double* err_out) {
+  int n = int(corr_samples.size());
+  assert(n == int(mag_samples.size()));
+  if (n <= 1) {
+    *mean_out = 0.0;
+    *err_out = 0.0;
+    return;
+  }
+
+  double sum_corr = 0.0;
+  double sum_mag = 0.0;
+  for (int i = 0; i < n; i++) {
+    sum_corr += corr_samples[i];
+    sum_mag += mag_samples[i];
+  }
+
+  double mean_corr = sum_corr / double(n);
+  double mean_mag = sum_mag / double(n);
+  double connected_mean = mean_corr - mean_mag * mean_mag;
+
+  double sumsq = 0.0;
+  for (int i = 0; i < n; i++) {
+    double corr_leave = (sum_corr - corr_samples[i]) / double(n - 1);
+    double mag_leave = (sum_mag - mag_samples[i]) / double(n - 1);
+    double conn_leave = corr_leave - mag_leave * mag_leave;
+    double d = conn_leave - connected_mean;
+    sumsq += d * d;
+  }
+
+  *mean_out = connected_mean;
+  *err_out = std::sqrt((double(n) - 1.0) / double(n) * sumsq);
+}
+
 }  // namespace
 
 int main(int argc, char* argv[]) {
@@ -183,11 +240,16 @@ int main(int argc, char* argv[]) {
   printf("beta: %.12f\n", field.beta);
   printf("initial action: %.12f\n", field.Action());
 
-  int r_bins = std::min(Nx, Ny) / 2;
-  std::vector<QfeMeasReal> corr_x(r_bins);
-  std::vector<QfeMeasReal> corr_y(r_bins);
-  std::vector<QfeMeasReal> corr_skew(r_bins);
-  std::vector<QfeMeasReal> corr_oblique(r_bins);
+  // All-to-all directional two-point correlators over full periodic lengths.
+  // corr_x[r] = < s(x,y) s(x+r,y) >, r = 0..Nx-1
+  // corr_y[r] = < s(x,y) s(x,y+r) >, r = 0..Ny-1
+  int r_bins_x = Nx;
+  int r_bins_y = Ny;
+
+  std::vector<QfeMeasReal> corr_x(r_bins_x);
+  std::vector<QfeMeasReal> corr_y(r_bins_y);
+  std::vector<std::vector<double>> corr_x_samples(r_bins_x);
+  std::vector<std::vector<double>> corr_y_samples(r_bins_y);
 
   std::vector<double> mag;
   std::vector<double> action;
@@ -206,48 +268,40 @@ int main(int argc, char* argv[]) {
 
     if (n % n_skip || n < n_therm) continue;
 
-    std::vector<int> corr_x_sum(r_bins, 0);
-    std::vector<int> corr_y_sum(r_bins, 0);
-    std::vector<int> corr_skew_sum(r_bins, 0);
-    std::vector<int> corr_oblique_sum(r_bins, 0);
+    std::vector<double> corr_x_sum(r_bins_x, 0.0);
+    std::vector<double> corr_y_sum(r_bins_y, 0.0);
 
-    int count = field.wolff_cluster.size();
-    for (int i1 = 0; i1 < count; i1++) {
-      for (int i2 = i1; i2 < count; i2++) {
-        int s1 = field.wolff_cluster[i1];
-        int x1 = s1 % Nx;
-        int y1 = s1 / Nx;
+    // Direct all-to-all estimator along x and y directions.
+    for (int y = 0; y < Ny; y++) {
+      for (int x = 0; x < Nx; x++) {
+        int s = y * Nx + x;
+        double spin_s = field.spin[s];
 
-        int s2 = field.wolff_cluster[i2];
-        int x2 = s2 % Nx;
-        int y2 = s2 / Nx;
+        for (int r = 0; r < r_bins_x; r++) {
+          int xp = (x + r) % Nx;
+          int sp = y * Nx + xp;
+          corr_x_sum[r] += spin_s * field.spin[sp];
+        }
 
-        int dx_wrap = x1 - x2;
-        int dy_wrap = y1 - y2;
-
-        int w1 = (x1 - y1 + Nx) % Nx;
-        int w2 = (x2 - y2 + Nx) % Nx;
-
-        int dx = std::abs(dx_wrap);
-        dx = std::min(dx, Nx - dx);
-        int dy = std::abs(dy_wrap);
-        dy = std::min(dy, Ny - dy);
-
-        if (y1 == y2 && dx < r_bins) corr_x_sum[dx]++;
-        if (x1 == x2 && dy < r_bins) corr_y_sum[dy]++;
-        if (w1 == w2 && dx < r_bins) corr_oblique_sum[dx]++;
-
-        double r = MinImageDistanceSkewTorus(dx_wrap, dy_wrap, shape);
-        int ir = int(std::lround(r));
-        if (ir >= 0 && ir < r_bins) corr_skew_sum[ir]++;
+        for (int r = 0; r < r_bins_y; r++) {
+          int yp = (y + r) % Ny;
+          int sp = yp * Nx + x;
+          corr_y_sum[r] += spin_s * field.spin[sp];
+        }
       }
     }
 
-    for (int i = 0; i < r_bins; i++) {
-      corr_x[i].Measure(double(corr_x_sum[i]) / double(count));
-      corr_y[i].Measure(double(corr_y_sum[i]) / double(count));
-      corr_skew[i].Measure(double(corr_skew_sum[i]) / double(count));
-      corr_oblique[i].Measure(double(corr_oblique_sum[i]) / double(count));
+    double norm = double(Nx * Ny);
+    for (int i = 0; i < r_bins_x; i++) {
+      double v = corr_x_sum[i] / norm;
+      corr_x[i].Measure(v);
+      corr_x_samples[i].push_back(v);
+    }
+
+    for (int i = 0; i < r_bins_y; i++) {
+      double v = corr_y_sum[i] / norm;
+      corr_y[i].Measure(v);
+      corr_y_samples[i].push_back(v);
     }
 
     action.push_back(field.Action());
@@ -291,32 +345,42 @@ int main(int argc, char* argv[]) {
   assert(file != nullptr);
 
   printf("\ncorr_x:\n");
-  for (int i = 0; i < r_bins; i++) {
-    printf("0 %04d %.12e %.12e\n", i, corr_x[i].Mean(), corr_x[i].Error());
-    fprintf(file, "0 %04d %.12e %.12e\n", i, corr_x[i].Mean(), corr_x[i].Error());
+  for (int i = 0; i < r_bins_x; i++) {
+    double m = MeanFromSamples(corr_x_samples[i]);
+    double e = JackknifeErrorMean(corr_x_samples[i]);
+    printf("0 %04d %.12e %.12e\n", i, m, e);
+    fprintf(file, "0 %04d %.12e %.12e\n", i, m, e);
   }
 
   printf("\ncorr_y:\n");
-  for (int i = 0; i < r_bins; i++) {
-    printf("1 %04d %.12e %.12e\n", i, corr_y[i].Mean(), corr_y[i].Error());
-    fprintf(file, "1 %04d %.12e %.12e\n", i, corr_y[i].Mean(), corr_y[i].Error());
+  for (int i = 0; i < r_bins_y; i++) {
+    double m = MeanFromSamples(corr_y_samples[i]);
+    double e = JackknifeErrorMean(corr_y_samples[i]);
+    printf("1 %04d %.12e %.12e\n", i, m, e);
+    fprintf(file, "1 %04d %.12e %.12e\n", i, m, e);
   }
 
-  printf("\ncorr_skew_radial:\n");
-  for (int i = 0; i < r_bins; i++) {
-    printf("2 %04d %.12e %.12e\n", i, corr_skew[i].Mean(), corr_skew[i].Error());
-    fprintf(file, "2 %04d %.12e %.12e\n", i, corr_skew[i].Mean(), corr_skew[i].Error());
+  printf("\nconnected_corr_x (jackknife):\n");
+  for (int i = 0; i < r_bins_x; i++) {
+    double m_conn = 0.0;
+    double e_conn = 0.0;
+    JackknifeConnectedCorr(corr_x_samples[i], mag, &m_conn, &e_conn);
+    printf("4 %04d %.12e %.12e\n", i, m_conn, e_conn);
+    fprintf(file, "4 %04d %.12e %.12e\n", i, m_conn, e_conn);
   }
 
-  printf("\ncorr_oblique:\n");
-  for (int i = 0; i < r_bins; i++) {
-    printf("3 %04d %.12e %.12e\n", i, corr_oblique[i].Mean(), corr_oblique[i].Error());
-    fprintf(file, "3 %04d %.12e %.12e\n", i, corr_oblique[i].Mean(), corr_oblique[i].Error());
+  printf("\nconnected_corr_y (jackknife):\n");
+  for (int i = 0; i < r_bins_y; i++) {
+    double m_conn = 0.0;
+    double e_conn = 0.0;
+    JackknifeConnectedCorr(corr_y_samples[i], mag, &m_conn, &e_conn);
+    printf("5 %04d %.12e %.12e\n", i, m_conn, e_conn);
+    fprintf(file, "5 %04d %.12e %.12e\n", i, m_conn, e_conn);
   }
 
-  int midpoint = r_bins / 2;
-  double corr_x_mid = corr_x[midpoint].Mean();
-  double corr_y_mid = corr_y[midpoint].Mean();
+  int midpoint = r_bins_x / 2;
+  double corr_x_mid = MeanFromSamples(corr_x_samples[midpoint]);
+  double corr_y_mid = MeanFromSamples(corr_y_samples[std::min(midpoint, r_bins_y - 1)]);
   printf("\nmidpoint_bin: %d\n", midpoint);
   printf("corr_x(midpoint): %.12e\n", corr_x_mid);
   printf("corr_y(midpoint): %.12e\n", corr_y_mid);

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560">
+<rect x="0" y="0" width="100%" height="100%" fill="white"/>
+<text x="450.0" y="30" text-anchor="middle" font-size="20" font-family="Arial">Connected two-point: equilateral n_x=24, n_y=32</text>
+<line x1="80" y1="495" x2="870" y2="495" stroke="black"/>
+<line x1="80" y1="55" x2="80" y2="495" stroke="black"/>
+<line x1="80" y1="495.00" x2="870" y2="495.00" stroke="#dddddd"/>
+<text x="70" y="499.00" text-anchor="end" font-size="12" font-family="Arial">0.379</text>
+<line x1="80" y1="407.00" x2="870" y2="407.00" stroke="#dddddd"/>
+<text x="70" y="411.00" text-anchor="end" font-size="12" font-family="Arial">0.509</text>
+<line x1="80" y1="319.00" x2="870" y2="319.00" stroke="#dddddd"/>
+<text x="70" y="323.00" text-anchor="end" font-size="12" font-family="Arial">0.639</text>
+<line x1="80" y1="231.00" x2="870" y2="231.00" stroke="#dddddd"/>
+<text x="70" y="235.00" text-anchor="end" font-size="12" font-family="Arial">0.769</text>
+<line x1="80" y1="143.00" x2="870" y2="143.00" stroke="#dddddd"/>
+<text x="70" y="147.00" text-anchor="end" font-size="12" font-family="Arial">0.899</text>
+<line x1="80" y1="55.00" x2="870" y2="55.00" stroke="#dddddd"/>
+<text x="70" y="59.00" text-anchor="end" font-size="12" font-family="Arial">1.029</text>
+<line x1="80.00" y1="55" x2="80.00" y2="495" stroke="#f0f0f0"/>
+<text x="80.00" y="515" text-anchor="middle" font-size="12" font-family="Arial">0.0</text>
+<line x1="238.00" y1="55" x2="238.00" y2="495" stroke="#f0f0f0"/>
+<text x="238.00" y="515" text-anchor="middle" font-size="12" font-family="Arial">2.2</text>
+<line x1="396.00" y1="55" x2="396.00" y2="495" stroke="#f0f0f0"/>
+<text x="396.00" y="515" text-anchor="middle" font-size="12" font-family="Arial">4.4</text>
+<line x1="554.00" y1="55" x2="554.00" y2="495" stroke="#f0f0f0"/>
+<text x="554.00" y="515" text-anchor="middle" font-size="12" font-family="Arial">6.6</text>
+<line x1="712.00" y1="55" x2="712.00" y2="495" stroke="#f0f0f0"/>
+<text x="712.00" y="515" text-anchor="middle" font-size="12" font-family="Arial">8.8</text>
+<line x1="870.00" y1="55" x2="870.00" y2="495" stroke="#f0f0f0"/>
+<text x="870.00" y="515" text-anchor="middle" font-size="12" font-family="Arial">11.0</text>
+<text x="475.0" y="540" text-anchor="middle" font-size="14" font-family="Arial">lattice separation bin</text>
+<text x="20" y="275.0" transform="rotate(-90 20,275.0)" text-anchor="middle" font-size="14" font-family="Arial">C(r)</text>
+<polyline points="80.00,75.00 151.82,307.98 223.64,373.13 295.45,405.81 367.27,424.10 439.09,436.35 510.91,446.15 582.73,453.19 654.55,458.21 726.36,462.27 798.18,464.73 870.00,465.68" fill="none" stroke="#1f77b4" stroke-width="2"/>
+<circle cx="80.00" cy="75.00" r="2.5" fill="#1f77b4"/>
+<circle cx="151.82" cy="307.98" r="2.5" fill="#1f77b4"/>
+<circle cx="223.64" cy="373.13" r="2.5" fill="#1f77b4"/>
+<circle cx="295.45" cy="405.81" r="2.5" fill="#1f77b4"/>
+<circle cx="367.27" cy="424.10" r="2.5" fill="#1f77b4"/>
+<circle cx="439.09" cy="436.35" r="2.5" fill="#1f77b4"/>
+<circle cx="510.91" cy="446.15" r="2.5" fill="#1f77b4"/>
+<circle cx="582.73" cy="453.19" r="2.5" fill="#1f77b4"/>
+<circle cx="654.55" cy="458.21" r="2.5" fill="#1f77b4"/>
+<circle cx="726.36" cy="462.27" r="2.5" fill="#1f77b4"/>
+<circle cx="798.18" cy="464.73" r="2.5" fill="#1f77b4"/>
+<circle cx="870.00" cy="465.68" r="2.5" fill="#1f77b4"/>
+<polyline points="80.00,75.00 151.82,309.14 223.64,373.63 295.45,406.22 367.27,426.32 439.09,439.35 510.91,449.46 582.73,457.32 654.55,463.49 726.36,468.27 798.18,472.01 870.00,475.00" fill="none" stroke="#ff7f0e" stroke-width="2"/>
+<circle cx="80.00" cy="75.00" r="2.5" fill="#ff7f0e"/>
+<circle cx="151.82" cy="309.14" r="2.5" fill="#ff7f0e"/>
+<circle cx="223.64" cy="373.63" r="2.5" fill="#ff7f0e"/>
+<circle cx="295.45" cy="406.22" r="2.5" fill="#ff7f0e"/>
+<circle cx="367.27" cy="426.32" r="2.5" fill="#ff7f0e"/>
+<circle cx="439.09" cy="439.35" r="2.5" fill="#ff7f0e"/>
+<circle cx="510.91" cy="449.46" r="2.5" fill="#ff7f0e"/>
+<circle cx="582.73" cy="457.32" r="2.5" fill="#ff7f0e"/>
+<circle cx="654.55" cy="463.49" r="2.5" fill="#ff7f0e"/>
+<circle cx="726.36" cy="468.27" r="2.5" fill="#ff7f0e"/>
+<circle cx="798.18" cy="472.01" r="2.5" fill="#ff7f0e"/>
+<circle cx="870.00" cy="475.00" r="2.5" fill="#ff7f0e"/>
+<rect x="660" y="70" width="190" height="75" fill="white" stroke="#cccccc"/>
+<line x1="670" y1="90" x2="700" y2="90" stroke="#1f77b4" stroke-width="3"/>
+<text x="708" y="94" font-size="12" font-family="Arial">x direction</text>
+<line x1="670" y1="112" x2="700" y2="112" stroke="#ff7f0e" stroke-width="3"/>
+<text x="708" y="116" font-size="12" font-family="Arial">y direction</text>
+<line x1="670" y1="134" x2="700" y2="134" stroke="#2ca02c" stroke-width="3"/>
+<text x="708" y="138" font-size="12" font-family="Arial">oblique (x-y) direction</text>
+</svg>
