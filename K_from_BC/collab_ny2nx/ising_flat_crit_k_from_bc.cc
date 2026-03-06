@@ -1,9 +1,7 @@
 // ising_flat_crit_k_from_bc.cc
 //
 // Adapted from examples/ising_flat_crit.cc.
-// This variant lets the user specify a target triangle shape by angles
-// (theta1, theta2) and builds an effective skewed-torus embedding for the
-// periodic boundary conditions of an equilateral triangular lattice.
+// Collaboration variant with plain periodic triangular-lattice boundaries.
 
 #include <getopt.h>
 #include <cassert>
@@ -16,69 +14,6 @@
 #include "statistics.h"
 
 namespace {
-
-struct SkewShape {
-  double theta1;
-  double theta2;
-  double theta3;
-  double skewness;   // x-offset over base for the triangle apex
-  double aspect;     // height over base
-  double e1x, e1y;   // primitive vector #1 (equilateral lattice direction)
-  double e2x, e2y;   // primitive vector #2 (skewed by target triangle)
-  double L1x, L1y;   // torus period vector #1
-  double L2x, L2y;   // torus period vector #2
-};
-
-SkewShape BuildSkewShapeFromAngles(double theta1, double theta2,
-                                   int Nx, int Ny) {
-  const double pi = acos(-1.0);
-  assert(theta1 > 0.0 && theta2 > 0.0);
-  assert(theta1 + theta2 < pi);
-
-  SkewShape shape;
-  shape.theta1 = theta1;
-  shape.theta2 = theta2;
-  shape.theta3 = pi - theta1 - theta2;
-
-  // Triangle with base AB = 1 and apex C determined by (theta1, theta2).
-  // AC = sin(theta2)/sin(theta3), C = (AC cos theta1, AC sin theta1).
-  double side_ac = sin(theta2) / sin(shape.theta3);
-  shape.skewness = side_ac * cos(theta1);
-  shape.aspect = side_ac * sin(theta1);
-
-  // Local helper "augmentation" for skewed periodic geometry:
-  // the graph is still periodic InitTriangle(Nx, Ny), but we interpret lattice
-  // displacements in this oblique basis, so the periodic cell is a parallelogram.
-  shape.e1x = 1.0;
-  shape.e1y = 0.0;
-  shape.e2x = shape.skewness;
-  shape.e2y = shape.aspect;
-
-  shape.L1x = Nx * shape.e1x;
-  shape.L1y = Nx * shape.e1y;
-  shape.L2x = Ny * shape.e2x;
-  shape.L2y = Ny * shape.e2y;
-
-  return shape;
-}
-
-double MinImageDistanceSkewTorus(int dx, int dy, const SkewShape& shape) {
-  // Convert lattice displacement to physical displacement in oblique basis.
-  double rx = dx * shape.e1x + dy * shape.e2x;
-  double ry = dx * shape.e1y + dy * shape.e2y;
-
-  // Minimum image using neighboring torus copies.
-  double best2 = 1.0e300;
-  for (int n1 = -1; n1 <= 1; n1++) {
-    for (int n2 = -1; n2 <= 1; n2++) {
-      double x = rx + n1 * shape.L1x + n2 * shape.L2x;
-      double y = ry + n1 * shape.L1y + n2 * shape.L2y;
-      double d2 = x * x + y * y;
-      if (d2 < best2) best2 = d2;
-    }
-  }
-  return sqrt(best2);
-}
 
 double tri_crit(double k1, double k2, double k3, double beta) {
   double p1 = exp(-2.0 * beta * (k2 + k3));
@@ -234,14 +169,8 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  SkewShape shape = BuildSkewShapeFromAngles(theta1, theta2, Nx, Ny);
-
   printf("Nx Ny: %d %d\n", Nx, Ny);
-  printf("theta1 theta2 theta3: %.12f %.12f %.12f\n", shape.theta1, shape.theta2,
-         shape.theta3);
-  printf("target skewness/aspect: %.12f %.12f\n", shape.skewness, shape.aspect);
-  printf("period vectors L1=(%.6f, %.6f), L2=(%.6f, %.6f)\n", shape.L1x,
-         shape.L1y, shape.L2x, shape.L2y);
+    printf("theta1 theta2: %.12f %.12f\n", theta1, theta2);
 
   printf("k1 k2 k3: %.12f %.12f %.12f\n", k1, k2, k3);
   printf("beta_mult: %.12f\n", beta_mult);

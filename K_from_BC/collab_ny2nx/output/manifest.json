@@ -3,9 +3,9 @@
   "ny": 64,
   "theta1": 1.0471975512,
   "theta2": 1.0471975512,
-  "n_therm": 5000,
-  "n_traj": 120000,
-  "n_skip": 20,
+  "n_therm": 40,
+  "n_traj": 200,
+  "n_skip": 10,
   "n_wolff": 3,
   "n_metropolis": 5,
   "cases": [
@@ -17,7 +17,7 @@
       "k3": 0.27465307216702745,
       "source_dat": "ising_flat_crit_k_from_bc/32_64_t1_1.047_t2_1.047_k_0.275_0.275_0.275.dat",
       "copied_dat": "K_from_BC/collab_ny2nx/output/data/equilateral.dat",
-      "log": "K_from_BC/equilateral_Nx32_Ny64_highstat_fullorbit.log"
+      "log": "K_from_BC/collab_ny2nx/output/logs/equilateral.log"
     },
     {
       "name": "right_45_45_90_k3zero",
@@ -27,7 +27,7 @@
       "k3": 0.0,
       "source_dat": "ising_flat_crit_k_from_bc/32_64_t1_1.047_t2_1.047_k_0.441_0.441_0.000.dat",
       "copied_dat": "K_from_BC/collab_ny2nx/output/data/right_45_45_90_k3zero.dat",
-      "log": "K_from_BC/rightisosceles_45_45_90_Nx32_Ny64_k3zero_highstat_fullorbit.log"
+      "log": "K_from_BC/collab_ny2nx/output/logs/right_45_45_90_k3zero.log"
     },
     {
       "name": "right_h_over_b_half_k3zero",
@@ -37,7 +37,7 @@
       "k3": 0.0,
       "source_dat": "ising_flat_crit_k_from_bc/32_64_t1_1.047_t2_1.047_k_0.241_0.722_0.000.dat",
       "copied_dat": "K_from_BC/collab_ny2nx/output/data/right_h_over_b_half_k3zero.dat",
-      "log": "K_from_BC/right_hoverb_half_Nx32_Ny64_k3zero_highstat_fullorbit.log"
+      "log": "K_from_BC/collab_ny2nx/output/logs/right_h_over_b_half_k3zero.log"
     }
   ]
 }
