@@ -1,0 +1,18 @@
+Closed-form periodicity rules
+===========================
+
+Boundary conditions:
+  (i + Nx, j) ~ (i, j)
+  (i, j + Ny) ~ (i + Ns, j)
+
+Directions and rules:
+  p_x       = Nx
+  p_y       = Nx*Ny / gcd(Nx, Ns)
+  p_y_minus_x = Nx*Ny / gcd(Nx, Ny + Ns)
+
+nx_list = [1, 2, 3, 4, 5, 6, 7, 8]
+ny_list = [1, 2, 3, 4, 5, 6, 7, 8]
+ns_list = [1, 2, 3, 4, 5, 6, 7, 8]
+total_cases = 512
+mismatches = 0
+status = PASS

@@ -20,9 +20,9 @@ def load_typed_dat(path: Path):
 
 
 def main():
-    typed = Path("K_from_BC/aniso_h3over4_geometry_rule_connected_jk_highstat_L48x64_typed.dat")
-    out_png = Path("K_from_BC/aniso_h3over4_geometry_rule_connected_jk_highstat_L48x64_xy_oblique.png")
-    out_pdf = Path("K_from_BC/aniso_h3over4_geometry_rule_connected_jk_highstat_L48x64_xy_oblique.pdf")
+    typed = Path("K_from_BC/results/runs/main/aniso_h3over4_geometry_rule_connected_jk_highstat_L48x64_typed.dat")
+    out_png = Path("K_from_BC/results/plots/main/aniso_h3over4_geometry_rule_connected_jk_highstat_L48x64_xy_oblique.png")
+    out_pdf = Path("K_from_BC/results/plots/main/aniso_h3over4_geometry_rule_connected_jk_highstat_L48x64_xy_oblique.pdf")
 
     if not typed.exists():
         raise FileNotFoundError(f"Missing input file: {typed}")
@@ -88,6 +88,7 @@ def main():
     ax.legend()
     fig.tight_layout()
 
+    out_png.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_png)
     fig.savefig(out_pdf)
 

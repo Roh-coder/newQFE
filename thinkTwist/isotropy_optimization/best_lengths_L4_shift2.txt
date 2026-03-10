@@ -1,0 +1,17 @@
+Directional isotropy optimization (one x-period)
+=============================================
+
+L=4, shift=2
+periods: p_x=4, p_left=8, p_diag=8
+x_length/a fixed = 1.000000
+n-range = 0..3 (one x-period)
+
+Objective: 0.5*(MSE(C_left,C_x)+MSE(C_diag,C_x))
+with C_d(n)=exp(-n_fold_d(n)*ell_d/a).
+
+Best lengths:
+  left_length/a = 0.764000
+  diag_length/a = 0.764000
+  err_left (MSE vs x) = 0.02186071
+  err_diag (MSE vs x) = 0.02186071
+  objective = 0.02186071

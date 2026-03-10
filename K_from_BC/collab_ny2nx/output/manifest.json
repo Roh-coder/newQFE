@@ -16,7 +16,7 @@
       "k2": 0.27465307216702745,
       "k3": 0.27465307216702745,
       "source_dat": "ising_flat_crit_k_from_bc/32_64_t1_1.047_t2_1.047_k_0.275_0.275_0.275.dat",
-      "copied_dat": "K_from_BC/collab_ny2nx/output/data/equilateral.dat",
+      "copied_dat": "K_from_BC/collab_ny2nx/output/results/runs/equilateral.dat",
       "log": "K_from_BC/collab_ny2nx/output/logs/equilateral.log"
     },
     {
@@ -26,7 +26,7 @@
       "k2": 0.4406867935097715,
       "k3": 0.0,
       "source_dat": "ising_flat_crit_k_from_bc/32_64_t1_1.047_t2_1.047_k_0.441_0.441_0.000.dat",
-      "copied_dat": "K_from_BC/collab_ny2nx/output/data/right_45_45_90_k3zero.dat",
+      "copied_dat": "K_from_BC/collab_ny2nx/output/results/runs/right_45_45_90_k3zero.dat",
       "log": "K_from_BC/collab_ny2nx/output/logs/right_45_45_90_k3zero.log"
     },
     {
@@ -36,7 +36,7 @@
       "k2": 0.7218177375894052,
       "k3": 0.0,
       "source_dat": "ising_flat_crit_k_from_bc/32_64_t1_1.047_t2_1.047_k_0.241_0.722_0.000.dat",
-      "copied_dat": "K_from_BC/collab_ny2nx/output/data/right_h_over_b_half_k3zero.dat",
+      "copied_dat": "K_from_BC/collab_ny2nx/output/results/runs/right_h_over_b_half_k3zero.dat",
       "log": "K_from_BC/collab_ny2nx/output/logs/right_h_over_b_half_k3zero.log"
     }
   ]

@@ -1,0 +1,13 @@
+Centered-cosh matching solution
+==============================
+
+L=32, shift=0, decay_scale s=10.0
+periods: p_x=32, p_left=32, p_diag=32
+
+Matching condition (all t): p_x*ell_x = p_left*ell_left = p_diag*ell_diag
+given ell_x=1.000000:
+  ell_left=1.000000000000
+  ell_diag=1.000000000000
+
+verification max|C_x-C_left|=0.000e+00
+verification max|C_x-C_diag|=0.000e+00

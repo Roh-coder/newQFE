@@ -45,7 +45,7 @@ def main() -> None:
     )
     ap.add_argument(
         "--output",
-        default="K_from_BC/collab_ny2nx/output/plots/correlators_fractional.png",
+        default="K_from_BC/collab_ny2nx/output/results/plots/correlators_fractional.png",
         help="Output figure path",
     )
     args = ap.parse_args()

@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="620" viewBox="0 0 820 620">
+  <rect x="0" y="0" width="820" height="620" fill="white"/>
+  <text x="40" y="40" font-size="22" font-family="Arial, sans-serif" fill="#111">4x4 Equilateral Lattice Patch</text>
+  <text x="40" y="66" font-size="15" font-family="Arial, sans-serif" fill="#333">Periodic BC on base direction and left-side direction</text>
+  <line x1="90.00" y1="401.77" x2="180.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="180.00" y1="401.77" x2="270.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="270.00" y1="401.77" x2="360.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="360.00" y1="401.77" x2="450.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="135.00" y1="323.83" x2="225.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="225.00" y1="323.83" x2="315.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="315.00" y1="323.83" x2="405.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="405.00" y1="323.83" x2="495.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="180.00" y1="245.88" x2="270.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="270.00" y1="245.88" x2="360.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="360.00" y1="245.88" x2="450.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="450.00" y1="245.88" x2="540.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="225.00" y1="167.94" x2="315.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="315.00" y1="167.94" x2="405.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="405.00" y1="167.94" x2="495.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="495.00" y1="167.94" x2="585.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="270.00" y1="90.00" x2="360.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="360.00" y1="90.00" x2="450.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="450.00" y1="90.00" x2="540.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="540.00" y1="90.00" x2="630.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="90.00" y1="401.77" x2="135.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="180.00" y1="401.77" x2="225.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="270.00" y1="401.77" x2="315.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="360.00" y1="401.77" x2="405.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="450.00" y1="401.77" x2="495.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="135.00" y1="323.83" x2="180.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="225.00" y1="323.83" x2="270.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="315.00" y1="323.83" x2="360.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="405.00" y1="323.83" x2="450.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="495.00" y1="323.83" x2="540.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="180.00" y1="245.88" x2="225.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="270.00" y1="245.88" x2="315.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="360.00" y1="245.88" x2="405.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="450.00" y1="245.88" x2="495.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="540.00" y1="245.88" x2="585.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="225.00" y1="167.94" x2="270.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="315.00" y1="167.94" x2="360.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="405.00" y1="167.94" x2="450.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="495.00" y1="167.94" x2="540.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="585.00" y1="167.94" x2="630.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="135.00" y1="323.83" x2="180.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="225.00" y1="323.83" x2="270.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="315.00" y1="323.83" x2="360.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="405.00" y1="323.83" x2="450.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="180.00" y1="245.88" x2="225.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="270.00" y1="245.88" x2="315.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="360.00" y1="245.88" x2="405.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="450.00" y1="245.88" x2="495.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="225.00" y1="167.94" x2="270.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="315.00" y1="167.94" x2="360.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="405.00" y1="167.94" x2="450.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="495.00" y1="167.94" x2="540.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="270.00" y1="90.00" x2="315.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="360.00" y1="90.00" x2="405.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="450.00" y1="90.00" x2="495.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="540.00" y1="90.00" x2="585.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <circle cx="90.00" cy="401.77" r="4" fill="#222"/>
+  <circle cx="180.00" cy="401.77" r="4" fill="#222"/>
+  <circle cx="270.00" cy="401.77" r="4" fill="#222"/>
+  <circle cx="360.00" cy="401.77" r="4" fill="#222"/>
+  <circle cx="450.00" cy="401.77" r="4" fill="#222"/>
+  <circle cx="135.00" cy="323.83" r="4" fill="#222"/>
+  <circle cx="225.00" cy="323.83" r="4" fill="#222"/>
+  <circle cx="315.00" cy="323.83" r="4" fill="#222"/>
+  <circle cx="405.00" cy="323.83" r="4" fill="#222"/>
+  <circle cx="495.00" cy="323.83" r="4" fill="#222"/>
+  <circle cx="180.00" cy="245.88" r="4" fill="#222"/>
+  <circle cx="270.00" cy="245.88" r="4" fill="#222"/>
+  <circle cx="360.00" cy="245.88" r="4" fill="#222"/>
+  <circle cx="450.00" cy="245.88" r="4" fill="#222"/>
+  <circle cx="540.00" cy="245.88" r="4" fill="#222"/>
+  <circle cx="225.00" cy="167.94" r="4" fill="#222"/>
+  <circle cx="315.00" cy="167.94" r="4" fill="#222"/>
+  <circle cx="405.00" cy="167.94" r="4" fill="#222"/>
+  <circle cx="495.00" cy="167.94" r="4" fill="#222"/>
+  <circle cx="585.00" cy="167.94" r="4" fill="#222"/>
+  <circle cx="270.00" cy="90.00" r="4" fill="#222"/>
+  <circle cx="360.00" cy="90.00" r="4" fill="#222"/>
+  <circle cx="450.00" cy="90.00" r="4" fill="#222"/>
+  <circle cx="540.00" cy="90.00" r="4" fill="#222"/>
+  <circle cx="630.00" cy="90.00" r="4" fill="#222"/>
+  <line x1="90.00" y1="401.77" x2="450.00" y2="401.77" stroke="#1f77b4" stroke-width="5"/>
+  <line x1="270.00" y1="90.00" x2="630.00" y2="90.00" stroke="#1f77b4" stroke-width="5" stroke-dasharray="12,8"/>
+  <line x1="90.00" y1="401.77" x2="270.00" y2="90.00" stroke="#d62728" stroke-width="5"/>
+  <line x1="450.00" y1="401.77" x2="630.00" y2="90.00" stroke="#d62728" stroke-width="5" stroke-dasharray="12,8"/>
+  <text x="120" y="360" font-size="16" font-family="Arial, sans-serif" fill="#1f77b4">Base periodic BC: (i+4, j) ~ (i, j)</text>
+  <text x="360" y="130" font-size="16" font-family="Arial, sans-serif" fill="#d62728">Left-side periodic BC: (i, j+4) ~ (i, j)</text>
+  <text x="420" y="565" font-size="14" font-family="Arial, sans-serif" fill="#1f77b4">bottom edge (solid)</text>
+  <text x="595" y="245" font-size="14" font-family="Arial, sans-serif" fill="#1f77b4">top edge (dashed)</text>
+  <text x="35" y="340" font-size="14" font-family="Arial, sans-serif" fill="#d62728">left edge (solid)</text>
+  <text x="690" y="340" font-size="14" font-family="Arial, sans-serif" fill="#d62728">right edge (dashed)</text>
+</svg>

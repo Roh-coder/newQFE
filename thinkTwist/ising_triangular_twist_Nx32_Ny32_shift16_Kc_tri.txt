@@ -1,0 +1,14 @@
+Triangular Ising on twisted lattice (Metropolis)
+==============================================
+Nx=32 Ny=32 shift=16
+K=0.274653072167
+Kc_tri=(1/4)ln3=0.274653072167
+sinh(2K)=0.577350269190
+target 1/sqrt(3)=0.577350269190
+therm=3000 meas=12000 seed=12345
+
+E_per_site=-2.98257975
+M_per_site=0.99705208
+|M|_per_site=0.99705208
+C_per_site=0.01598426
+chi_per_site=0.00171148

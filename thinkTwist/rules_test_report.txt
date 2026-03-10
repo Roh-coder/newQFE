@@ -1,0 +1,40 @@
+Rule Test Report
+================
+
+Grid: Nx,Ny,Ns in {1..8}
+total_cases = 512
+
+Periodicity formula test:
+mismatches = 0
+status = PASS
+
+Side-length half-orbit target test (square-target ratio):
+mismatches = 0
+status = PASS
+
+Triangle feasibility count for square-target side lengths:
+feasible = 169
+infeasible = 343
+infeasible_below_lower_bound = 283
+infeasible_above_upper_bound = 60
+
+Infeasibility interpretation:
+For square-target side lengths with scale s=1,
+  l_x = 1
+  l_y = p_x/p_y = gcd(Nx, Ns)/Ny
+  l_r = sqrt(2)*p_x/p_y_minus_x = sqrt(2)*gcd(Nx, Ny+Ns)/Ny
+Feasibility requires |1-l_y| <= l_r <= 1+l_y.
+Most failures occur when l_r is too small to bridge |1-l_y|.
+
+Sample infeasible points:
+Nx Ny Ns p_x p_y p_y-x l_y l_r lower upper
+ 1  3  1   1   3     3 0.33333 0.47140 0.66667 1.33333
+ 1  3  2   1   3     3 0.33333 0.47140 0.66667 1.33333
+ 1  3  3   1   3     3 0.33333 0.47140 0.66667 1.33333
+ 1  3  4   1   3     3 0.33333 0.47140 0.66667 1.33333
+ 1  3  5   1   3     3 0.33333 0.47140 0.66667 1.33333
+ 1  3  6   1   3     3 0.33333 0.47140 0.66667 1.33333
+ 1  3  7   1   3     3 0.33333 0.47140 0.66667 1.33333
+ 1  3  8   1   3     3 0.33333 0.47140 0.66667 1.33333
+ 1  4  1   1   4     4 0.25000 0.35355 0.75000 1.25000
+ 1  4  2   1   4     4 0.25000 0.35355 0.75000 1.25000

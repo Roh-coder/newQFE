@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="640" viewBox="0 0 900 640">
+  <rect x="0" y="0" width="900" height="640" fill="white"/>
+  <text x="40" y="40" font-size="22" font-family="Arial, sans-serif" fill="#111">4x4 Equilateral Lattice Patch (Twisted Base BC)</text>
+  <text x="40" y="66" font-size="15" font-family="Arial, sans-serif" fill="#333">Base periodic map has half-length twist: shift = L/2 = 2 lattice units</text>
+  <line x1="90.00" y1="401.77" x2="180.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="180.00" y1="401.77" x2="270.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="270.00" y1="401.77" x2="360.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="360.00" y1="401.77" x2="450.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="135.00" y1="323.83" x2="225.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="225.00" y1="323.83" x2="315.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="315.00" y1="323.83" x2="405.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="405.00" y1="323.83" x2="495.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="180.00" y1="245.88" x2="270.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="270.00" y1="245.88" x2="360.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="360.00" y1="245.88" x2="450.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="450.00" y1="245.88" x2="540.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="225.00" y1="167.94" x2="315.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="315.00" y1="167.94" x2="405.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="405.00" y1="167.94" x2="495.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="495.00" y1="167.94" x2="585.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="270.00" y1="90.00" x2="360.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="360.00" y1="90.00" x2="450.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="450.00" y1="90.00" x2="540.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="540.00" y1="90.00" x2="630.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="90.00" y1="401.77" x2="135.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="180.00" y1="401.77" x2="225.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="270.00" y1="401.77" x2="315.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="360.00" y1="401.77" x2="405.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="450.00" y1="401.77" x2="495.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="135.00" y1="323.83" x2="180.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="225.00" y1="323.83" x2="270.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="315.00" y1="323.83" x2="360.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="405.00" y1="323.83" x2="450.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="495.00" y1="323.83" x2="540.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="180.00" y1="245.88" x2="225.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="270.00" y1="245.88" x2="315.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="360.00" y1="245.88" x2="405.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="450.00" y1="245.88" x2="495.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="540.00" y1="245.88" x2="585.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="225.00" y1="167.94" x2="270.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="315.00" y1="167.94" x2="360.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="405.00" y1="167.94" x2="450.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="495.00" y1="167.94" x2="540.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="585.00" y1="167.94" x2="630.00" y2="90.00" stroke="#777" stroke-width="1.5"/>
+  <line x1="135.00" y1="323.83" x2="180.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="225.00" y1="323.83" x2="270.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="315.00" y1="323.83" x2="360.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="405.00" y1="323.83" x2="450.00" y2="401.77" stroke="#777" stroke-width="1.5"/>
+  <line x1="180.00" y1="245.88" x2="225.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="270.00" y1="245.88" x2="315.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="360.00" y1="245.88" x2="405.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="450.00" y1="245.88" x2="495.00" y2="323.83" stroke="#777" stroke-width="1.5"/>
+  <line x1="225.00" y1="167.94" x2="270.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="315.00" y1="167.94" x2="360.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="405.00" y1="167.94" x2="450.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="495.00" y1="167.94" x2="540.00" y2="245.88" stroke="#777" stroke-width="1.5"/>
+  <line x1="270.00" y1="90.00" x2="315.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="360.00" y1="90.00" x2="405.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="450.00" y1="90.00" x2="495.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <line x1="540.00" y1="90.00" x2="585.00" y2="167.94" stroke="#777" stroke-width="1.5"/>
+  <circle cx="90.00" cy="401.77" r="4" fill="#222"/>
+  <circle cx="180.00" cy="401.77" r="4" fill="#222"/>
+  <circle cx="270.00" cy="401.77" r="4" fill="#222"/>
+  <circle cx="360.00" cy="401.77" r="4" fill="#222"/>
+  <circle cx="450.00" cy="401.77" r="4" fill="#222"/>
+  <circle cx="135.00" cy="323.83" r="4" fill="#222"/>
+  <circle cx="225.00" cy="323.83" r="4" fill="#222"/>
+  <circle cx="315.00" cy="323.83" r="4" fill="#222"/>
+  <circle cx="405.00" cy="323.83" r="4" fill="#222"/>
+  <circle cx="495.00" cy="323.83" r="4" fill="#222"/>
+  <circle cx="180.00" cy="245.88" r="4" fill="#222"/>
+  <circle cx="270.00" cy="245.88" r="4" fill="#222"/>
+  <circle cx="360.00" cy="245.88" r="4" fill="#222"/>
+  <circle cx="450.00" cy="245.88" r="4" fill="#222"/>
+  <circle cx="540.00" cy="245.88" r="4" fill="#222"/>
+  <circle cx="225.00" cy="167.94" r="4" fill="#222"/>
+  <circle cx="315.00" cy="167.94" r="4" fill="#222"/>
+  <circle cx="405.00" cy="167.94" r="4" fill="#222"/>
+  <circle cx="495.00" cy="167.94" r="4" fill="#222"/>
+  <circle cx="585.00" cy="167.94" r="4" fill="#222"/>
+  <circle cx="270.00" cy="90.00" r="4" fill="#222"/>
+  <circle cx="360.00" cy="90.00" r="4" fill="#222"/>
+  <circle cx="450.00" cy="90.00" r="4" fill="#222"/>
+  <circle cx="540.00" cy="90.00" r="4" fill="#222"/>
+  <circle cx="630.00" cy="90.00" r="4" fill="#222"/>
+  <line x1="90.00" y1="401.77" x2="450.00" y2="401.77" stroke="#1f77b4" stroke-width="5"/>
+  <line x1="270.00" y1="90.00" x2="630.00" y2="90.00" stroke="#1f77b4" stroke-width="5" stroke-dasharray="12,8"/>
+  <line x1="90.00" y1="401.77" x2="270.00" y2="90.00" stroke="#d62728" stroke-width="5"/>
+  <line x1="450.00" y1="401.77" x2="630.00" y2="90.00" stroke="#d62728" stroke-width="5" stroke-dasharray="12,8"/>
+  <circle cx="90.00" cy="401.77" r="10" fill="white" stroke="#1f77b4" stroke-width="2"/>
+  <text x="90.00" y="425.77" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" fill="#1f77b4">A</text>
+  <circle cx="450.00" cy="90.00" r="10" fill="white" stroke="#1f77b4" stroke-width="2" stroke-dasharray="5,4"/>
+  <text x="450.00" y="72.00" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" fill="#1f77b4">A</text>
+  <circle cx="180.00" cy="401.77" r="10" fill="white" stroke="#1f77b4" stroke-width="2"/>
+  <text x="180.00" y="425.77" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" fill="#1f77b4">B</text>
+  <circle cx="540.00" cy="90.00" r="10" fill="white" stroke="#1f77b4" stroke-width="2" stroke-dasharray="5,4"/>
+  <text x="540.00" y="72.00" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" fill="#1f77b4">B</text>
+  <circle cx="270.00" cy="401.77" r="10" fill="white" stroke="#1f77b4" stroke-width="2"/>
+  <text x="270.00" y="425.77" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" fill="#1f77b4">C</text>
+  <circle cx="270.00" cy="90.00" r="10" fill="white" stroke="#1f77b4" stroke-width="2" stroke-dasharray="5,4"/>
+  <text x="270.00" y="72.00" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" fill="#1f77b4">C</text>
+  <circle cx="360.00" cy="401.77" r="10" fill="white" stroke="#1f77b4" stroke-width="2"/>
+  <text x="360.00" y="425.77" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" fill="#1f77b4">D</text>
+  <circle cx="360.00" cy="90.00" r="10" fill="white" stroke="#1f77b4" stroke-width="2" stroke-dasharray="5,4"/>
+  <text x="360.00" y="72.00" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" fill="#1f77b4">D</text>
+  <text x="66.00" y="401.77" text-anchor="middle" dominant-baseline="middle" font-size="12" font-family="Arial, sans-serif" fill="#d62728">L0</text>
+  <text x="474.00" y="401.77" text-anchor="middle" dominant-baseline="middle" font-size="12" font-family="Arial, sans-serif" fill="#d62728">L0</text>
+  <text x="111.00" y="323.83" text-anchor="middle" dominant-baseline="middle" font-size="12" font-family="Arial, sans-serif" fill="#d62728">L1</text>
+  <text x="519.00" y="323.83" text-anchor="middle" dominant-baseline="middle" font-size="12" font-family="Arial, sans-serif" fill="#d62728">L1</text>
+  <text x="156.00" y="245.88" text-anchor="middle" dominant-baseline="middle" font-size="12" font-family="Arial, sans-serif" fill="#d62728">L2</text>
+  <text x="564.00" y="245.88" text-anchor="middle" dominant-baseline="middle" font-size="12" font-family="Arial, sans-serif" fill="#d62728">L2</text>
+  <text x="201.00" y="167.94" text-anchor="middle" dominant-baseline="middle" font-size="12" font-family="Arial, sans-serif" fill="#d62728">L3</text>
+  <text x="609.00" y="167.94" text-anchor="middle" dominant-baseline="middle" font-size="12" font-family="Arial, sans-serif" fill="#d62728">L3</text>
+  <text x="95" y="565" font-size="16" font-family="Arial, sans-serif" fill="#1f77b4">Twisted base BC: matching labels A/B/C/D identify wrapped pairs</text>
+  <text x="95" y="590" font-size="14" font-family="Arial, sans-serif" fill="#1f77b4">Map rule: bottom i -> top (i+2 mod 4), half-length twist</text>
+  <text x="560" y="130" font-size="16" font-family="Arial, sans-serif" fill="#d62728">Left-side periodic BC: (i, j+4) ~ (i, j)</text>
+  <text x="420" y="540" font-size="14" font-family="Arial, sans-serif" fill="#1f77b4">bottom edge (solid)</text>
+  <text x="610" y="245" font-size="14" font-family="Arial, sans-serif" fill="#1f77b4">top edge (dashed)</text>
+  <text x="35" y="340" font-size="14" font-family="Arial, sans-serif" fill="#d62728">left edge (solid)</text>
+  <text x="700" y="340" font-size="14" font-family="Arial, sans-serif" fill="#d62728">right edge (dashed)</text>
+  <text x="560" y="565" font-size="13" font-family="Arial, sans-serif" fill="#1f77b4">example: label A pair = bottom i=0 with top i=2</text>
+</svg>

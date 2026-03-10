@@ -1,0 +1,7 @@
+MC two-point functions in triangular directions
+============================================
+Nx=32 Ny=32 shift=16 K=0.274653072167
+Kc_tri=0.274653072167
+therm=2000 meas=4000 sample_every=10
+anchors=256 nsamp=400
+periods: x=32 left=64 diag=64

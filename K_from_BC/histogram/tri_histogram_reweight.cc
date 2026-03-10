@@ -11,6 +11,7 @@
 #include <getopt.h>
 #include <cassert>
 #include <cmath>
+#include <cstdlib>
 #include <cstdio>
 #include <vector>
 #include <sys/stat.h>
@@ -70,7 +71,7 @@ int main(int argc, char* argv[]) {
   printf("# beta_min: %.12f, beta_max: %.12f, n_beta: %d\n", beta_min, beta_max,
          n_beta);
 
-  mkdir("K_from_BC/histogram/tri_histogram_reweight", 0755);
+  system("mkdir -p K_from_BC/results/runs/histogram/tri_histogram_reweight");
 
   // Loop over beta values
   for (int beta_idx = 0; beta_idx < n_beta; beta_idx++) {
@@ -90,7 +91,7 @@ int main(int argc, char* argv[]) {
     field.HotStart();
 
     char dat_filename[256];
-    sprintf(dat_filename, "K_from_BC/histogram/tri_histogram_reweight/N%d_beta_%.4f.dat", N, beta);
+    sprintf(dat_filename, "K_from_BC/results/runs/histogram/tri_histogram_reweight/N%d_beta_%.4f.dat", N, beta);
     FILE* dat_file = fopen(dat_filename, "w");
     assert(dat_file != nullptr);
 
@@ -140,7 +141,7 @@ int main(int argc, char* argv[]) {
 
   printf("\n# Data collection complete.\n");
   printf(
-      "# Files saved in K_from_BC/histogram/tri_histogram_reweight/ directory.\n"
+      "# Files saved in K_from_BC/results/runs/histogram/tri_histogram_reweight/ directory.\n"
       "# Format: m m^2 action\n"
       "# Ready for histogram reweighting analysis.\n");
 

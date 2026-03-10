@@ -12,7 +12,7 @@ Included C++ source entry point in this folder:
 - `K_from_BC/collab_ny2nx/k_from_bc_collab_ny2nx.cc` (wrapper)
 
 The full source is now copied into this folder and is the default file
-compiled by `run_cases.py`.
+compiled by `run_cases.sh`.
 
 All runs use:
 
@@ -44,22 +44,22 @@ Outputs appear in:
 
 - `K_from_BC/collab_ny2nx/output/manifest.json`
 - `K_from_BC/collab_ny2nx/output/logs/*.log`
-- `K_from_BC/collab_ny2nx/output/data/*.dat`
-- `K_from_BC/collab_ny2nx/output/plots/correlators_fractional.png`
+- `K_from_BC/collab_ny2nx/output/results/runs/*.dat`
+- `K_from_BC/collab_ny2nx/output/results/plots/correlators_fractional.png`
 
 ## Run scripts separately
 
 ```bash
-python3 K_from_BC/collab_ny2nx/run_cases.py
+bash K_from_BC/collab_ny2nx/run_cases.sh
 python3 K_from_BC/collab_ny2nx/plot_cases.py
 ```
 
 Useful options:
 
 ```bash
-python3 K_from_BC/collab_ny2nx/run_cases.py --nx 32 --ny 64 --n-traj 120000
-python3 K_from_BC/collab_ny2nx/run_cases.py --skip-compile
-python3 K_from_BC/collab_ny2nx/plot_cases.py --output K_from_BC/collab_ny2nx/output/plots/custom.png
+bash K_from_BC/collab_ny2nx/run_cases.sh --nx 32 --ny 64 --n-traj 120000
+bash K_from_BC/collab_ny2nx/run_cases.sh --skip-compile
+python3 K_from_BC/collab_ny2nx/plot_cases.py --output K_from_BC/collab_ny2nx/output/results/plots/custom.png
 ```
 
 ## Direct compile/run (single case data generation)
@@ -101,11 +101,11 @@ For the command above, the filename is:
 
 ## Reproducibility notes
 
-- `run_cases.py` compiles `K_from_BC/collab_ny2nx/ising_flat_crit_k_from_bc.cc`
+- `run_cases.sh` compiles `K_from_BC/collab_ny2nx/ising_flat_crit_k_from_bc.cc`
   into a local binary at `K_from_BC/collab_ny2nx/bin/ising_kbc`.
 - Raw run output data still originates from the code's standard output folder:
   - `ising_flat_crit_k_from_bc/*.dat`
 - A copy of each case data file is saved into this package under:
-  - `K_from_BC/collab_ny2nx/output/data/`
+  - `K_from_BC/collab_ny2nx/output/results/runs/`
 
 This makes collaborator handoff straightforward: point collaborators to this folder and `run_all.sh`.

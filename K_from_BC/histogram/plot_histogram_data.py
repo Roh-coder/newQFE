@@ -73,12 +73,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--input",
-        default="K_from_BC/histogram/histogram_data.dat",
+        default="K_from_BC/results/runs/histogram/histogram_data.dat",
         help="Input data file"
     )
     parser.add_argument(
         "--output",
-        default="K_from_BC/histogram/histogram_plots.png",
+        default="K_from_BC/results/plots/histogram/histogram_plots.png",
         help="Output plot file"
     )
     args = parser.parse_args()

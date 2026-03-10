@@ -78,7 +78,7 @@ def parse_dat_files(output_dir, target_N=None):
     If target_N is given, only include rows for that lattice size.
     """
     data = []
-    dat_dir = Path(output_dir) / "K_from_BC" / "histogram" / "tri_histogram_reweight"
+    dat_dir = Path(output_dir) / "K_from_BC" / "results" / "runs" / "histogram" / "tri_histogram_reweight"
     
     if not dat_dir.exists():
         print(f"Warning: {dat_dir} not found")
@@ -121,7 +121,7 @@ def main():
     )
     parser.add_argument(
         "--output",
-        default="K_from_BC/histogram/histogram_data.dat",
+        default="K_from_BC/results/runs/histogram/histogram_data.dat",
         help="Output data file (relative to workspace)"
     )
     parser.add_argument(

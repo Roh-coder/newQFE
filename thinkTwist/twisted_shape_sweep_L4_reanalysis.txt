@@ -1,0 +1,15 @@
+Compensating Triangle Cases
+==========================
+
+Columns: L, shift, periods (px, py, p(y-x)), and solved shape with |x|=1
+feasible=False means exact Euclidean triangle realization is impossible for that case
+theta_projected is angle after clipping to boundary (legacy artifact diagnostic)
+
+   L  shift   px   py  p(y-x)      |x|        |y|      |y-x|  feasible        theta   theta_proj
+------------------------------------------------------------------------------------------------------------
+   4      0    4    4       4    1.000   1.000000   1.414214      True    90.000000    90.000000
+   4      1    4   16      16    1.000   0.250000   0.353553     False          nan     0.000000
+   4      2    4    8       8    1.000   0.500000   0.707107      True    41.409622    41.409622
+   4      3    4   16      16    1.000   0.250000   0.353553     False          nan     0.000000
+
+Feasible cases: 2 / 4

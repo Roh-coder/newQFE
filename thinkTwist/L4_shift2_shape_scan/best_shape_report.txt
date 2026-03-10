@@ -1,0 +1,15 @@
+L=4 shift=2 triangle-shape scan for two-point matching
+===================================================
+
+L=4, shift=2, xi=2.0, rmax=32
+twisted periods: p_x=4, p_y=8, p_y-x=8
+
+Best shape (minimum mean MAE vs square-target two-point curves):
+  lx=1.000000
+  ly=1.000000
+  theta=90.000000 deg
+  lr=|y-x|=1.414214
+  err_x=0.000000
+  err_y=0.197753
+  err_y-x=0.204519
+  err_total=0.134091

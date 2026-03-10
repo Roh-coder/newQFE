@@ -93,13 +93,15 @@ def main() -> None:
 
     repo = Path(__file__).resolve().parents[2]
     out_dir = repo / "K_from_BC" / "collab_ny2nx" / "output"
+    results_dir = out_dir / "results"
     log_dir = out_dir / "logs"
-    data_dir = out_dir / "data"
+    data_dir = results_dir / "runs"
     bin_path = repo / args.binary
     src = repo / args.source
 
     log_dir.mkdir(parents=True, exist_ok=True)
     data_dir.mkdir(parents=True, exist_ok=True)
+    (results_dir / "plots").mkdir(parents=True, exist_ok=True)
     bin_path.parent.mkdir(parents=True, exist_ok=True)
 
     if not args.skip_compile:

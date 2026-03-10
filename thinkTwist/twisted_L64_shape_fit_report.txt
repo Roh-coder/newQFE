@@ -1,0 +1,18 @@
+Twisted BC compensating triangle fit (L=64, shift=32)
+====================================================
+
+Periods under twist: px=64, py=128, p(y-x)=128
+Target half-orbit ratio (square continuum): x:y:(y-x) = 1:1:sqrt(2)
+
+Chosen compensating local lengths (scale |x|=1):
+  |x|      = 1.000000
+  |y|      = 0.500000
+  |y-x|    = 0.707107
+  cos(theta_xy) = 0.750000
+  theta_xy       = 41.409622 deg
+
+Equivalent side ratio (x : y : y-x):
+  1 : 0.500000 : 0.707107
+
+Right-isosceles local lengths for comparison:
+  |x|=|y|=1.000000, |y-x|=1.414214
