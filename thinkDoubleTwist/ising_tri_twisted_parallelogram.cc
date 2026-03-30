@@ -241,7 +241,9 @@ int main(int argc, char* argv[]) {
   double K1 = 0.5;
   double K2 = 0.5;
   double K3 = 0.5;
+  double Kt = 0.5;
   double beta = 1.0;
+  int N_t = 1;
 
   unsigned int seed = 1234u;
   int n_therm = 2000;
@@ -259,12 +261,14 @@ int main(int argc, char* argv[]) {
       {"L_y", required_argument, 0, 'Y'},
       {"T_x", required_argument, 0, 'P'},
       {"T_y", required_argument, 0, 'Q'},
+      {"N_t", required_argument, 0, 'Z'},
       {"k_x", required_argument, 0, 'a'},
       {"k_y", required_argument, 0, 'b'},
       {"k_xy", required_argument, 0, 'c'},
       {"k1", required_argument, 0, 'a'},
       {"k2", required_argument, 0, 'b'},
       {"k3", required_argument, 0, 'c'},
+      {"k_t", required_argument, 0, 'g'},
       {"beta", required_argument, 0, 'B'},
       {"seed", required_argument, 0, 'S'},
       {"n_therm", required_argument, 0, 'h'},
@@ -278,7 +282,7 @@ int main(int argc, char* argv[]) {
       {"full_two_point_name", required_argument, 0, 'f'},
       {0, 0, 0, 0}};
 
-  const char* short_options = "X:Y:P:Q:a:b:c:B:S:h:t:s:w:e:W:d:p:f:";
+  const char* short_options = "X:Y:P:Q:Z:a:b:c:g:B:S:h:t:s:w:e:W:d:p:f:";
 
   while (true) {
     int o = 0;
@@ -290,9 +294,11 @@ int main(int argc, char* argv[]) {
       case 'Y': L_y = atoi(optarg); break;
       case 'P': T_x = atoi(optarg); break;
       case 'Q': T_y = atoi(optarg); break;
+      case 'Z': N_t = atoi(optarg); break;
       case 'a': K1 = std::stod(optarg); break;
       case 'b': K2 = std::stod(optarg); break;
       case 'c': K3 = std::stod(optarg); break;
+      case 'g': Kt = std::stod(optarg); break;
       case 'B': beta = std::stod(optarg); break;
       case 'S': seed = static_cast<unsigned int>(std::strtoul(optarg, nullptr, 10)); break;
       case 'h': n_therm = atoi(optarg); break;
@@ -309,8 +315,8 @@ int main(int argc, char* argv[]) {
   }
 
   const int N_cell = L_x * L_y + T_x * T_y;
-  if (L_x <= 0 || L_y <= 0 || N_cell <= 0) {
-    fprintf(stderr, "ERROR: require L_x>0, L_y>0, and L_x*L_y + T_x*T_y > 0\n");
+  if (L_x <= 0 || L_y <= 0 || N_cell <= 0 || N_t <= 0) {
+    fprintf(stderr, "ERROR: require L_x>0, L_y>0, N_t>0, and L_x*L_y + T_x*T_y > 0\n");
     return 1;
   }
 
@@ -319,9 +325,11 @@ int main(int argc, char* argv[]) {
   printf("T_x: %d\n", T_x);
   printf("T_y: %d\n", T_y);
   printf("N_cell: %d\n", N_cell);
+  printf("N_t: %d\n", N_t);
   printf("K1: %.12f\n", K1);
   printf("K2: %.12f\n", K2);
   printf("K3: %.12f\n", K3);
+  printf("Kt: %.12f\n", Kt);
   printf("beta: %.12f\n", beta);
   printf("seed: 0x%08X\n", seed);
   printf("n_therm: %d\n", n_therm);
@@ -339,6 +347,15 @@ int main(int argc, char* argv[]) {
   lattice.SeedRng(seed);
   InitTriangleTwistedParallelogram(&lattice, L_x, L_y, T_x, T_y, K1, K2, K3,
                                    &twisted_map);
+
+  if (N_t > 1) {
+    lattice.AddDimension(N_t);
+    for (int s = 0; s < lattice.n_sites; s++) {
+      int sp1 = (s + N_cell) % lattice.n_sites;
+      int l = lattice.FindLink(s, sp1);
+      if (l != -1) lattice.links[l].wt = Kt;
+    }
+  }
 
   QfeIsing field(&lattice, beta);
   field.HotStart();
@@ -410,30 +427,35 @@ int main(int argc, char* argv[]) {
     std::vector<double> corr_sum_e2me1(p_e2me1, 0.0);
     std::vector<double> corr_sum_all(N_cell, 0.0);
 
-    for (int s = 0; s < lattice.n_sites; s++) {
-      double spin_s = field.spin[s];
+    for (int t0 = 0; t0 < N_t; t0++) {
+      int t_offset = t0 * N_cell;
+      for (int s2 = 0; s2 < N_cell; s2++) {
+        int s = t_offset + s2;
+        double spin_s = field.spin[s];
 
-      int t = s;
-      for (int r = 0; r < p_e1; r++) {
-        corr_sum_e1[r] += spin_s * field.spin[t];
-        t = twisted_map.next_e1[t];
-      }
+        int u = s2;
+        for (int r = 0; r < p_e1; r++) {
+          corr_sum_e1[r] += spin_s * field.spin[t_offset + u];
+          u = twisted_map.next_e1[u];
+        }
 
-      t = s;
-      for (int r = 0; r < p_e2; r++) {
-        corr_sum_e2[r] += spin_s * field.spin[t];
-        t = twisted_map.next_e2[t];
-      }
+        u = s2;
+        for (int r = 0; r < p_e2; r++) {
+          corr_sum_e2[r] += spin_s * field.spin[t_offset + u];
+          u = twisted_map.next_e2[u];
+        }
 
-      t = s;
-      for (int r = 0; r < p_e2me1; r++) {
-        corr_sum_e2me1[r] += spin_s * field.spin[t];
-        t = twisted_map.next_e2me1[t];
-      }
+        u = s2;
+        for (int r = 0; r < p_e2me1; r++) {
+          corr_sum_e2me1[r] += spin_s * field.spin[t_offset + u];
+          u = twisted_map.next_e2me1[u];
+        }
 
-      for (int d = 0; d < N_cell; d++) {
-        int t_all = twisted_map.add_table[s * N_cell + d];
-        corr_sum_all[d] += spin_s * field.spin[t_all];
+        int add_base = s2 * N_cell;
+        for (int d = 0; d < N_cell; d++) {
+          int u_all = twisted_map.add_table[add_base + d];
+          corr_sum_all[d] += spin_s * field.spin[t_offset + u_all];
+        }
       }
     }
 
@@ -490,7 +512,8 @@ int main(int argc, char* argv[]) {
   char run_id[128];
   char subdir[256];
   char path[512];
-  sprintf(run_id, "Lx%d_Ly%d_Tx%d_Ty%d_k%.3f_%.3f_%.3f", L_x, L_y, T_x, T_y, K1, K2, K3);
+    sprintf(run_id, "Lx%d_Ly%d_Tx%d_Ty%d_Nt%d_k%.3f_%.3f_%.3f_kt%.3f",
+      L_x, L_y, T_x, T_y, N_t, K1, K2, K3, Kt);
   sprintf(subdir, "%s/%s", data_dir.c_str(), run_id);
   if (!MakeDir(subdir)) {
     fprintf(stderr, "WARNING: could not create run subdir: %s\n", subdir);
@@ -507,9 +530,11 @@ int main(int argc, char* argv[]) {
   fprintf(file, "T_x %d\n", T_x);
   fprintf(file, "T_y %d\n", T_y);
   fprintf(file, "N_cell %d\n", N_cell);
+  fprintf(file, "N_t %d\n", N_t);
   fprintf(file, "K1 %.12e\n", K1);
   fprintf(file, "K2 %.12e\n", K2);
   fprintf(file, "K3 %.12e\n", K3);
+  fprintf(file, "Kt %.12e\n", Kt);
   fprintf(file, "beta %.12e\n", beta);
   fprintf(file, "mag %.12e %.12e %d\n", mag.Mean(), mag.Error(), mag.n);
   fprintf(file, "mag^2 %.12e %.12e %d\n", mag_2.Mean(), mag_2.Error(), mag_2.n);
@@ -562,6 +587,7 @@ int main(int argc, char* argv[]) {
   sprintf(full_two_point_path, "%s/%s", subdir, full_two_point_name.c_str());
   FILE* full_file = fopen(full_two_point_path, "w");
   assert(full_file != nullptr);
+  fprintf(full_file, "# Equal-time spatial all-to-all average over all time slices.\n");
   fprintf(full_file, "# d m n corr err corr_conn err_conn\n");
   for (int d = 0; d < N_cell; d++) {
     double cconn = 0.0;

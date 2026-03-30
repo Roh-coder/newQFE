@@ -1,0 +1,148 @@
+nohup: ignoring input
+[18:43:56] Binary    : /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/ising_tri_twisted_parallelogram
+[18:43:56] Data dir  : /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/out_binder_refine_left_to_right2
+[18:43:56] n_traj    : 1000
+[18:43:56] n_therm   : 300
+[18:43:56] n_skip    : 10
+[18:43:56] k_spacing : linear
+[18:43:56] K values  : 0.1510 0.1559 0.1609 0.1658 0.1707 0.1756 0.1805 0.1854 0.1903 0.1952 0.2001
+[18:43:56] Sizes     : [32, 24, 16, 8]
+[18:43:56] Total jobs: 44   max_workers=8
+[18:43:56] First 8   : L=32/K=0.166  L=32/K=0.161  L=32/K=0.171  L=32/K=0.156  L=32/K=0.176  L=32/K=0.151  L=32/K=0.180  L=32/K=0.185
+[18:43:56] Monitor   : tail -f /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/out_binder_refine_left_to_right2/progress.log
+[18:43:56] 
+[18:43:56] START L=32  K=0.165754  seed=0x5EAC5534  n_sites=32768  n_traj=1000
+[18:43:56] START L=32  K=0.160851  seed=0x5EACCF9D  n_sites=32768  n_traj=1000
+[18:43:56] START L=32  K=0.170656  seed=0x5EAFD8AB  n_sites=32768  n_traj=1000
+[18:43:56] START L=32  K=0.155949  seed=0x5EAD49E6  n_sites=32768  n_traj=1000
+[18:43:56] START L=32  K=0.175558  seed=0x5EAF5E42  n_sites=32768  n_traj=1000
+[18:43:56] START L=32  K=0.151047  seed=0x5EADC24F  n_sites=32768  n_traj=1000
+[18:43:56] START L=32  K=0.180460  seed=0x5EAEE5F9  n_sites=32768  n_traj=1000
+[18:43:56] START L=32  K=0.185362  seed=0x5EAE6B90  n_sites=32768  n_traj=1000
+[18:45:46] DONE  L=32  K=0.151047  OK  t=110s  U4=0.0607±0.0042
+[18:45:46] PROGRESS 1/44  remaining=43  ETA ~78.7 min
+[18:45:46] START L=32  K=0.190265  seed=0x5EA9F107  n_sites=32768  n_traj=1000
+[18:45:48] DONE  L=32  K=0.155949  OK  t=113s  U4=0.1839±0.0152
+[18:45:48] PROGRESS 2/44  remaining=42  ETA ~39.4 min
+[18:45:48] START L=32  K=0.195167  seed=0x5EA974BE  n_sites=32768  n_traj=1000
+[18:46:03] DONE  L=32  K=0.160851  OK  t=127s  U4=0.7589±0.0263
+[18:46:03] PROGRESS 3/44  remaining=41  ETA ~28.9 min
+[18:46:03] START L=32  K=0.200069  seed=0x5EA8FA55  n_sites=32768  n_traj=1000
+[18:47:23] DONE  L=32  K=0.165754  OK  t=207s  U4=0.9992±0.0000
+[18:47:23] PROGRESS 4/44  remaining=40  ETA ~34.6 min
+[18:47:23] START L=24  K=0.165754  seed=0x5EAC725C  n_sites=13824  n_traj=1000
+[18:48:15] DONE  L=32  K=0.170656  OK  t=259s  U4=0.9997±0.0000
+[18:48:15] PROGRESS 5/44  remaining=39  ETA ~33.6 min
+[18:48:15] START L=24  K=0.160851  seed=0x5EACECA5  n_sites=13824  n_traj=1000
+[18:48:36] DONE  L=24  K=0.165754  OK  t=73s  U4=0.9978±0.0001
+[18:48:36] PROGRESS 6/44  remaining=38  ETA ~29.6 min
+[18:48:36] START L=24  K=0.170656  seed=0x5EAFF9F3  n_sites=13824  n_traj=1000
+[18:48:46] DONE  L=32  K=0.175558  OK  t=290s  U4=0.9999±0.0000
+[18:48:46] PROGRESS 7/44  remaining=37  ETA ~25.5 min
+[18:48:46] START L=24  K=0.155949  seed=0x5EAD690E  n_sites=13824  n_traj=1000
+[18:48:56] DONE  L=24  K=0.160851  OK  t=42s  U4=0.7824±0.0236
+[18:48:56] PROGRESS 8/44  remaining=36  ETA ~22.5 min
+[18:48:56] START L=24  K=0.175558  seed=0x5EAF7F6A  n_sites=13824  n_traj=1000
+[18:49:16] DONE  L=32  K=0.180460  OK  t=320s  U4=0.9999±0.0000
+[18:49:16] PROGRESS 9/44  remaining=35  ETA ~20.7 min
+[18:49:16] START L=24  K=0.151047  seed=0x5EADE397  n_sites=13824  n_traj=1000
+[18:49:21] DONE  L=24  K=0.155949  OK  t=35s  U4=0.2360±0.0177
+[18:49:21] PROGRESS 10/44  remaining=34  ETA ~18.4 min
+[18:49:21] START L=24  K=0.180460  seed=0x5EAE8501  n_sites=13824  n_traj=1000
+[18:49:33] DONE  L=32  K=0.185362  OK  t=337s  U4=0.9999±0.0000
+[18:49:33] PROGRESS 11/44  remaining=33  ETA ~16.9 min
+[18:49:33] START L=24  K=0.185362  seed=0x5EAE08B8  n_sites=13824  n_traj=1000
+[18:49:48] DONE  L=24  K=0.151047  OK  t=32s  U4=0.1177±0.0079
+[18:49:48] PROGRESS 12/44  remaining=32  ETA ~15.7 min
+[18:49:48] START L=24  K=0.190265  seed=0x5EA98E2F  n_sites=13824  n_traj=1000
+[18:50:07] DONE  L=24  K=0.170656  OK  t=91s  U4=0.9994±0.0000
+[18:50:07] PROGRESS 13/44  remaining=31  ETA ~14.8 min
+[18:50:07] START L=24  K=0.195167  seed=0x5EA915C6  n_sites=13824  n_traj=1000
+[18:50:35] DONE  L=24  K=0.175558  OK  t=99s  U4=0.9997±0.0000
+[18:50:35] PROGRESS 14/44  remaining=30  ETA ~14.2 min
+[18:50:35] START L=24  K=0.200069  seed=0x5EA89B7D  n_sites=13824  n_traj=1000
+[18:51:07] DONE  L=24  K=0.180460  OK  t=107s  U4=0.9998±0.0000
+[18:51:07] PROGRESS 15/44  remaining=29  ETA ~13.9 min
+[18:51:07] START L=16  K=0.165754  seed=0x5EAC1364  n_sites=4096  n_traj=1000
+[18:51:20] DONE  L=16  K=0.165754  OK  t=12s  U4=0.9936±0.0005
+[18:51:20] PROGRESS 16/44  remaining=28  ETA ~12.9 min
+[18:51:20] START L=16  K=0.160851  seed=0x5EAC8DCD  n_sites=4096  n_traj=1000
+[18:51:27] DONE  L=16  K=0.160851  OK  t=8s  U4=0.7896±0.0236
+[18:51:27] PROGRESS 17/44  remaining=27  ETA ~12.0 min
+[18:51:27] START L=16  K=0.170656  seed=0x5EAF991B  n_sites=4096  n_traj=1000
+[18:51:31] DONE  L=24  K=0.185362  OK  t=118s  U4=0.9999±0.0000
+[18:51:31] PROGRESS 18/44  remaining=26  ETA ~11.0 min
+[18:51:31] START L=16  K=0.155949  seed=0x5EAD0656  n_sites=4096  n_traj=1000
+[18:51:37] DONE  L=32  K=0.190265  OK  t=352s  U4=1.0000±0.0000
+[18:51:37] PROGRESS 19/44  remaining=25  ETA ~10.1 min
+[18:51:37] START L=16  K=0.175558  seed=0x5EAF1CB2  n_sites=4096  n_traj=1000
+[18:51:39] DONE  L=16  K=0.155949  OK  t=8s  U4=0.3735±0.0239
+[18:51:39] PROGRESS 20/44  remaining=24  ETA ~9.3 min
+[18:51:39] START L=16  K=0.151047  seed=0x5EAD80BF  n_sites=4096  n_traj=1000
+[18:51:40] DONE  L=32  K=0.195167  OK  t=352s  U4=1.0000±0.0000
+[18:51:40] PROGRESS 21/44  remaining=23  ETA ~8.5 min
+[18:51:40] START L=16  K=0.180460  seed=0x5EAEA229  n_sites=4096  n_traj=1000
+[18:51:45] DONE  L=16  K=0.170656  OK  t=18s  U4=0.9979±0.0001
+[18:51:45] PROGRESS 22/44  remaining=22  ETA ~7.8 min
+[18:51:45] START L=16  K=0.185362  seed=0x5EAE29C0  n_sites=4096  n_traj=1000
+[18:51:45] DONE  L=24  K=0.190265  OK  t=118s  U4=0.9999±0.0000
+[18:51:45] PROGRESS 23/44  remaining=21  ETA ~7.1 min
+[18:51:45] START L=16  K=0.190265  seed=0x5EA9AF77  n_sites=4096  n_traj=1000
+[18:51:47] DONE  L=16  K=0.151047  OK  t=8s  U4=0.2346±0.0166
+[18:51:47] PROGRESS 24/44  remaining=20  ETA ~6.6 min
+[18:51:47] START L=16  K=0.195167  seed=0x5EA932EE  n_sites=4096  n_traj=1000
+[18:51:56] DONE  L=16  K=0.175558  OK  t=19s  U4=0.9990±0.0000
+[18:51:56] PROGRESS 25/44  remaining=19  ETA ~6.1 min
+[18:51:56] START L=16  K=0.200069  seed=0x5EA8B885  n_sites=4096  n_traj=1000
+[18:52:00] DONE  L=16  K=0.180460  OK  t=20s  U4=0.9994±0.0000
+[18:52:00] PROGRESS 26/44  remaining=18  ETA ~5.6 min
+[18:52:00] START L= 8  K=0.165754  seed=0x5EAC308C  n_sites=512  n_traj=1000
+[18:52:01] DONE  L= 8  K=0.165754  OK  t=1s  U4=0.9066±0.0169
+[18:52:01] PROGRESS 27/44  remaining=17  ETA ~5.1 min
+[18:52:01] START L= 8  K=0.160851  seed=0x5EACAD15  n_sites=512  n_traj=1000
+[18:52:03] DONE  L= 8  K=0.160851  OK  t=1s  U4=0.7302±0.0272
+[18:52:03] PROGRESS 28/44  remaining=16  ETA ~4.6 min
+[18:52:03] START L= 8  K=0.170656  seed=0x5EAFB623  n_sites=512  n_traj=1000
+[18:52:05] DONE  L= 8  K=0.170656  OK  t=2s  U4=0.9657±0.0071
+[18:52:05] PROGRESS 29/44  remaining=15  ETA ~4.2 min
+[18:52:05] START L= 8  K=0.155949  seed=0x5EAD277E  n_sites=512  n_traj=1000
+[18:52:06] DONE  L= 8  K=0.155949  OK  t=1s  U4=0.6229±0.0300
+[18:52:06] PROGRESS 30/44  remaining=14  ETA ~3.8 min
+[18:52:06] START L= 8  K=0.175558  seed=0x5EAF3DDA  n_sites=512  n_traj=1000
+[18:52:07] DONE  L=16  K=0.185362  OK  t=22s  U4=0.9996±0.0000
+[18:52:07] PROGRESS 31/44  remaining=13  ETA ~3.4 min
+[18:52:07] START L= 8  K=0.151047  seed=0x5EADA1C7  n_sites=512  n_traj=1000
+[18:52:08] DONE  L= 8  K=0.175558  OK  t=2s  U4=0.9898±0.0021
+[18:52:08] PROGRESS 32/44  remaining=12  ETA ~3.1 min
+[18:52:08] START L= 8  K=0.180460  seed=0x5EAF4371  n_sites=512  n_traj=1000
+[18:52:08] DONE  L= 8  K=0.151047  OK  t=1s  U4=0.4216±0.0248
+[18:52:08] PROGRESS 33/44  remaining=11  ETA ~2.7 min
+[18:52:08] START L= 8  K=0.185362  seed=0x5EAEC6E8  n_sites=512  n_traj=1000
+[18:52:09] DONE  L=32  K=0.200069  OK  t=366s  U4=1.0000±0.0000
+[18:52:09] PROGRESS 34/44  remaining=10  ETA ~2.4 min
+[18:52:09] START L= 8  K=0.190265  seed=0x5EAE4C9F  n_sites=512  n_traj=1000
+[18:52:09] DONE  L= 8  K=0.180460  OK  t=1s  U4=0.9947±0.0003
+[18:52:09] PROGRESS 35/44  remaining=9  ETA ~2.1 min
+[18:52:09] START L= 8  K=0.195167  seed=0x5EA9D236  n_sites=512  n_traj=1000
+[18:52:10] DONE  L=16  K=0.195167  OK  t=22s  U4=0.9998±0.0000
+[18:52:10] PROGRESS 36/44  remaining=8  ETA ~1.8 min
+[18:52:10] START L= 8  K=0.200069  seed=0x5EA959AD  n_sites=512  n_traj=1000
+[18:52:10] DONE  L=16  K=0.190265  OK  t=25s  U4=0.9997±0.0000
+[18:52:10] PROGRESS 37/44  remaining=7  ETA ~1.6 min
+[18:52:11] DONE  L= 8  K=0.185362  OK  t=2s  U4=0.9962±0.0004
+[18:52:11] PROGRESS 38/44  remaining=6  ETA ~1.3 min
+[18:52:11] DONE  L= 8  K=0.190265  OK  t=2s  U4=0.9973±0.0002
+[18:52:11] PROGRESS 39/44  remaining=5  ETA ~1.1 min
+[18:52:12] DONE  L= 8  K=0.195167  OK  t=3s  U4=0.9981±0.0001
+[18:52:12] PROGRESS 40/44  remaining=4  ETA ~0.8 min
+[18:52:12] DONE  L= 8  K=0.200069  OK  t=2s  U4=0.9985±0.0001
+[18:52:12] PROGRESS 41/44  remaining=3  ETA ~0.6 min
+[18:52:14] DONE  L=24  K=0.195167  OK  t=127s  U4=0.9999±0.0000
+[18:52:14] PROGRESS 42/44  remaining=2  ETA ~0.4 min
+[18:52:15] DONE  L=16  K=0.200069  OK  t=18s  U4=0.9998±0.0000
+[18:52:15] PROGRESS 43/44  remaining=1  ETA ~0.2 min
+[18:52:17] DONE  L=24  K=0.200069  OK  t=102s  U4=0.9999±0.0000
+[18:52:17] PROGRESS 44/44  remaining=0  ETA ~0.0 min
+[18:52:17] All jobs complete.
+[18:52:17] Summary : /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/out_binder_refine_left_to_right2/summary.tsv
+[18:52:17] Plot    : python plot_binder_crossing.py

@@ -1,0 +1,58 @@
+L_x: 32
+L_y: 32
+T_x: 0
+T_y: 0
+N_cell: 1024
+N_t: 128
+K1: 0.161857142900
+K2: 0.161857142900
+K3: 0.161857142900
+Kt: 0.161857142900
+beta: 1.000000000000
+seed: 0x5EAB0D1A
+n_therm: 300
+n_traj: 1000
+n_skip: 10
+n_wolff: 3
+n_metropolis: 5
+wall_time: 0.000000
+data_dir: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/out_binder_refine_160_162_nk15_ntraj1000_Nt4L
+two_point_name: two_point_typed.dat
+full_two_point_name: two_point_all_to_all.dat
+n_sites: 131072
+n_links: 524288
+initial action: -0.000034576416
+periods e1/e2/e2-e1: 32 32 32
+progress_step: every 65 trajectories (total 1300)
+progress traj=65/1300 (5.0%) measured=0
+progress traj=130/1300 (10.0%) measured=0
+progress traj=195/1300 (15.0%) measured=0
+progress traj=260/1300 (20.0%) measured=0
+progress traj=325/1300 (25.0%) measured=3
+progress traj=390/1300 (30.0%) measured=9
+progress traj=455/1300 (35.0%) measured=16
+progress traj=520/1300 (40.0%) measured=22
+progress traj=585/1300 (45.0%) measured=29
+progress traj=650/1300 (50.0%) measured=35
+progress traj=715/1300 (55.0%) measured=42
+progress traj=780/1300 (60.0%) measured=48
+progress traj=845/1300 (65.0%) measured=55
+progress traj=910/1300 (70.0%) measured=61
+progress traj=975/1300 (75.0%) measured=68
+progress traj=1040/1300 (80.0%) measured=74
+progress traj=1105/1300 (85.0%) measured=81
+progress traj=1170/1300 (90.0%) measured=87
+progress traj=1235/1300 (95.0%) measured=94
+progress traj=1300/1300 (100.0%) measured=100
+duration: 1572.085676
+cluster_size/V: 0.2062
+accept_metropolis: 2.4846
+U4 (cluster-improved): 8.480381994410e-01 2.104125501958e-02
+U4 (spin-jackknife): 8.831306810216e-01 2.130928285174e-02
+m2 (cluster-improved): 6.623547140392e-02 3.222548228652e-03
+m_susc: 6.874986920948e-03 5.349248410944e-03
+opening file: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/out_binder_refine_160_162_nk15_ntraj1000_Nt4L/Lx32_Ly32_Tx0_Ty0_Nt128_k0.162_0.162_0.162_kt0.162/Lx32_Ly32_Tx0_Ty0_Nt128_k0.162_0.162_0.162_kt0.162_5EAB0D1A.dat
+wrote: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/out_binder_refine_160_162_nk15_ntraj1000_Nt4L/Lx32_Ly32_Tx0_Ty0_Nt128_k0.162_0.162_0.162_kt0.162/two_point_typed.dat
+wrote: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/out_binder_refine_160_162_nk15_ntraj1000_Nt4L/Lx32_Ly32_Tx0_Ty0_Nt128_k0.162_0.162_0.162_kt0.162/two_point_all_to_all.dat
+CMD: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/ising_tri_twisted_parallelogram --L_x=32 --L_y=32 --T_x=0 --T_y=0 --N_t=128 --k1=0.1618571429 --k2=0.1618571429 --k3=0.1618571429 --k_t=0.1618571429 --n_therm=300 --n_traj=1000 --n_skip=10 --n_wolff=3 --n_metropolis=5 --seed=1588268314 --data_dir=/workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/out_binder_refine_160_162_nk15_ntraj1000_Nt4L
+

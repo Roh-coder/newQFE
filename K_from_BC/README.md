@@ -158,3 +158,22 @@ You can choose a custom filename:
 ```bash
 bash K_from_BC/package_results.sh my_results.tar.gz
 ```
+
+## 3d twisted-parallelogram extension
+
+A new workspace for the boundary-coupling version of the appended-third-dimension
+project lives in:
+
+- `K_from_BC/twisted_parallelogram_3d/`
+
+This directory is intended for the `N_t > 1` extension of the twisted
+parallelogram studies that currently live under `thinkDoubleTwist/`.
+
+Use it for:
+
+- 3d-capable drivers or adapters derived from the existing `K_from_BC` programs
+- analysis scripts that calibrate or compare couplings for the extruded geometry
+- notes and run metadata specific to the appended-time-direction scans
+
+The directory currently contains a local README stub so the new work can grow
+without mixing directly into the 2d-only files.

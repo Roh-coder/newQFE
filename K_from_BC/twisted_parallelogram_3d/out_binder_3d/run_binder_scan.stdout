@@ -1,0 +1,17 @@
+nohup: ignoring input
+[18:11:02] Binary    : /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/ising_tri_twisted_parallelogram
+[18:11:02] Data dir  : /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/out_binder_3d
+[18:11:02] K values  : 0.0650 0.0748 0.0861 0.0991 0.1140 0.1312 0.1510 0.1738 0.2001 0.2303 0.2650
+[18:11:02] Sizes     : [32, 24, 16, 8]
+[18:11:02] Total jobs: 44   max_workers=8
+[18:11:02] First 8   : L=32/K=0.174  L=32/K=0.151  L=32/K=0.200  L=32/K=0.131  L=32/K=0.230  L=32/K=0.114  L=32/K=0.265  L=32/K=0.099
+[18:11:02] Monitor   : tail -f /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/out_binder_3d/progress.log
+[18:11:02] 
+[18:11:02] START L=32  K=0.173839  seed=0x5EAE6B90  n_sites=32768  n_traj=20000
+[18:11:02] START L=32  K=0.151047  seed=0x5EAEE5F9  n_sites=32768  n_traj=20000
+[18:11:02] START L=32  K=0.200069  seed=0x5EA9F107  n_sites=32768  n_traj=20000
+[18:11:02] START L=32  K=0.131244  seed=0x5EAF5E42  n_sites=32768  n_traj=20000
+[18:11:02] START L=32  K=0.230257  seed=0x5EA974BE  n_sites=32768  n_traj=20000
+[18:11:02] START L=32  K=0.114037  seed=0x5EAFD8AB  n_sites=32768  n_traj=20000
+[18:11:02] START L=32  K=0.265000  seed=0x5EA8FA55  n_sites=32768  n_traj=20000
+[18:11:02] START L=32  K=0.099086  seed=0x5EAC5534  n_sites=32768  n_traj=20000

@@ -1,0 +1,19 @@
+Matched-size equilateral triangular BC candidates
+
+Format:
+N | untwisted (L_x,L_y,T_x,T_y) | twisted (L_x,L_y,T_x,T_y)
+
+49   | (7,7,0,0)     | (5,8,3,3)
+169  | (13,13,0,0)   | (8,15,7,7)
+196  | (14,14,0,0)   | (10,16,6,6)
+441  | (21,21,0,0)   | (15,24,9,9)
+784  | (28,28,0,0)   | (20,32,12,12)
+1225 | (35,35,0,0)   | (25,40,15,15)
+1764 | (42,42,0,0)   | (30,48,18,18)
+3136 | (56,56,0,0)   | (40,64,24,24)
+
+Notes:
+- Each row has identical N for twisted and untwisted.
+- These are equilateral cells in the triangular-lattice metric.
+- Current comparison pair in compare_bulk is equilateral but size-mismatched:
+  untwisted N=1024 vs twisted N=1792.

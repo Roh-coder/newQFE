@@ -96,6 +96,11 @@ def main():
     ap.add_argument("--T_y", type=int, required=True)
     ap.add_argument("--samples", type=int, default=400, help="Samples per slice")
     ap.add_argument("--output", required=True, help="Output .png path")
+    ap.add_argument(
+        "--connected-only",
+        action="store_true",
+        help="Plot only connected correlator with a lower panel showing interpolated errors",
+    )
     args = ap.parse_args()
 
     lx, ly, tx, ty = args.L_x, args.L_y, args.T_x, args.T_y
@@ -110,173 +115,57 @@ def main():
         "w": (-(lx + tx), ly - ty),
     }
     colors = {"v": "red", "u": "blue", "w": "black"}
+    geom = f"(L_x={lx}, L_y={ly}, T_x={tx}, T_y={ty})"
 
     fig, axes = plt.subplots(2, 1, figsize=(8.3, 7.1), dpi=180, sharex=True)
 
-    for name in ("v", "u", "w"):
-        dm, dn = dirs[name]
-        t, z = sample_slice(c_interp, dm, dn, args.samples)
-        _, ez = sample_slice(e_interp, dm, dn, args.samples)
-        mask = np.isfinite(z)
-        axes[0].plot(t[mask], z[mask], color=colors[name], lw=1.8, label=name)
-        axes[0].fill_between(t[mask], z[mask] - ez[mask], z[mask] + ez[mask], color=colors[name], alpha=0.22)
+    if args.connected_only:
+        for name in ("v", "u", "w"):
+            dm, dn = dirs[name]
+            t, z = sample_slice(cc_interp, dm, dn, args.samples)
+            _, ez = sample_slice(ec_interp, dm, dn, args.samples)
+            mask = np.isfinite(z) & np.isfinite(ez)
+            axes[0].plot(t[mask], z[mask], color=colors[name], lw=1.9, label=name)
+            axes[0].fill_between(t[mask], z[mask] - ez[mask], z[mask] + ez[mask], color=colors[name], alpha=0.22)
+            axes[1].plot(t[mask], ez[mask], color=colors[name], lw=1.9, label=name)
 
-    axes[0].set_title("Interpolated Raw Correlator Slices Along v/u/w")
-    axes[0].set_ylabel("C")
-    axes[0].grid(alpha=0.25)
-    axes[0].legend(frameon=False)
+        axes[0].set_title(f"Interpolated Connected Correlator Slices Along v/u/w {geom}")
+        axes[0].set_ylabel("C_conn")
+        axes[0].grid(alpha=0.25)
+        axes[0].legend(frameon=False)
 
-    for name in ("v", "u", "w"):
-        dm, dn = dirs[name]
-        t, z = sample_slice(cc_interp, dm, dn, args.samples)
-        _, ez = sample_slice(ec_interp, dm, dn, args.samples)
-        mask = np.isfinite(z)
-        axes[1].plot(t[mask], z[mask], color=colors[name], lw=1.8, label=name)
-        axes[1].fill_between(t[mask], z[mask] - ez[mask], z[mask] + ez[mask], color=colors[name], alpha=0.22)
+        axes[1].set_title(f"Interpolated Error Along Full v/u/w Vectors {geom}")
+        axes[1].set_xlabel("fraction of full vector (0 to 1)")
+        axes[1].set_ylabel("error(C_conn)")
+        axes[1].grid(alpha=0.25)
+        axes[1].legend(frameon=False)
+    else:
+        for name in ("v", "u", "w"):
+            dm, dn = dirs[name]
+            t, z = sample_slice(c_interp, dm, dn, args.samples)
+            _, ez = sample_slice(e_interp, dm, dn, args.samples)
+            mask = np.isfinite(z) & np.isfinite(ez)
+            axes[0].plot(t[mask], z[mask], color=colors[name], lw=1.8, label=name)
+            axes[0].fill_between(t[mask], z[mask] - ez[mask], z[mask] + ez[mask], color=colors[name], alpha=0.22)
 
-    axes[1].set_title("Interpolated Connected Correlator Slices Along v/u/w")
-    axes[1].set_xlabel("fraction of full vector (0 to 1)")
-    axes[1].set_ylabel("C_conn")
-    axes[1].grid(alpha=0.25)
-    axes[1].legend(frameon=False)
+        axes[0].set_title("Interpolated Raw Correlator Slices Along v/u/w")
+        axes[0].set_ylabel("C")
+        axes[0].grid(alpha=0.25)
+        axes[0].legend(frameon=False)
 
-    fig.tight_layout()
-    out = Path(args.output)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out)
-    print(out)
+        for name in ("v", "u", "w"):
+            dm, dn = dirs[name]
+            t, z = sample_slice(cc_interp, dm, dn, args.samples)
+            _, ez = sample_slice(ec_interp, dm, dn, args.samples)
+            mask = np.isfinite(z) & np.isfinite(ez)
+            axes[1].plot(t[mask], z[mask], color=colors[name], lw=1.8, label=name)
+            axes[1].fill_between(t[mask], z[mask] - ez[mask], z[mask] + ez[mask], color=colors[name], alpha=0.22)
 
-
-if __name__ == "__main__":
-    main()
-#!/usr/bin/env python3
-"""Interpolate all-to-all correlator surface and slice along v/u/w directions.
-
-Input row format:
-  d m n corr err corr_conn err_conn
-
-Directions:
-  v = (L_x, T_y)
-  u = (T_x, -L_y)
-  w = -(u + v)
-"""
-
-import argparse
-from pathlib import Path
-
-import matplotlib.pyplot as plt
-import matplotlib.tri as mtri
-import numpy as np
-
-
-def lattice_to_xy(m: np.ndarray, n: np.ndarray):
-    # Triangular basis: e1=(1,0), e2=(1/2,sqrt(3)/2)
-    return m + 0.5 * n, (np.sqrt(3.0) * 0.5) * n
-
-
-def load_full(path: Path):
-    m, n = [], []
-    c, cc = [], []
-    with path.open() as f:
-        for line in f:
-            s = line.strip()
-            if not s or s.startswith("#"):
-                continue
-            _d_s, m_s, n_s, c_s, _e_s, cc_s, _ec_s = s.split()
-            m.append(float(m_s))
-            n.append(float(n_s))
-            c.append(float(c_s))
-            cc.append(float(cc_s))
-    if not m:
-        raise SystemExit("No all-to-all rows found.")
-    return np.array(m), np.array(n), np.array(c), np.array(cc)
-
-
-def tile_periodic(m, n, c, cc, lx, ly, tx, ty):
-    # Build 3x3 periodic image tiles in (v,u) shifts to avoid boundary artifacts.
-    m_out, n_out, c_out, cc_out = [], [], [], []
-    for a in (-1, 0, 1):
-        for b in (-1, 0, 1):
-            dm = a * lx + b * tx
-            dn = a * ty - b * ly
-            m_out.append(m + dm)
-            n_out.append(n + dn)
-            c_out.append(c)
-            cc_out.append(cc)
-    return (
-        np.concatenate(m_out),
-        np.concatenate(n_out),
-        np.concatenate(c_out),
-        np.concatenate(cc_out),
-    )
-
-
-def make_interpolators(m, n, c, cc):
-    x, y = lattice_to_xy(m, n)
-    tri = mtri.Triangulation(x, y)
-    c_interp = mtri.LinearTriInterpolator(tri, c)
-    cc_interp = mtri.LinearTriInterpolator(tri, cc)
-    return c_interp, cc_interp
-
-
-def sample_slice(interp, dm, dn, n_samples):
-    t = np.linspace(0.0, 1.0, n_samples)
-    m = t * dm
-    n = t * dn
-    x, y = lattice_to_xy(m, n)
-    z = interp(x, y)
-    z = np.asarray(z.filled(np.nan) if hasattr(z, "filled") else z)
-    return t, z
-
-
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--full", required=True, help="Path to full all-to-all .dat")
-    ap.add_argument("--L_x", type=int, required=True)
-    ap.add_argument("--L_y", type=int, required=True)
-    ap.add_argument("--T_x", type=int, required=True)
-    ap.add_argument("--T_y", type=int, required=True)
-    ap.add_argument("--samples", type=int, default=400, help="Samples per slice")
-    ap.add_argument("--output", required=True, help="Output .png path")
-    args = ap.parse_args()
-
-    lx, ly, tx, ty = args.L_x, args.L_y, args.T_x, args.T_y
-
-    m, n, c, cc = load_full(Path(args.full))
-    mt, nt, ct, cct = tile_periodic(m, n, c, cc, lx, ly, tx, ty)
-    c_interp, cc_interp = make_interpolators(mt, nt, ct, cct)
-
-    dirs = {
-        "v": (lx, ty),
-        "u": (tx, -ly),
-        "w": (-(lx + tx), ly - ty),
-    }
-    colors = {"v": "red", "u": "blue", "w": "black"}
-
-    fig, axes = plt.subplots(2, 1, figsize=(8.3, 7.1), dpi=180, sharex=True)
-
-    for name in ("v", "u", "w"):
-        dm, dn = dirs[name]
-        t, z = sample_slice(c_interp, dm, dn, args.samples)
-        mask = np.isfinite(z)
-        axes[0].plot(t[mask], z[mask], color=colors[name], lw=1.8, label=name)
-
-    axes[0].set_title("Interpolated Raw Correlator Slices Along v/u/w")
-    axes[0].set_ylabel("C")
-    axes[0].grid(alpha=0.25)
-    axes[0].legend(frameon=False)
-
-    for name in ("v", "u", "w"):
-        dm, dn = dirs[name]
-        t, z = sample_slice(cc_interp, dm, dn, args.samples)
-        mask = np.isfinite(z)
-        axes[1].plot(t[mask], z[mask], color=colors[name], lw=1.8, label=name)
-
-    axes[1].set_title("Interpolated Connected Correlator Slices Along v/u/w")
-    axes[1].set_xlabel("fraction of full vector (0 to 1)")
-    axes[1].set_ylabel("C_conn")
-    axes[1].grid(alpha=0.25)
-    axes[1].legend(frameon=False)
+        axes[1].set_title("Interpolated Connected Correlator Slices Along v/u/w")
+        axes[1].set_xlabel("fraction of full vector (0 to 1)")
+        axes[1].set_ylabel("C_conn")
+        axes[1].grid(alpha=0.25)
+        axes[1].legend(frameon=False)
 
     fig.tight_layout()
     out = Path(args.output)

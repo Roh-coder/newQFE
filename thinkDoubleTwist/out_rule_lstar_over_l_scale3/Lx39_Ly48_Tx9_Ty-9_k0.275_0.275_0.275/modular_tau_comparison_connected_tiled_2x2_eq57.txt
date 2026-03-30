@@ -1,0 +1,10 @@
+Modular Ising vs MC correlator comparison
+full_data = thinkDoubleTwist/out_rule_lstar_over_l_scale3/Lx39_Ly48_Tx9_Ty-9_k0.275_0.275_0.275/two_point_all_to_all.dat
+geometry = (Lx=39, Ly=48, Tx=9, Ty=-9)
+tau = 0.154676258992806 + 1.239849319087074 i
+fit_points = 1790
+alpha = 3.6924872474202519e-01
+chi2 = 5.4839402574302972e+02
+dof = 1789
+chi2_per_dof = 3.0653662702237550e-01
+rmse = 2.3857005147007262e-03

@@ -1,0 +1,33 @@
+L_x: 8
+L_y: 8
+T_x: 0
+T_y: 0
+N_cell: 64
+N_t: 32
+K1: 0.175000000000
+K2: 0.175000000000
+K3: 0.175000000000
+Kt: 0.175000000000
+beta: 1.000000000000
+seed: 0x013545A0
+n_therm: 600
+n_traj: 2000
+n_skip: 10
+n_wolff: 3
+n_metropolis: 5
+wall_time: 0.000000
+data_dir: K_from_BC/twisted_parallelogram_3d/out_binder_eq_nt4
+two_point_name: two_point_typed.dat
+full_two_point_name: two_point_all_to_all.dat
+n_sites: 2048
+n_links: 8192
+initial action: 0.004101562500
+periods e1/e2/e2-e1: 8 8 8
+duration: 2.109529
+cluster_size/V: 1.3353
+accept_metropolis: 1.5258
+U4: 9.797913477370e-01 1.768624074731e-02
+m_susc: 7.598686122894e-03 1.027330562764e-02
+opening file: K_from_BC/twisted_parallelogram_3d/out_binder_eq_nt4/Lx8_Ly8_Tx0_Ty0_Nt32_k0.175_0.175_0.175_kt0.175/Lx8_Ly8_Tx0_Ty0_Nt32_k0.175_0.175_0.175_kt0.175_013545A0.dat
+wrote: K_from_BC/twisted_parallelogram_3d/out_binder_eq_nt4/Lx8_Ly8_Tx0_Ty0_Nt32_k0.175_0.175_0.175_kt0.175/two_point_typed.dat
+wrote: K_from_BC/twisted_parallelogram_3d/out_binder_eq_nt4/Lx8_Ly8_Tx0_Ty0_Nt32_k0.175_0.175_0.175_kt0.175/two_point_all_to_all.dat

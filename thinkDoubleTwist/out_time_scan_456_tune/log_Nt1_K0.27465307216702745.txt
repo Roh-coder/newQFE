@@ -1,0 +1,33 @@
+L_x: 39
+L_y: 48
+T_x: 9
+T_y: -9
+N_cell: 1791
+N_t: 1
+K1: 0.274653072167
+K2: 0.274653072167
+K3: 0.274653072167
+Kt: 0.274653072167
+beta: 1.000000000000
+seed: 0x013525DC
+n_therm: 400
+n_traj: 1200
+n_skip: 20
+n_wolff: 3
+n_metropolis: 5
+wall_time: 0.000000
+data_dir: thinkDoubleTwist/out_time_scan_456_tune
+two_point_name: two_point_typed.dat
+full_two_point_name: two_point_all_to_all.dat
+n_sites: 1791
+n_links: 5373
+initial action: 0.003527091379
+periods e1/e2/e2-e1: 597 597 597
+duration: 1.424305
+cluster_size/V: 1.2551
+accept_metropolis: 1.0696
+U4: 9.110613631346e-01 6.254453921825e-02
+m_susc: 2.586770491067e-02 3.312352154687e-02
+opening file: thinkDoubleTwist/out_time_scan_456_tune/Lx39_Ly48_Tx9_Ty-9_Nt1_k0.275_0.275_0.275_kt0.275/Lx39_Ly48_Tx9_Ty-9_Nt1_k0.275_0.275_0.275_kt0.275_013525DC.dat
+wrote: thinkDoubleTwist/out_time_scan_456_tune/Lx39_Ly48_Tx9_Ty-9_Nt1_k0.275_0.275_0.275_kt0.275/two_point_typed.dat
+wrote: thinkDoubleTwist/out_time_scan_456_tune/Lx39_Ly48_Tx9_Ty-9_Nt1_k0.275_0.275_0.275_kt0.275/two_point_all_to_all.dat

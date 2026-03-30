@@ -1,0 +1,21 @@
+Modular Ising vs MC correlator comparison
+full_data = thinkDoubleTwist/out_rule_lstar_over_l_scale9/Lx117_Ly144_Tx27_Ty-27_k0.275_0.275_0.275/two_point_all_to_all.dat
+geometry = (Lx=117, Ly=144, Tx=27, Ty=-27)
+tau = 0.154676258992806 + 1.239849319087074 i
+fit_points = 3156
+fit_max_fraction = 2.5000000000000000e-01
+alpha = 2.7569103471403128e-01
+alpha_fit = 2.7569103471403128e-01
+alpha_override = none
+peak_norm_enabled = 0
+peak_threshold = 1.0500000000000000e+00
+peak_scale = 1.0000000000000000e+00
+short_distance_peak_before = nan
+short_distance_peak_after = nan
+chi2 = 7.9205903275075082e+02
+dof = 3155
+chi2_per_dof = 2.5104882179104621e-01
+rmse = 2.2671239843533148e-03
+mc_sigma_mean = 6.8210548948100299e-03
+mc_sigma_median = 7.1458483434876999e-03
+z_score_tension_rms = 5.0096833759187431e-01
