@@ -18,12 +18,23 @@ A live plot (optimisation_live.png) is updated after each grid point.
 
 # ---------------------------------------------------------------------------
 # Lattice geometry for the runs you want to optimise
-# (the reference is always the equilateral 32x32 lattice included in ref_data/)
 # ---------------------------------------------------------------------------
-Lx = 32          # lattice x size
-Ly = 32          # lattice y size
+Lx = 32          # test lattice x size
+Ly = 32          # test lattice y size
 Tx = 0           # twist in x-direction (0 for untwisted)
 Ty = 0           # twist in y-direction (e.g. Ty = Lx//4 for 45-deg tilt)
+
+# ---------------------------------------------------------------------------
+# Reference lattice geometry
+# The reference should be the EQUILATERAL (isotropic, k1=k2=k3) version of
+# whatever lattice you're optimising.  A 32x32 equilateral reference is
+# bundled in ref_data/ and used automatically when REF_Lx=32, REF_Ly=32.
+# Change these if you want to optimise a different lattice size.
+# ---------------------------------------------------------------------------
+REF_Lx = 32      # reference lattice x size
+REF_Ly = 32      # reference lattice y size
+REF_Tx = 0       # reference twist x (usually 0)
+REF_Ty = 0       # reference twist y (usually 0)
 
 # ---------------------------------------------------------------------------
 # Initial grid search parameters
@@ -183,12 +194,18 @@ if not os.path.isfile(EXE):
 
 # Choose reference path
 if REFERENCE is None:
-    REFERENCE = os.path.join("ref_data", "ref_metadata.json")
+    _ref_tag = f"ref_{REF_Lx}x{REF_Ly}" + (f"_t{REF_Tx}x{REF_Ty}" if REF_Tx or REF_Ty else "")
+    REFERENCE = os.path.join("ref_data", _ref_tag, "ref_metadata.json")
+    # Fall back to the bundled flat ref_data/ref_metadata.json for the default 32x32 equilateral case
+    _bundled = os.path.join("ref_data", "ref_metadata.json")
+    if (not os.path.isfile(REFERENCE) and os.path.isfile(_bundled)
+            and REF_Lx == 32 and REF_Ly == 32 and REF_Tx == 0 and REF_Ty == 0):
+        REFERENCE = _bundled
 
 # Auto-generate reference if it doesn't exist yet
 if not os.path.isfile(REFERENCE):
     print(f"Reference not found at '{REFERENCE}' — generating it now.")
-    print(f"  Lattice: {Lx}x{Ly}  Tx={Tx} Ty={Ty}")
+    print(f"  Lattice: {REF_Lx}x{REF_Ly}  Tx={REF_Tx} Ty={REF_Ty}")
     print(f"  Trajectories: {REF_N_TRAJ}  (edit REF_N_TRAJ in CONFIG to change)")
     print()
     import optimise_couplings as _oc
@@ -198,10 +215,10 @@ if not os.path.isfile(REFERENCE):
     sys.argv = [
         "optimise_couplings.py",
         "--exe",        EXE,
-        "--Lx",         str(Lx),
-        "--Ly",         str(Ly),
-        "--Tx",         str(Tx),
-        "--Ty",         str(Ty),
+        "--Lx",         str(REF_Lx),
+        "--Ly",         str(REF_Ly),
+        "--Tx",         str(REF_Tx),
+        "--Ty",         str(REF_Ty),
         "--beta_init",  str(BETA_INIT),
         "--ref_n_traj", str(REF_N_TRAJ),
         "--output_dir", ref_output_dir,
