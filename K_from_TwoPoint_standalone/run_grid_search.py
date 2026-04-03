@@ -133,17 +133,53 @@ os.chdir(_HERE)
 if not os.path.isfile(EXE):
     print(f"Simulator not found at '{EXE}' — attempting to build it now...")
     import subprocess as _sp
-    make_cmd = "mingw32-make" if sys.platform == "win32" else "make"
-    result = _sp.run([make_cmd], cwd=_HERE)
-    if result.returncode != 0 or not os.path.isfile(EXE):
-        print(f"\nERROR: Build failed. Please build manually:")
+
+    _src = os.path.join(_HERE, "src", "ising_tri_twisted_parallelogram.cc")
+    _inc = os.path.join(_HERE, "include")
+    _bin_dir = os.path.join(_HERE, "bin")
+    os.makedirs(_bin_dir, exist_ok=True)
+
+    _built = False
+
+    # First try: invoke make / mingw32-make
+    for _make in (["mingw32-make"] if sys.platform == "win32" else []) + ["make"]:
+        try:
+            _r = _sp.run([_make], cwd=_HERE, capture_output=True, text=True)
+            if _r.returncode == 0 and os.path.isfile(EXE):
+                print(f"Build successful via {_make}: {EXE}\n")
+                _built = True
+                break
+        except FileNotFoundError:
+            pass
+
+    # Second try: invoke g++ directly
+    if not _built:
+        print("  make not found or failed — trying g++ directly...")
+        _gpp_cmd = [
+            "g++", "-std=c++14", "-O3", "-Wall",
+            "-Wno-sign-compare", "-Wno-unused-variable",
+            f"-I{_inc}", _src, "-o", os.path.join(_HERE, EXE),
+        ]
+        try:
+            _r = _sp.run(_gpp_cmd, cwd=_HERE, capture_output=True, text=True)
+            if _r.returncode == 0 and os.path.isfile(EXE):
+                print(f"Build successful via g++: {EXE}\n")
+                _built = True
+            else:
+                print(_r.stderr)
+        except FileNotFoundError:
+            print("  g++ not found.")
+
+    if not _built:
+        print("\nERROR: Could not build the simulator automatically.")
+        print("  Install g++ and retry, or build manually:")
         if sys.platform == "win32":
-            print("  Windows: open an MSYS2 MINGW64 terminal, cd to this directory, run 'make'")
-            print("  See README.md for full instructions.")
+            print("  - MSYS2/MinGW: pacman -S mingw-w64-x86_64-gcc make")
+            print("    then run 'make' in this directory from the MSYS2 MINGW64 shell.")
+            print("  - Or add g++ to your PATH and re-run this script.")
         else:
-            print("  Run 'make' in this directory.")
+            print("  - Run 'make' or 'g++ -std=c++14 -O3 -Iinclude src/ising_tri_twisted_parallelogram.cc -o bin/ising_tri_twisted_parallelogram'")
         sys.exit(1)
-    print(f"Build successful: {EXE}\n")
 
 # Choose reference path
 if REFERENCE is None:
