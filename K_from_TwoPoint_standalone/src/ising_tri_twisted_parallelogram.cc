@@ -8,8 +8,14 @@
 #include <unordered_map>
 #include <vector>
 
-#include <sys/stat.h>
-#include <sys/types.h>
+#ifdef _WIN32
+#  include <direct.h>
+#  define MKDIR(p) ::_mkdir(p)
+#else
+#  include <sys/stat.h>
+#  include <sys/types.h>
+#  define MKDIR(p) ::mkdir((p), 0755)
+#endif
 
 #include "ising.h"
 #include "statistics.h"
@@ -49,7 +55,7 @@ int64_t CosetKey(int m, int n, int Lx, int Ly, int Tx, int Ty, int Ncell) {
 
 bool MakeDir(const std::string& path) {
   if (path.empty()) return true;
-  if (::mkdir(path.c_str(), 0755) == 0) return true;
+  if (MKDIR(path.c_str()) == 0) return true;
   return errno == EEXIST;
 }
 

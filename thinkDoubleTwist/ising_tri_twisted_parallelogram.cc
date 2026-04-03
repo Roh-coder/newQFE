@@ -8,8 +8,14 @@
 #include <unordered_map>
 #include <vector>
 
-#include <sys/stat.h>
-#include <sys/types.h>
+#ifdef _WIN32
+#  include <direct.h>
+#  define MKDIR(p) ::_mkdir(p)
+#else
+#  include <sys/stat.h>
+#  include <sys/types.h>
+#  define MKDIR(p) ::mkdir((p), 0755)
+#endif
 
 #include "ising.h"
 #include "statistics.h"
@@ -49,7 +55,7 @@ int64_t CosetKey(int m, int n, int Lx, int Ly, int Tx, int Ty, int Ncell) {
 
 bool MakeDir(const std::string& path) {
   if (path.empty()) return true;
-  if (::mkdir(path.c_str(), 0755) == 0) return true;
+  if (MKDIR(path.c_str()) == 0) return true;
   return errno == EEXIST;
 }
 
@@ -383,6 +389,8 @@ int main(int argc, char* argv[]) {
   std::vector<std::vector<double>> corr_e2me1_samples(p_e2me1);
   std::vector<std::vector<double>> corr_all_samples(N_cell);
   std::vector<double> mag_samples;
+  std::vector<double> abs_mag_samples;
+  std::vector<double> m2_samples;
   QfeMeasReal cluster_size;
   QfeMeasReal accept_metropolis;
 
@@ -416,6 +424,8 @@ int main(int argc, char* argv[]) {
 
     double m2 = m_mean * m_mean;
     mag_samples.push_back(m_mean);
+    abs_mag_samples.push_back(fabs(m_mean));
+    m2_samples.push_back(m2);
     mag.Measure(fabs(m_mean));
     mag_2.Measure(m2);
     mag_4.Measure(m2 * m2);
@@ -501,7 +511,31 @@ int main(int argc, char* argv[]) {
   printf("U4: %.12e %.12e\n", U4_mean, U4_err);
 
   double m_susc_mean = m2_mean - m_mean * m_mean;
-  double m_susc_err = sqrt(pow(m2_err, 2.0) + pow(2.0 * m_mean * m_err, 2.0));
+  // Jackknife error on chi = <m^2> - <|m|>^2
+  double m_susc_err = 0.0;
+  {
+    int n_jack = (int)m2_samples.size();
+    double sum_m2 = 0.0, sum_absmag = 0.0;
+    for (int i = 0; i < n_jack; i++) {
+      sum_m2 += m2_samples[i];
+      sum_absmag += abs_mag_samples[i];
+    }
+    std::vector<double> jack_chi(n_jack);
+    for (int i = 0; i < n_jack; i++) {
+      double mean_m2_i = (sum_m2 - m2_samples[i]) / double(n_jack - 1);
+      double mean_abs_i = (sum_absmag - abs_mag_samples[i]) / double(n_jack - 1);
+      jack_chi[i] = mean_m2_i - mean_abs_i * mean_abs_i;
+    }
+    double jack_mean = 0.0;
+    for (int i = 0; i < n_jack; i++) jack_mean += jack_chi[i];
+    jack_mean /= double(n_jack);
+    double jack_var = 0.0;
+    for (int i = 0; i < n_jack; i++) {
+      double d = jack_chi[i] - jack_mean;
+      jack_var += d * d;
+    }
+    m_susc_err = sqrt((double(n_jack) - 1.0) / double(n_jack) * jack_var);
+  }
   printf("m_susc: %.12e %.12e\n", m_susc_mean, m_susc_err);
 
   if (!MakeDir(data_dir)) {
