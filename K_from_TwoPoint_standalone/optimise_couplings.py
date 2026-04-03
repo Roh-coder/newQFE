@@ -105,7 +105,21 @@ def run_simulator(exe: str, Lx: int, Ly: int, Tx: int, Ty: int,
     if wall_time > 0:
         cmd += ["--wall_time", f"{wall_time:.1f}"]
 
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+    except FileNotFoundError:
+        import platform
+        print(f"\nERROR: simulator not found: {exe}", file=sys.stderr)
+        if platform.system() == "Windows":
+            print("  The bundled binary is Linux-only and cannot run on Windows.", file=sys.stderr)
+            print("  Please compile the simulator on Windows using MSYS2/MinGW:", file=sys.stderr)
+            print("    1. Install MSYS2 from https://www.msys2.org/", file=sys.stderr)
+            print("    2. In the MSYS2 terminal run:", file=sys.stderr)
+            print("       pacman -S mingw-w64-x86_64-gcc make", file=sys.stderr)
+            print("       cd /path/to/K_from_TwoPoint_standalone", file=sys.stderr)
+            print("       make", file=sys.stderr)
+            print("  Alternatively use WSL (Windows Subsystem for Linux).", file=sys.stderr)
+        raise
     if result.returncode != 0:
         print(f"ERROR: simulator failed:\n{result.stderr}", file=sys.stderr)
         raise RuntimeError("simulator failed")
@@ -1010,6 +1024,23 @@ def main():
             print(f"Loaded reference path from {meta_path}")
         else:
             parser.error("--ref is required (or run --gen_ref first)")
+    # If --ref points to a .json metadata file, resolve the a2a_path from it
+    if args.ref.endswith(".json"):
+        with open(args.ref) as f:
+            meta = json.load(f)
+        meta_dir = os.path.dirname(os.path.abspath(args.ref))
+        a2a = meta["a2a_path"]
+        # Make a2a_path absolute if it is relative (resolve relative to package root
+        # first, then relative to the metadata file's directory as a fallback)
+        if not os.path.isabs(a2a):
+            candidate = a2a  # relative to cwd (package root)
+            if not os.path.isfile(candidate):
+                candidate = os.path.join(meta_dir, a2a)
+            a2a = candidate
+        args.ref = a2a
+        if args.beta_ref is None and "beta_c" in meta:
+            args.beta_ref = meta["beta_c"]
+        print(f"Resolved reference from metadata: {args.ref}")
     # Try to read beta_ref from metadata alongside the .dat file if still None
     if args.beta_ref is None:
         meta_guess = os.path.join(os.path.dirname(os.path.dirname(args.ref)),

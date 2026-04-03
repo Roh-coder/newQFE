@@ -3,8 +3,14 @@ CXXFLAGS = -std=c++14 -O3 -Wall -Wno-sign-compare -Wno-unknown-warning-option \
            -Wno-deprecated-declarations
 
 SRC     = src/ising_tri_twisted_parallelogram.cc
-EXE     = bin/ising_tri_twisted_parallelogram
 INC_DIR = include
+
+# Detect Windows (MinGW sets OS=Windows_NT)
+ifeq ($(OS),Windows_NT)
+  EXE = bin/ising_tri_twisted_parallelogram.exe
+else
+  EXE = bin/ising_tri_twisted_parallelogram
+endif
 
 .PHONY: all clean
 
@@ -16,4 +22,4 @@ $(EXE): $(SRC) $(wildcard $(INC_DIR)/*.h)
 	@echo "Built: $@"
 
 clean:
-	$(RM) $(EXE)
+	$(RM) bin/ising_tri_twisted_parallelogram bin/ising_tri_twisted_parallelogram.exe

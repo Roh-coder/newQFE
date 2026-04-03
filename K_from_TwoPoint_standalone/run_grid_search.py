@@ -97,10 +97,14 @@ REFERENCE = None   # None → auto-use/generate ref_data/ref_metadata.json
 REF_N_TRAJ = 500000
 
 # ---------------------------------------------------------------------------
-# Path to the compiled simulator (relative to this script's location)
-# Change only if you renamed the binary or placed it elsewhere.
+# Path to the compiled simulator (relative to this script's location).
+# On Windows, compile with MSYS2/MinGW (see README.md) then set this to
+# "bin/ising_tri_twisted_parallelogram.exe"
 # ---------------------------------------------------------------------------
-EXE = "bin/ising_tri_twisted_parallelogram"
+import sys as _sys
+EXE = ("bin/ising_tri_twisted_parallelogram.exe"
+       if _sys.platform == "win32"
+       else "bin/ising_tri_twisted_parallelogram")
 
 # ===========================================================================
 # END OF USER CONFIGURATION — no need to edit below this line

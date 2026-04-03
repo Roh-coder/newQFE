@@ -45,8 +45,9 @@ Install Python dependencies:
 pip install -r requirements.txt
 ```
 
-> On macOS with Apple clang, `make` should work out of the box.  
-> On Linux, install g++ via `sudo apt install build-essential` if not present.
+> **Linux**: install g++ via `sudo apt install build-essential` if not present.  
+> **macOS**: `make` works out of the box with Apple clang.  
+> **Windows**: the bundled binary in `bin/` is Linux-only. See [Windows build instructions](#windows) below.
 
 ---
 
@@ -200,6 +201,34 @@ the criticality condition exp(−2β·k₁) + exp(−2β·k₂) + exp(−2β·k�
 ---
 
 ## Troubleshooting
+
+### Windows
+
+The binary in `bin/` is a Linux ELF executable and **will not run on Windows**.
+You must compile it first using one of these options:
+
+**Option A — MSYS2/MinGW (recommended, native Windows binary)**
+
+1. Install MSYS2 from https://www.msys2.org/
+2. Open the **MSYS2 MINGW64** terminal and run:
+   ```bash
+   pacman -S mingw-w64-x86_64-gcc make
+   cd /c/path/to/K_from_TwoPoint_standalone
+   make
+   ```
+3. The binary will be at `bin/ising_tri_twisted_parallelogram.exe`
+4. In `run_grid_search.py`, update the EXE line to:
+   ```python
+   EXE = "bin/ising_tri_twisted_parallelogram.exe"
+   ```
+
+**Option B — WSL (Windows Subsystem for Linux)**
+
+1. Enable WSL and install Ubuntu from the Microsoft Store
+2. Inside WSL, `cd` to the package directory and run `make` as normal
+3. Run `python run_grid_search.py` from the WSL terminal
+
+---
 
 **`make` fails with "command not found"**  
 Install a C++ compiler: `sudo apt install build-essential` (Linux) or install
