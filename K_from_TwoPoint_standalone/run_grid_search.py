@@ -73,9 +73,16 @@ R_MAX_FRAC = 0.33
 
 # ---------------------------------------------------------------------------
 # Maximum number of grid refinement / translation levels.
-# Each level evaluates a full 5×5 grid, so MAX_ITER=4 → up to 100 simulator runs.
+# Each level evaluates a full N_GRID×N_GRID grid.
 # ---------------------------------------------------------------------------
 MAX_ITER = 4
+
+# ---------------------------------------------------------------------------
+# Number of grid points per side at each refinement level.
+# E.g. N_GRID=5 → 5×5=25 evaluations per level (default, production quality).
+#      N_GRID=3 → 3×3=9  evaluations per level (faster, coarser).
+# ---------------------------------------------------------------------------
+N_GRID = 5
 
 # ---------------------------------------------------------------------------
 # Output directory (relative to this script's location)
@@ -122,11 +129,21 @@ if _HERE not in sys.path:
 # Change to the package root so all relative paths work correctly.
 os.chdir(_HERE)
 
-# Validate the binary exists
+# Validate / auto-build the binary
 if not os.path.isfile(EXE):
-    print(f"ERROR: Simulator not found at '{EXE}'")
-    print("Please build it first with:  make")
-    sys.exit(1)
+    print(f"Simulator not found at '{EXE}' — attempting to build it now...")
+    import subprocess as _sp
+    make_cmd = "mingw32-make" if sys.platform == "win32" else "make"
+    result = _sp.run([make_cmd], cwd=_HERE)
+    if result.returncode != 0 or not os.path.isfile(EXE):
+        print(f"\nERROR: Build failed. Please build manually:")
+        if sys.platform == "win32":
+            print("  Windows: open an MSYS2 MINGW64 terminal, cd to this directory, run 'make'")
+            print("  See README.md for full instructions.")
+        else:
+            print("  Run 'make' in this directory.")
+        sys.exit(1)
+    print(f"Build successful: {EXE}\n")
 
 # Choose reference path
 if REFERENCE is None:
@@ -183,6 +200,7 @@ sys.argv = [
     "--r_min",            str(R_MIN),
     "--r_max_frac",       str(R_MAX_FRAC),
     "--max_iter",         str(MAX_ITER),
+    "--n_grid",           str(N_GRID),
     "--output_dir",       OUTPUT_DIR,
 ]
 
