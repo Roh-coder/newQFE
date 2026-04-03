@@ -546,8 +546,12 @@ int main(int argc, char* argv[]) {
   char run_id[128];
   char subdir[256];
   char path[512];
-    sprintf(run_id, "Lx%d_Ly%d_Tx%d_Ty%d_Nt%d_k%.3f_%.3f_%.3f_kt%.3f",
-      L_x, L_y, T_x, T_y, N_t, K1, K2, K3, Kt);
+    // Compact format keeps path short (<260 chars) on Windows MAX_PATH.
+    // k values stored as integer * 1000 (e.g. 0.850 -> 850).
+    sprintf(run_id, "%dx%d_t%dx%d_k%d_%d_%d_%d",
+      L_x, L_y, T_x, T_y,
+      (int)round(K1*1000), (int)round(K2*1000),
+      (int)round(K3*1000), (int)round(Kt*1000));
   sprintf(subdir, "%s/%s", data_dir.c_str(), run_id);
   if (!MakeDir(subdir)) {
     fprintf(stderr, "WARNING: could not create run subdir: %s\n", subdir);
