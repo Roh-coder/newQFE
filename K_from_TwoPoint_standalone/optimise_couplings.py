@@ -1010,8 +1010,8 @@ def main():
             args.exe, args.Lx, args.Ly, args.Tx, args.Ty,
             1.0, 1.0, 1.0,
             beta_lo, beta_hi,
-            n_coarse=9, n_refine=4,
-            n_traj_coarse=50000, n_traj_fine=100000,
+            n_coarse=11, n_refine=5, n_refine2=5,
+            n_traj_coarse=100000, n_traj_fine=200000,
             data_dir=ref_dir,
         )
         print(f"  beta_c = {beta_c:.8f} (chi_peak = {chi_peak:.6e})")
