@@ -28,7 +28,16 @@ import tempfile
 import time
 
 import matplotlib
-matplotlib.use("Agg")  # non-interactive backend; we save PNG snapshots
+# Only force non-interactive Agg when not running inside IPython/Spyder.
+# Inside IPython the configured backend (inline, qt5, etc.) is used instead,
+# and the figure is pushed to the console after every update.
+try:
+    from IPython import get_ipython as _gip
+    _in_ipython = (_gip() is not None)
+except ImportError:
+    _in_ipython = False
+if not _in_ipython:
+    matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit, minimize_scalar
@@ -717,6 +726,17 @@ class LivePlotter:
         path = os.path.join(self.output_dir, "optimisation_live.png")
         self.fig.savefig(path, dpi=120)
         print(f"  [plot] saved {path}")
+        # Display inline in Spyder / IPython console
+        try:
+            from IPython.display import clear_output, display
+            clear_output(wait=True)
+            display(self.fig)
+        except Exception:
+            try:
+                self.fig.canvas.draw()
+                self.fig.canvas.flush_events()
+            except Exception:
+                pass
 
     def save_final(self):
         path = os.path.join(self.output_dir, "optimisation_final.png")
