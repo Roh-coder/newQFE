@@ -1,0 +1,9 @@
+{
+  "beta_c": 0.274653072167,
+  "chi_peak": 0.03764,
+  "Lx": 13,
+  "Ly": 16,
+  "Tx": 3,
+  "Ty": -3,
+  "a2a_path": "ref_data/ref_13x16_t3x-3/13x16_t3x-3_k1000_1000_1000_500/two_point_all_to_all.dat"
+}

@@ -65,14 +65,17 @@ N_TRAJ_SCAN_FINE    = 60000   # trajectories per beta point during fine beta ref
 
 # ---------------------------------------------------------------------------
 # Cost function — how the two-point functions are compared
-#   "fem_integral"  recommended: exact integral of (G_test - G_ref)^2 on a
-#                   bilinear mesh; preserves physical amplitudes.
-#   "log_ratio"     amplitude-free GLS log-ratio chi2 (good general default).
-#   "pair_ratio"    all pairs of log-ratios; amplitude cancels exactly.
-#   "residuals"     plain L2, no amplitude correction.
-#   "beta_deriv"    first-order correction for beta mismatch (advanced).
+#   "boundary_slices"  recommended: sum of integral(G_test-G_ref)^2 dt along
+#                      the three torus boundary paths v, u, w; preserves
+#                      physical amplitudes and directly targets the signal.
+#   "fem_integral"     integral of (G_test - G_ref)^2 over the full 2D domain
+#                      on a bilinear mesh; preserves physical amplitudes.
+#   "log_ratio"        amplitude-free GLS log-ratio chi2 (good general default).
+#   "pair_ratio"       all pairs of log-ratios; amplitude cancels exactly.
+#   "residuals"        plain L2, no amplitude correction.
+#   "beta_deriv"       first-order correction for beta mismatch (advanced).
 # ---------------------------------------------------------------------------
-COST = "fem_integral"
+COST = "boundary_slices"
 
 # ---------------------------------------------------------------------------
 # Range of displacements included in the chi2 sum (for non-fem_integral costs)
@@ -255,6 +258,10 @@ sys.argv = [
     "--max_iter",         str(MAX_ITER),
     "--n_grid",           str(N_GRID),
     "--output_dir",       OUTPUT_DIR,
+    "--ref_Lx",           str(REF_Lx),
+    "--ref_Ly",           str(REF_Ly),
+    "--ref_Tx",           str(REF_Tx),
+    "--ref_Ty",           str(REF_Ty),
 ]
 
 import optimise_couplings

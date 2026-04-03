@@ -1,0 +1,20 @@
+# Override root .gitignore: we DO want to track the pre-built binary
+# and the bundled reference data inside this standalone package.
+!bin/
+!bin/*
+!ref_data/
+!ref_data/**
+!*.dat
+
+# Ignore run results (generated at runtime)
+results/
+
+# Ignore generated plots (transient)
+*.png
+
+# Python cache
+__pycache__/
+*.pyc
+
+# MC data generated during runs (large)
+ising_tri_twisted_parallelogram/

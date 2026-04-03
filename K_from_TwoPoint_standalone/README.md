@@ -1,8 +1,13 @@
 # K_from_TwoPoint — Standalone Package
 
 Find the critical anisotropic couplings (k₁, k₂, k₃) of the 2D Ising model
-on a triangular lattice by matching the all-to-all two-point function to a
-high-statistics equilateral reference via an adaptive grid search.
+on a triangular lattice by matching the two-point function to a
+high-statistics reference via an adaptive grid search.
+
+Supports both **same-geometry** matching (e.g. 32×32 equilateral ref vs
+32×32 anisotropic test) and **cross-geometry** matching (e.g. 4-5-6 twisted
+ref vs 8×8 untwisted test), where the optimizer finds couplings on the test
+lattice that reproduce the boundary-direction correlators of the reference.
 
 ---
 
@@ -26,6 +31,7 @@ K_from_TwoPoint_standalone/
 ├── optimise_couplings.py          ← optimisation engine (do not edit)
 ├── run_grid_search.py             ← USER ENTRY POINT — edit CONFIG here
 ├── gen_ref.py                     ← optional: generate your own reference data
+├── plot_boundary_slices.py        ← visualise boundary-direction correlator slices
 └── results/                       ← output directory (created on first run)
 ```
 
@@ -77,7 +83,7 @@ Open **`run_grid_search.py`** in any text editor.  There is a clearly marked
 | `N_TRAJ_PROD` | MC trajectories for each production run | 50 000 |
 | `N_TRAJ_SCAN_COARSE` | MC trajectories per β point (coarse scan) | 30 000 |
 | `N_TRAJ_SCAN_FINE` | MC trajectories per β point (fine scan) | 60 000 |
-| `COST` | Cost function (`"fem_integral"` recommended) | `"fem_integral"` |
+| `COST` | Cost function (see [Cost functions](#cost-functions) below) | `"boundary_slices"` |
 | `MAX_ITER` | Maximum grid refinement levels | 4 |
 | `OUTPUT_DIR` | Where results are written | `"results/my_run"` |
 
@@ -193,10 +199,77 @@ the criticality condition exp(−2β·k₁) + exp(−2β·k₂) + exp(−2β·k�
    locating the susceptibility peak (coarse grid scan + two Gram-Charlier
    refinement passes).  A production run at that β_c then measures G_test(m, n).
 
-4. **Cost**: the `fem_integral` cost computes the exact analytical integral
-   of (G_test − G_ref)² over the periodic lattice domain using a bilinear
-   FEM representation.  When this equals zero the two correlators agree
-   everywhere and the couplings are critical and isotropic.
+4. **Cost**: the cost function quantifies how well the test correlator matches
+   the reference.  See [Cost functions](#cost-functions) below.
+
+---
+
+## Cost functions
+
+| Name | Description |
+|------|-------------|
+| `"boundary_slices"` | **Recommended.** Sum of ∫₀¹ (G_test(t) − G_ref(t))² dt along the three torus boundary paths v, u, w. Directly targets the physically meaningful signal. Supports cross-geometry mode. |
+| `"fem_integral"` | Exact integral of (G_test − G_ref)² over the full 2D periodic domain via bilinear FEM. Requires same-geometry ref and test. |
+| `"log_ratio"` | Amplitude-free GLS log-ratio χ². Good general default for same-geometry. |
+| `"pair_ratio"` | All pairs of log-ratios; amplitude cancels exactly. |
+| `"residuals"` | Plain L² of log-diffs, no amplitude correction. |
+| `"beta_deriv"` | First-order β-mismatch correction (advanced). |
+
+The `boundary_slices` cost works by:
+1. Building a tiled interpolant of G_conn(x, y) for each dataset (ref and test)
+   from their respective lattice geometries.
+2. Sampling along each of the three boundary-direction paths as a function of
+   the fractional parameter t ∈ [0, 1].
+3. Computing ∫(G_test − G_ref)² dt for each path and summing.
+
+When the reference and test have **different geometries** (cross-geometry mode),
+each interpolator is built from its own torus periodicity, and the three
+directions are matched by index (v↔v, u↔u, w↔w).
+
+---
+
+## Cross-geometry mode
+
+You can match correlators across **different lattice geometries**.  For example,
+match a 4-5-6 triangular (13×16, Tx=3, Ty=−3) isotropic reference against an
+8×8 untwisted test lattice with anisotropic couplings:
+
+```bash
+python optimise_couplings.py \
+  --Lx 8 --Ly 8 --Tx 0 --Ty 0 \
+  --ref ref_data/ref_13x16_t3x-3/ref_metadata.json \
+  --ref_Lx 13 --ref_Ly 16 --ref_Tx 3 --ref_Ty -3 \
+  --cost boundary_slices \
+  --beta_init 0.275 \
+  --n_traj_prod 20000 --n_grid 3 --max_iter 2 \
+  --output_dir results/cross_geom_456_vs_8x8
+```
+
+The `--ref_Lx`, `--ref_Ly`, `--ref_Tx`, `--ref_Ty` flags tell the optimizer
+that the reference lives on a different torus.  The boundary-slice interpolants
+are built independently for each geometry.
+
+---
+
+## Visualising boundary slices
+
+Use `plot_boundary_slices.py` to inspect the three boundary-direction
+correlator slices for a single dataset or compare reference vs test:
+
+```bash
+# Single dataset: view the three boundary slices
+python plot_boundary_slices.py \
+  --dat results/test_456_iso/.../two_point_all_to_all.dat \
+  --Lx 13 --Ly 16 --Tx 3 --Ty -3 \
+  --output results/slices_456_iso.png
+
+# Comparison: reference (dashed) vs test (solid) with residuals
+python plot_boundary_slices.py \
+  --ref  results/test_456_iso/.../two_point_all_to_all.dat \
+  --test results/test_456_aniso/.../two_point_all_to_all.dat \
+  --Lx 13 --Ly 16 --Tx 3 --Ty -3 \
+  --output results/slices_456_compare.png
+```
 
 ---
 

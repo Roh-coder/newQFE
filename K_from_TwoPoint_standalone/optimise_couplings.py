@@ -40,6 +40,7 @@ if not _in_ipython:
     matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.interpolate import LinearNDInterpolator
 from scipy.optimize import curve_fit, minimize_scalar
 
 
@@ -402,9 +403,191 @@ def _fem_bilinear_integral(h: np.ndarray) -> float:
     return float(cell_integrals.sum())
 
 
+# ---------------------------------------------------------------------------
+# Boundary-slice integral helpers  (used by "boundary_slices" cost)
+# ---------------------------------------------------------------------------
+
+def _a2a_to_xy_arrays(data: dict):
+    """Extract parallel x, y, conn arrays from an all-to-all data dict."""
+    keys  = list(data.keys())
+    m_arr = np.array([k[0] for k in keys], dtype=float)
+    n_arr = np.array([k[1] for k in keys], dtype=float)
+    c_arr = np.array([data[k]["conn"] for k in keys], dtype=float)
+    x_arr = m_arr + 0.5 * n_arr
+    y_arr = (math.sqrt(3.0) / 2.0) * n_arr
+    return x_arr, y_arr, c_arr
+
+
+def _tile_interp_conn(data: dict, Lx: int, Ly: int, Tx: int, Ty: int,
+                      copies: int = 2):
+    """Build a LinearNDInterpolator of conn(x,y) by tiling the torus."""
+    x0, y0, c0 = _a2a_to_xy_arrays(data)
+    sqrt3_2 = math.sqrt(3.0) / 2.0
+    # Cartesian images of the two torus periodicity vectors v=(Lx,Ty), u=(Tx,-Ly)
+    vx = Lx + 0.5 * Ty;  vy = sqrt3_2 * Ty
+    ux = Tx - 0.5 * Ly;  uy = -sqrt3_2 * Ly
+    x_list, y_list, c_list = [x0], [y0], [c0]
+    for a in range(-copies, copies + 1):
+        for b in range(-copies, copies + 1):
+            if a == 0 and b == 0:
+                continue
+            dx = a * vx + b * ux
+            dy = a * vy + b * uy
+            x_list.append(x0 + dx)
+            y_list.append(y0 + dy)
+            c_list.append(c0)
+    x_all = np.concatenate(x_list)
+    y_all = np.concatenate(y_list)
+    c_all = np.concatenate(c_list)
+    pts = np.column_stack([x_all, y_all])
+    _, uid = np.unique(np.round(pts, 8), axis=0, return_index=True)
+    return LinearNDInterpolator(pts[uid], c_all[uid])
+
+
+def _tile_interp_field(data: dict, Lx: int, Ly: int, Tx: int, Ty: int,
+                       copies: int = 2, field: str = "conn"):
+    """Build a LinearNDInterpolator of *field* by tiling the torus."""
+    keys  = list(data.keys())
+    m_arr = np.array([k[0] for k in keys], dtype=float)
+    n_arr = np.array([k[1] for k in keys], dtype=float)
+    c_arr = np.array([data[k][field] for k in keys], dtype=float)
+    x0    = m_arr + 0.5 * n_arr
+    sqrt3_2 = math.sqrt(3.0) / 2.0
+    y0    = sqrt3_2 * n_arr
+    vx = Lx + 0.5 * Ty;  vy = sqrt3_2 * Ty
+    ux = Tx - 0.5 * Ly;  uy = -sqrt3_2 * Ly
+    x_list, y_list, c_list = [x0], [y0], [c_arr]
+    for a in range(-copies, copies + 1):
+        for b in range(-copies, copies + 1):
+            if a == 0 and b == 0:
+                continue
+            x_list.append(x0 + a * vx + b * ux)
+            y_list.append(y0 + a * vy + b * uy)
+            c_list.append(c_arr)
+    x_all = np.concatenate(x_list)
+    y_all = np.concatenate(y_list)
+    c_all = np.concatenate(c_list)
+    pts = np.column_stack([x_all, y_all])
+    _, uid = np.unique(np.round(pts, 8), axis=0, return_index=True)
+    return LinearNDInterpolator(pts[uid], c_all[uid])
+
+
+def _boundary_paths(Lx, Ly, Tx, Ty):
+    """Return the three boundary-direction vectors (dm, dn) for a torus."""
+    return [
+        ( Lx,           Ty),
+        ( Tx,          -Ly),
+        (-Lx - Tx,  Ly - Ty),
+    ]
+
+
+def _boundary_slices_cost(ref_data: dict, test_data: dict,
+                           Lx: int, Ly: int, Tx: int, Ty: int,
+                           ref_Lx: int = 0, ref_Ly: int = 0,
+                           ref_Tx: int = 0, ref_Ty: int = 0,
+                           copies: int = 2, n_samples: int = 400):
+    """
+    Sum of integral_0^1 (G_test(t) - G_ref(t))^2 dt over the three
+    torus boundary paths, sampled as a function of the fractional
+    parameter t in [0, 1].
+
+    When ref_Lx > 0, the reference and test may live on DIFFERENT tori
+    (cross-geometry mode).  Each interpolator is built from its own
+    geometry, and each direction is sampled along its own boundary path.
+    The three directions are matched by index (v<->v, u<->u, w<->w).
+
+    Returns (total_cost, n_valid_paths, 0.0).
+    """
+    # Determine geometries
+    cross = (ref_Lx > 0 and ref_Ly > 0)
+    rLx = ref_Lx if cross else Lx
+    rLy = ref_Ly if cross else Ly
+    rTx = ref_Tx if cross else Tx
+    rTy = ref_Ty if cross else Ty
+
+    iref  = _tile_interp_conn(ref_data,  rLx, rLy, rTx, rTy, copies)
+    itest = _tile_interp_conn(test_data, Lx,  Ly,  Tx,  Ty,  copies)
+
+    ref_paths  = _boundary_paths(rLx, rLy, rTx, rTy)
+    test_paths = _boundary_paths(Lx,  Ly,  Tx,  Ty)
+
+    sqrt3_2 = math.sqrt(3.0) / 2.0
+    total   = 0.0
+    n_valid = 0
+    t = np.linspace(0.0, 1.0, n_samples)
+    for (rdm, rdn), (tdm, tdn) in zip(ref_paths, test_paths):
+        # Reference path in Cartesian
+        rex = rdm + 0.5 * rdn;  rey = sqrt3_2 * rdn
+        pts_ref = np.column_stack([t * rex, t * rey])
+        # Test path in Cartesian
+        tex = tdm + 0.5 * tdn;  tey = sqrt3_2 * tdn
+        pts_test = np.column_stack([t * tex, t * tey])
+
+        cc_ref  = np.array(iref(pts_ref),   dtype=float)
+        cc_test = np.array(itest(pts_test),  dtype=float)
+        mask = np.isfinite(cc_ref) & np.isfinite(cc_test)
+        if mask.sum() < 4:
+            continue
+        diff = cc_test[mask] - cc_ref[mask]
+        tm   = t[mask]
+        dt   = tm[1:] - tm[:-1]
+        total += float(np.sum(0.5 * (diff[:-1] ** 2 + diff[1:] ** 2) * dt))
+        n_valid += 1
+    return total, max(n_valid, 1), 0.0
+
+
+def extract_boundary_slices(ref_data, test_data, Lx, Ly, Tx, Ty,
+                             ref_Lx=0, ref_Ly=0, ref_Tx=0, ref_Ty=0,
+                             copies=2, n_samples=200):
+    """
+    Extract per-direction correlator slices for plotting.
+    Returns list of 3 dicts with keys: t, g_ref, g_test, diff, diff_err, label.
+    """
+    cross = (ref_Lx > 0 and ref_Ly > 0)
+    rLx, rLy = (ref_Lx, ref_Ly) if cross else (Lx, Ly)
+    rTx, rTy = (ref_Tx, ref_Ty) if cross else (Tx, Ty)
+
+    iref      = _tile_interp_conn(ref_data,  rLx, rLy, rTx, rTy, copies)
+    itest     = _tile_interp_conn(test_data, Lx,  Ly,  Tx,  Ty,  copies)
+    iref_err  = _tile_interp_field(ref_data,  rLx, rLy, rTx, rTy, copies, "conn_err")
+    itest_err = _tile_interp_field(test_data, Lx,  Ly,  Tx,  Ty,  copies, "conn_err")
+
+    ref_paths  = _boundary_paths(rLx, rLy, rTx, rTy)
+    test_paths = _boundary_paths(Lx,  Ly,  Tx,  Ty)
+
+    sqrt3_2 = math.sqrt(3.0) / 2.0
+    labels = ["v", "u", "w"]
+    slices = []
+    t = np.linspace(0.0, 1.0, n_samples)
+    for i, ((rdm, rdn), (tdm, tdn)) in enumerate(zip(ref_paths, test_paths)):
+        rex = rdm + 0.5 * rdn;  rey = sqrt3_2 * rdn
+        pts_ref = np.column_stack([t * rex, t * rey])
+        tex = tdm + 0.5 * tdn;  tey = sqrt3_2 * tdn
+        pts_test = np.column_stack([t * tex, t * tey])
+
+        cc_ref  = np.asarray(iref(pts_ref),      dtype=float)
+        cc_test = np.asarray(itest(pts_test),     dtype=float)
+        ee_ref  = np.abs(np.asarray(iref_err(pts_ref),  dtype=float))
+        ee_test = np.abs(np.asarray(itest_err(pts_test), dtype=float))
+
+        mask = (np.isfinite(cc_ref) & np.isfinite(cc_test) &
+                np.isfinite(ee_ref) & np.isfinite(ee_test))
+        slices.append({
+            "t":        t[mask],
+            "g_ref":    cc_ref[mask],
+            "g_test":   cc_test[mask],
+            "diff":     cc_test[mask] - cc_ref[mask],
+            "diff_err": np.sqrt(ee_ref[mask]**2 + ee_test[mask]**2),
+            "label":    labels[i],
+        })
+    return slices
+
+
 def compute_chi2(ref_data: dict, test_data: dict, r_min: float = 0.0,
                  r_max_frac: float = 0.33, L_eff: float = 12.0,
-                 Lx: int = 0, Ly: int = 0,
+                 Lx: int = 0, Ly: int = 0, Tx: int = 0, Ty: int = 0,
+                 ref_Lx: int = 0, ref_Ly: int = 0,
+                 ref_Tx: int = 0, ref_Ty: int = 0,
                  cost: str = "log_ratio",
                  test_data_shift: dict = None, delta_beta: float = 0.0,
                  beta_diff: float = 0.0):
@@ -439,6 +622,12 @@ def compute_chi2(ref_data: dict, test_data: dict, r_min: float = 0.0,
         computed per-cell from the 4 corner values.  Physical amplitudes
         are preserved.  Returned as the raw integral (ndof=1), so the
         displayed chi2/ndof equals the total integrated difference.
+
+    'boundary_slices'
+        Sum of integral_0^1 (G_test(t) - G_ref(t))^2 dt over the three
+        torus boundary paths v=(Lx,Ty), u=(Tx,-Ly), w=-(v+u).  Each path
+        is sampled by interpolating the tiled all-to-all field.  Physical
+        amplitudes are preserved.  ndof = number of valid paths (≤3).
     """
     # ---- FEM integral cost (completely different code path) ----
     if cost == "fem_integral":
@@ -453,6 +642,13 @@ def compute_chi2(ref_data: dict, test_data: dict, r_min: float = 0.0,
         total     = _fem_bilinear_integral(h)
         total_err = 2.0 * np.sqrt(_fem_bilinear_integral(h * sigma_h))
         return total, 1, total_err
+    # ---- Boundary-slice integral cost ----
+    if cost == "boundary_slices":
+        if Lx <= 0 or Ly <= 0:
+            raise ValueError("boundary_slices cost requires Lx and Ly > 0")
+        return _boundary_slices_cost(ref_data, test_data, Lx, Ly, Tx, Ty,
+                                     ref_Lx=ref_Lx, ref_Ly=ref_Ly,
+                                     ref_Tx=ref_Tx, ref_Ty=ref_Ty)
     r_max = r_max_frac * L_eff
 
     # ---- single pass: collect all per-displacement quantities ----
@@ -559,18 +755,31 @@ class LivePlotter:
         self.history_chi2_ndof = []
         self.history_chi2_err = []
         self.history_beta_c = []
-        # Build figure with a fixed-width colorbar column next to ax1 so
-        # adding/removing colorbars never resizes the scatter panel.
-        from matplotlib.gridspec import GridSpec
-        self.fig = plt.figure(figsize=(14, 10))
-        gs = GridSpec(2, 3, figure=self.fig,
-                      width_ratios=[1, 0.04, 1],
-                      wspace=0.45, hspace=0.38)
-        self.ax1     = self.fig.add_subplot(gs[0, 0])   # heatmap
-        self.cbar_ax = self.fig.add_subplot(gs[0, 1])   # dedicated colorbar
-        self.ax2     = self.fig.add_subplot(gs[0, 2])   # chi2 history
-        self.ax3     = self.fig.add_subplot(gs[1, 0])   # beta_c history
-        self.ax4     = self.fig.add_subplot(gs[1, 2])   # susceptibility scan
+        # Boundary slice data for bottom-row panels
+        self.last_slices = None   # latest evaluation
+        self.best_slices = None   # best chi2 evaluation
+        self.best_chi2 = float("inf")
+        # Build figure: 3 rows — top two for the 4 original panels,
+        # bottom row for per-direction correlator difference plots.
+        from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
+        self.fig = plt.figure(figsize=(14, 14))
+        outer = GridSpec(3, 1, figure=self.fig,
+                         height_ratios=[1, 1, 0.8], hspace=0.32)
+        inner_top = GridSpecFromSubplotSpec(
+            2, 3, subplot_spec=outer[0:2],
+            width_ratios=[1, 0.04, 1], wspace=0.45, hspace=0.38)
+        self.ax1     = self.fig.add_subplot(inner_top[0, 0])   # heatmap
+        self.cbar_ax = self.fig.add_subplot(inner_top[0, 1])   # dedicated colorbar
+        self.ax2     = self.fig.add_subplot(inner_top[0, 2])   # chi2 history
+        self.ax3     = self.fig.add_subplot(inner_top[1, 0])   # beta_c history
+        self.ax4     = self.fig.add_subplot(inner_top[1, 2])   # susceptibility scan
+        # Bottom row: 3 panels for boundary-direction correlator diffs
+        inner_bot = GridSpecFromSubplotSpec(
+            1, 3, subplot_spec=outer[2], wspace=0.35)
+        self.ax_v = self.fig.add_subplot(inner_bot[0, 0])
+        self.ax_u = self.fig.add_subplot(inner_bot[0, 1])
+        self.ax_w = self.fig.add_subplot(inner_bot[0, 2])
+        self.slice_axes = [self.ax_v, self.ax_u, self.ax_w]
         # keep .axes for flat iteration in _update
         self.axes = [self.ax1, self.ax2, self.ax3, self.ax4]
         self.fig.suptitle("K_from_TwoPoint: Adaptive Grid Search", fontsize=14)
@@ -586,7 +795,7 @@ class LivePlotter:
 
     def record_point(self, r1, r2, beta_c, chi2, ndof,
                      scan_betas, scan_chis, scan_chi_errs=None, parabola=None,
-                     chi2_err=0.0):
+                     chi2_err=0.0, slices=None):
         chi2_ndof = chi2 / max(ndof, 1)
         self.all_points.append((r1, r2, chi2_ndof))
         self.last_scan_betas = scan_betas
@@ -597,6 +806,11 @@ class LivePlotter:
         self.history_chi2_ndof.append(chi2_ndof)
         self.history_chi2_err.append(chi2_err)
         self.history_beta_c.append(beta_c)
+        if slices is not None:
+            self.last_slices = slices
+            if chi2_ndof < self.best_chi2:
+                self.best_chi2 = chi2_ndof
+                self.best_slices = slices
         self.current_point = None  # clear after recording
         self._update()
 
@@ -618,7 +832,7 @@ class LivePlotter:
             sc = ax1.scatter(r1s, r2s, c=vals, cmap="RdYlGn_r",
                              vmin=vmin, vmax=vmax, s=80, zorder=3,
                              edgecolors="k", linewidths=0.5)
-            _score_label = ("Integrated difference" if self.cost == "fem_integral"
+            _score_label = ("Integrated difference" if self.cost in ("fem_integral", "boundary_slices")
                             else r"$\chi^2/N_{\rm dof}$")
             self.fig.colorbar(sc, cax=self.cbar_ax, label=_score_label)
             best_idx = int(np.argmin(vals))
@@ -654,11 +868,11 @@ class LivePlotter:
             else:
                 ax2.semilogy(iters, vals, "o", color="crimson",
                              ms=4, zorder=3)
-        if self.cost != "fem_integral":
+        if self.cost not in ("fem_integral", "boundary_slices"):
             ax2.axhline(1.0, ls="--", color="gray", alpha=0.5,
                         label=r"$\chi^2/N_{\rm dof}=1$")
         ax2.set_xlabel("Evaluation #")
-        _y_label = ("Integrated difference" if self.cost == "fem_integral"
+        _y_label = ("Integrated difference" if self.cost in ("fem_integral", "boundary_slices")
                     else r"$\chi^2 / N_{\rm dof}$")
         ax2.set_ylabel(_y_label)
         ax2.set_title("Fit quality")
@@ -721,6 +935,42 @@ class LivePlotter:
         ax4.set_title("Latest susceptibility scan")
         ax4.grid(True, alpha=0.3)
 
+        # Panels 5-7: boundary-direction correlator differences
+        dir_colors = ["#d62728", "#1f77b4", "#2ca02c"]  # v=red, u=blue, w=green
+        dir_labels = ["v", "u", "w"]
+        for idx, ax_s in enumerate(self.slice_axes):
+            ax_s.clear()
+            ax_s.axhline(0, ls="-", color="gray", alpha=0.4, lw=0.8)
+            drawn = False
+            if self.best_slices and idx < len(self.best_slices):
+                s = self.best_slices[idx]
+                if len(s["t"]) > 1:
+                    ax_s.fill_between(s["t"],
+                                      s["diff"] - s["diff_err"],
+                                      s["diff"] + s["diff_err"],
+                                      color=dir_colors[idx], alpha=0.08)
+                    ax_s.plot(s["t"], s["diff"], "--",
+                              color=dir_colors[idx], alpha=0.5, lw=1.2,
+                              label="best")
+                    drawn = True
+            if self.last_slices and idx < len(self.last_slices):
+                s = self.last_slices[idx]
+                if len(s["t"]) > 1:
+                    ax_s.fill_between(s["t"],
+                                      s["diff"] - s["diff_err"],
+                                      s["diff"] + s["diff_err"],
+                                      color=dir_colors[idx], alpha=0.15)
+                    ax_s.plot(s["t"], s["diff"], "-",
+                              color=dir_colors[idx], lw=1.6, label="latest")
+                    drawn = True
+            ax_s.set_xlabel("t (fraction along path)")
+            if idx == 0:
+                ax_s.set_ylabel(r"$G_{\rm test} - G_{\rm ref}$")
+            ax_s.set_title(f"Direction {dir_labels[idx]}")
+            ax_s.grid(True, alpha=0.2)
+            if drawn:
+                ax_s.legend(fontsize=8)
+
         self.fig.suptitle("K_from_TwoPoint: Adaptive Grid Search",
                            fontsize=14, y=0.995)
         path = os.path.join(self.output_dir, "optimisation_live.png")
@@ -753,7 +1003,8 @@ def evaluate_point(exe, Lx, Ly, Tx, Ty, k1, k2, k3, beta_guess,
                    n_traj_prod, data_dir, ref_data, L_eff, label, plotter,
                    n_traj_scan_coarse=30000, n_traj_scan_fine=60000,
                    r_min=0.0, r_max_frac=0.33,
-                   cost="log_ratio", beta_ref=None):
+                   cost="log_ratio", beta_ref=None,
+                   ref_Lx=0, ref_Ly=0, ref_Tx=0, ref_Ty=0):
     """Find beta_c, run production, compute chi2 for a single (k1, k2, k3) point."""
     r1 = k1 / k3
     r2 = k2 / k3
@@ -807,7 +1058,8 @@ def evaluate_point(exe, Lx, Ly, Tx, Ty, k1, k2, k3, beta_guess,
 
     chi2, ndof, chi2_err = compute_chi2(
         ref_data, test_data,
-        r_min=r_min, r_max_frac=r_max_frac, L_eff=L_eff, Lx=Lx, Ly=Ly,
+        r_min=r_min, r_max_frac=r_max_frac, L_eff=L_eff, Lx=Lx, Ly=Ly, Tx=Tx, Ty=Ty,
+        ref_Lx=ref_Lx, ref_Ly=ref_Ly, ref_Tx=ref_Tx, ref_Ty=ref_Ty,
         cost=cost,
         test_data_shift=test_data_shift,
         delta_beta=delta_beta,
@@ -818,9 +1070,20 @@ def evaluate_point(exe, Lx, Ly, Tx, Ty, k1, k2, k3, beta_guess,
     print(f"  [{label}] chi2/ndof = {chi2_ndof:.4f}{err_str} (ndof={ndof}, cost={cost})")
     sys.stdout.flush()
 
+    # Extract boundary slices for live plotting (boundary_slices cost only)
+    slices = None
+    if cost == "boundary_slices":
+        try:
+            slices = extract_boundary_slices(
+                ref_data, test_data, Lx, Ly, Tx, Ty,
+                ref_Lx=ref_Lx, ref_Ly=ref_Ly,
+                ref_Tx=ref_Tx, ref_Ty=ref_Ty)
+        except Exception:
+            pass
+
     plotter.record_point(r1, r2, beta_c, chi2, ndof,
                          scan_betas, scan_chis, scan_chi_errs, parabola=parabola,
-                         chi2_err=chi2_err)
+                         chi2_err=chi2_err, slices=slices)
 
     return beta_c, chi2, ndof, chi2_ndof
 
@@ -835,7 +1098,8 @@ def grid_search(exe, Lx, Ly, Tx, Ty, ref_data, L_eff,
                 n_grid=4, max_levels=10, plotter=None,
                 n_traj_scan_coarse=30000, n_traj_scan_fine=60000,
                 r_min=1.5, r_max_frac=0.33,
-                cost="log_ratio", beta_ref=None):
+                cost="log_ratio", beta_ref=None,
+                ref_Lx=0, ref_Ly=0, ref_Tx=0, ref_Ty=0):
     """
     Adaptive grid search over (r1, r2) = (k1/k3, k2/k3).
 
@@ -888,6 +1152,8 @@ def grid_search(exe, Lx, Ly, Tx, Ty, ref_data, L_eff,
                     n_traj_scan_fine=n_traj_scan_fine,
                     r_min=r_min, r_max_frac=r_max_frac,
                     cost=cost, beta_ref=beta_ref,
+                    ref_Lx=ref_Lx, ref_Ly=ref_Ly,
+                    ref_Tx=ref_Tx, ref_Ty=ref_Ty,
                 )
                 grid_results[(i, j)] = (r1, r2, beta_c, chi2, chi2_ndof)
                 all_results.append((r1, r2, beta_c, chi2, ndof, chi2_ndof))
@@ -923,7 +1189,7 @@ def grid_search(exe, Lx, Ly, Tx, Ty, ref_data, L_eff,
         # fem_integral scores are not chi2/ndof and are << 1.0 by construction,
         # so we never early-stop on them — always run all max_levels.
         converged = (not is_border
-                     and cost != "fem_integral"
+                     and cost not in ("fem_integral", "boundary_slices")
                      and chi2_ndof_best <= 1.5)
         if converged:
             print(f"  Converged at level {level}: chi2/ndof = {chi2_ndof_best:.4f}")
@@ -978,15 +1244,27 @@ def main():
     parser.add_argument("--r_max_frac", type=float, default=0.33,
                         help="Maximum displacement as fraction of L_eff")
     parser.add_argument("--cost", default="log_ratio",
-                        choices=["log_ratio", "beta_deriv", "pair_ratio", "residuals", "fem_integral"],
+                        choices=["log_ratio", "beta_deriv", "pair_ratio", "residuals",
+                                 "fem_integral", "boundary_slices"],
                         help=("Cost function: "
                               "'log_ratio' (GLS-mean amplitude-free, default); "
                               "'beta_deriv' (first-order beta-mismatch correction); "
                               "'pair_ratio' (all log-ratio pairs, exact amplitude cancellation); "
-                              "'residuals' (plain L2, no amplitude correction)"))
+                              "'residuals' (plain L2, no amplitude correction); "
+                              "'fem_integral' (integrated (G_test-G_ref)^2 over 2D domain); "
+                              "'boundary_slices' (sum of integrated (G_test-G_ref)^2 along v,u,w boundary paths)"))
     parser.add_argument("--beta_ref", type=float, default=None,
                         help="Reference beta_c (used by beta_deriv cost). "
                              "Loaded from ref_metadata.json if not given.")
+    parser.add_argument("--ref_Lx", type=int, default=0,
+                        help="Reference lattice Lx (for cross-geometry boundary_slices). "
+                             "0 = same as --Lx.")
+    parser.add_argument("--ref_Ly", type=int, default=0,
+                        help="Reference lattice Ly (0 = same as --Ly)")
+    parser.add_argument("--ref_Tx", type=int, default=0,
+                        help="Reference twist Tx (0 = same as --Tx)")
+    parser.add_argument("--ref_Ty", type=int, default=0,
+                        help="Reference twist Ty (0 = same as --Ty)")
     parser.add_argument("--max_iter", type=int, default=10,
                         help="Maximum grid refinement/translation levels")
     parser.add_argument("--n_grid", type=int, default=5,
@@ -1100,6 +1378,9 @@ def main():
     print(f"  cost function = {args.cost}")
     if args.beta_ref is not None:
         print(f"  beta_ref = {args.beta_ref:.8f}")
+    if args.ref_Lx > 0:
+        print(f"  ref geometry = {args.ref_Lx}x{args.ref_Ly} Tx={args.ref_Tx} Ty={args.ref_Ty}"
+              f"  (cross-geometry mode)")
     sys.stdout.flush()
 
     all_results, final_grid = grid_search(
@@ -1122,6 +1403,8 @@ def main():
         r_max_frac=args.r_max_frac,
         cost=args.cost,
         beta_ref=args.beta_ref,
+        ref_Lx=args.ref_Lx, ref_Ly=args.ref_Ly,
+        ref_Tx=args.ref_Tx, ref_Ty=args.ref_Ty,
     )
 
     if not all_results:
