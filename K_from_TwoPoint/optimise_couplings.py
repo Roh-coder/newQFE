@@ -899,7 +899,10 @@ def grid_search(exe, Lx, Ly, Tx, Ty, ref_data, L_eff,
         is_border = (bi == 0 or bi == n_grid - 1 or
                      bj == 0 or bj == n_grid - 1)
 
-        if not is_border and chi2_ndof_best <= 1.0:
+        converged = (not is_border
+                     and cost != "fem_integral"
+                     and chi2_ndof_best <= 1.5)
+        if converged:
             print(f"  Converged at level {level}: chi2/ndof = {chi2_ndof_best:.4f}")
             break
 
