@@ -91,6 +91,10 @@ def run_simulator(exe: str, Lx: int, Ly: int, Tx: int, Ty: int,
     if seed == 0:
         seed = int(time.time() * 1000) & 0xFFFFFFFF
 
+    # Ensure data_dir exists before spawning the process (the C++ MakeDir
+    # only handles one level; Python makedirs handles arbitrary depth).
+    os.makedirs(data_dir, exist_ok=True)
+
     cmd = [
         exe,
         "--L_x", str(Lx), "--L_y", str(Ly),

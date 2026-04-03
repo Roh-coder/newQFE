@@ -91,6 +91,8 @@ def run_simulator(exe: str, Lx: int, Ly: int, Tx: int, Ty: int,
     if seed == 0:
         seed = int(time.time() * 1000) & 0xFFFFFFFF
 
+    os.makedirs(data_dir, exist_ok=True)
+
     cmd = [
         exe,
         "--L_x", str(Lx), "--L_y", str(Ly),
