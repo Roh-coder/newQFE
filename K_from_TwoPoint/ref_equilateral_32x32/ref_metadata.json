@@ -1,0 +1,9 @@
+{
+  "beta_c": 0.266505033813147,
+  "chi_peak": 0.0460102598436,
+  "Lx": 32,
+  "Ly": 32,
+  "Tx": 0,
+  "Ty": 0,
+  "a2a_path": "K_from_TwoPoint/ref_equilateral_32x32/ref_production/Lx32_Ly32_Tx0_Ty0_Nt1_k1.000_1.000_1.000_kt0.500/two_point_all_to_all.dat"
+}
