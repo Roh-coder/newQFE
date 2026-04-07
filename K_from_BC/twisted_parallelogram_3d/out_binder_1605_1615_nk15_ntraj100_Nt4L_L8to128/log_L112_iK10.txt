@@ -1,0 +1,2 @@
+CMD: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/ising_tri_twisted_parallelogram --L_x=112 --L_y=112 --T_x=0 --T_y=0 --N_t=448 --k1=0.1612142857 --k2=0.1612142857 --k3=0.1612142857 --k_t=0.1612142857 --n_therm=100 --n_traj=100 --n_skip=10 --n_wolff=3 --n_metropolis=5 --seed=1588314789 --data_dir=/workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/out_binder_1605_1615_nk15_ntraj100_Nt4L_L8to128
+

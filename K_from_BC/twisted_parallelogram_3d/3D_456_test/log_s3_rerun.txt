@@ -1,0 +1,40 @@
+L_x: 117
+L_y: 144
+T_x: 27
+T_y: -27
+N_cell: 16119
+N_t: 12
+K1: 0.161000000000
+K2: 0.161000000000
+K3: 0.161000000000
+Kt: 0.161000000000
+beta: 1.000000000000
+seed: 0x000004D2
+n_therm: 500
+n_traj: 1000
+n_skip: 10
+n_wolff: 3
+n_metropolis: 5
+wall_time: 0.000000
+data_dir: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/3D_456_test
+two_point_name: two_point_typed.dat
+full_two_point_name: two_point_all_to_all.dat
+time_two_point_name: two_point_time.dat
+full_3d_two_point_name: two_point_3d.dat
+n_sites: 193428
+n_links: 773712
+initial action: -0.000389540294
+periods e1/e2/e2-e1: 1791 1791 1791
+progress_step: every 75 trajectories (total 1500)
+progress traj=75/1500 (5.0%) measured=0
+progress traj=150/1500 (10.0%) measured=0
+progress traj=225/1500 (15.0%) measured=0
+progress traj=300/1500 (20.0%) measured=0
+progress traj=375/1500 (25.0%) measured=0
+progress traj=450/1500 (30.0%) measured=0
+progress traj=525/1500 (35.0%) measured=3
+progress traj=600/1500 (40.0%) measured=10
+progress traj=675/1500 (45.0%) measured=18
+progress traj=750/1500 (50.0%) measured=25
+progress traj=825/1500 (55.0%) measured=33
+progress traj=900/1500 (60.0%) measured=40

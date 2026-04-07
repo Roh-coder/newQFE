@@ -898,5 +898,27 @@ int main(int argc, char* argv[]) {
   fclose(full_file);
   printf("wrote: %s\n", full_two_point_path);
 
+  // ── Write temporal correlator two_point_time.dat ─────────────────────────
+  char time_two_point_path[512];
+  sprintf(time_two_point_path, "%s/%s", subdir, time_two_point_name.c_str());
+  FILE* time_file = fopen(time_two_point_path, "w");
+  assert(time_file != nullptr);
+  fprintf(time_file, "# Space-averaged temporal two-point function.\n");
+  fprintf(time_file, "# G_time(dt) = (1/V) sum_{t0,x} <spin(t0,x) * spin((t0+dt)%%Nt, x)>\n");
+  fprintf(time_file, "# dt corr err corr_conn err_conn\n");
+  for (int dt = 0; dt < N_t; dt++) {
+    double cconn = 0.0;
+    double econn = 0.0;
+    JackknifeConnectedCorr(corr_time_samples[dt], mag_samples, &cconn, &econn);
+    fprintf(time_file, "%d %.16e %.16e %.16e %.16e\n",
+            dt,
+            corr_time[dt].Mean(),
+            corr_time[dt].Error(),
+            cconn,
+            econn);
+  }
+  fclose(time_file);
+  printf("wrote: %s\n", time_two_point_path);
+
   return 0;
 }

@@ -1,0 +1,38 @@
+L_x: 48
+L_y: 48
+T_x: 0
+T_y: 0
+N_cell: 2304
+N_t: 192
+K1: 0.161142857100
+K2: 0.161142857100
+K3: 0.161142857100
+Kt: 0.161142857100
+beta: 1.000000000000
+seed: 0x5EA8B64E
+n_therm: 300
+n_traj: 500
+n_skip: 10
+n_wolff: 3
+n_metropolis: 5
+wall_time: 0.000000
+data_dir: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/out_binder_1605_1615_nk15_ntraj500_Nt4L_L4to64
+two_point_name: two_point_typed.dat
+full_two_point_name: two_point_all_to_all.dat
+n_sites: 442368
+n_links: 1769472
+initial action: 0.000234592014
+periods e1/e2/e2-e1: 48 48 48
+progress_step: every 40 trajectories (total 800)
+progress traj=40/800 (5.0%) measured=0
+progress traj=80/800 (10.0%) measured=0
+progress traj=120/800 (15.0%) measured=0
+progress traj=160/800 (20.0%) measured=0
+progress traj=200/800 (25.0%) measured=0
+progress traj=240/800 (30.0%) measured=0
+progress traj=280/800 (35.0%) measured=0
+progress traj=320/800 (40.0%) measured=2
+progress traj=360/800 (45.0%) measured=6
+progress traj=400/800 (50.0%) measured=10
+progress traj=440/800 (55.0%) measured=14
+progress traj=480/800 (60.0%) measured=18

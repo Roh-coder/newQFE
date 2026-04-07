@@ -1,0 +1,60 @@
+=== s=3: Lx=117 Ly=144 Tx=27 Ty=-27 Nt=12 ntraj=1000 ===
+L_x: 117
+L_y: 144
+T_x: 27
+T_y: -27
+N_cell: 16119
+N_t: 12
+K1: 0.161000000000
+K2: 0.161000000000
+K3: 0.161000000000
+Kt: 0.161000000000
+beta: 1.000000000000
+seed: 0x000004D2
+n_therm: 500
+n_traj: 1000
+n_skip: 10
+n_wolff: 3
+n_metropolis: 5
+wall_time: 0.000000
+data_dir: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/3D_456_test
+two_point_name: two_point_typed.dat
+full_two_point_name: two_point_all_to_all.dat
+time_two_point_name: two_point_time.dat
+full_3d_two_point_name: two_point_3d.dat
+n_sites: 193428
+n_links: 773712
+initial action: -0.000389540294
+periods e1/e2/e2-e1: 1791 1791 1791
+progress_step: every 75 trajectories (total 1500)
+progress traj=75/1500 (5.0%) measured=0
+progress traj=150/1500 (10.0%) measured=0
+progress traj=225/1500 (15.0%) measured=0
+progress traj=300/1500 (20.0%) measured=0
+progress traj=375/1500 (25.0%) measured=0
+progress traj=450/1500 (30.0%) measured=0
+progress traj=750/1500 (50.0%) measured=25
+progress traj=825/1500 (55.0%) measured=33
+progress traj=900/1500 (60.0%) measured=40
+progress traj=525/1500 (35.0%) measured=3
+progress traj=975/1500 (65.0%) measured=48
+progress traj=1050/1500 (70.0%) measured=55
+progress traj=1125/1500 (75.0%) measured=63
+progress traj=1200/1500 (80.0%) measured=70
+progress traj=1275/1500 (85.0%) measured=78
+progress traj=1350/1500 (90.0%) measured=85
+progress traj=600/1500 (40.0%) measured=10
+progress traj=1425/1500 (95.0%) measured=93
+progress traj=1500/1500 (100.0%) measured=100
+duration: 1817.289529
+cluster_size/V: 0.0156
+accept_metropolis: 2.5858
+U4 (cluster-improved): 1.046088645631e-01 3.915388727534e-02
+U4 (spin-jackknife): 1.186101784173e-01 1.387842878661e-01
+m2 (cluster-improved): 4.981276888442e-03 2.637858637004e-04
+m_susc: 1.601139192825e-03 7.078221590863e-04
+opening file: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/3D_456_test/Lx117_Ly144_Tx27_Ty-27_Nt12_k0.161_0.161_0.161_kt0.161/Lx117_Ly144_Tx27_Ty-27_Nt12_k0.161_0.161_0.161_kt0.161_000004D2.dat
+wrote: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/3D_456_test/Lx117_Ly144_Tx27_Ty-27_Nt12_k0.161_0.161_0.161_kt0.161/two_point_typed.dat
+wrote: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/3D_456_test/Lx117_Ly144_Tx27_Ty-27_Nt12_k0.161_0.161_0.161_kt0.161/two_point_all_to_all.dat
+=== s=3 done ===
+progress traj=675/1500 (45.0%) measured=18

@@ -227,10 +227,16 @@ def main():
                     help="K grid spacing")
     ap.add_argument("--nt-factor", type=int, default=1,
                     help="set Nt = nt_factor * L (default: 1)")
+    ap.add_argument("--l-values", type=int, nargs="+", default=None,
+                    help="lattice sizes to scan (default: 32 24 16 8)")
+    ap.add_argument("--max-workers", type=int, default=MAX_WORKERS,
+                    help="parallel worker threads (default: 8)")
     args = ap.parse_args()
 
     if args.nt_factor < 1:
         raise ValueError("--nt-factor must be >= 1")
+
+    l_values = sorted(args.l_values, reverse=True) if args.l_values else L_VALUES
 
     K_VALUES = build_k_values(args.k_min, args.k_max, args.n_k, args.k_spacing)
 
@@ -252,7 +258,7 @@ def main():
     # Build and sort jobs: L descending, then |log(K/Kc)| ascending (Kc-nearest first)
     all_jobs = [
         (L, args.nt_factor * L, iK, K, args.n_traj, args.n_therm, args.n_skip)
-        for L in L_VALUES
+        for L in l_values
         for iK, K in enumerate(K_VALUES)
     ]
     all_jobs.sort(key=lambda j: (-j[0], abs(math.log(j[3] / KC_CENTER))))
@@ -268,13 +274,13 @@ def main():
     _log(f"nt_factor : {args.nt_factor}  (Nt = nt_factor * L)")
     _log(f"k_spacing : {args.k_spacing}")
     _log(f"K values  : " + " ".join(f"{k:.4f}" for k in K_VALUES))
-    _log(f"Sizes     : {L_VALUES}")
-    _log(f"Total jobs: {_total_jobs}   max_workers={MAX_WORKERS}")
+    _log(f"Sizes     : {l_values}")
+    _log(f"Total jobs: {_total_jobs}   max_workers={args.max_workers}")
     _log(f"First 8   : " + "  ".join(f"L={j[0]}/Nt={j[1]}/K={j[3]:.3f}" for j in all_jobs[:8]))
     _log(f"Monitor   : tail -f {PROGRESS_LOG}")
     _log("")
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=args.max_workers) as ex:
         # Submit in sorted order so the first MAX_WORKERS picked up are the costliest
         futs = [ex.submit(run_one, job) for job in all_jobs]
         for fut in concurrent.futures.as_completed(futs):

@@ -1,0 +1,33 @@
+{
+    "ref_Lx": 20,
+    "ref_Ly": 20,
+    "ref_Tx": 0,
+    "ref_Ty": 0,
+    "ref_beta_c": null,
+    "ref_n_traj": 50000,
+    "ref_n_traj_scan_coarse": 5000,
+    "ref_n_traj_scan_fine": 10000,
+
+    "test_Lx": 20,
+    "test_Ly": 20,
+
+    "surface_r1_lo": 0.6,
+    "surface_r1_hi": 1.6,
+    "surface_r2_lo": 0.6,
+    "surface_r2_hi": 1.6,
+    "surface_n_r1": 6,
+    "surface_n_r2": 6,
+    "surface_n_traj_coarse": 5000,
+    "surface_n_traj_fine": 10000,
+
+    "opt_r1_init": 1.0,
+    "opt_r2_init": 1.0,
+    "opt_half_span": 0.30,
+    "opt_n_grid": 3,
+    "opt_max_levels": 3,
+    "opt_top_n": 2,
+    "opt_n_traj": 10000,
+
+    "beta_init": 0.27,
+    "output_dir": "results/test_20x20"
+}

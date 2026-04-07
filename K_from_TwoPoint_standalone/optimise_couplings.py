@@ -307,18 +307,35 @@ def find_beta_c(exe: str, Lx: int, Ly: int, Tx: int, Ty: int,
                     pg, _ = curve_fit(_gauss3, betas_arr, chis_arr,
                                       p0=p0g, bounds=bounds_g, maxfev=8000)
                 popt = (pg[0], pg[1], 0.0, 0.0, pg[2])
+            # Restrict mode search to ±3σ of the fitted mean to avoid
+            # spurious secondary maxima from skew/kurtosis terms.
+            mu_fit, sigma_fit = popt[0], popt[1]
+            mode_lo = max(min(betas_arr), mu_fit - 3.0 * sigma_fit)
+            mode_hi = min(max(betas_arr), mu_fit + 3.0 * sigma_fit)
             res = minimize_scalar(lambda b: -_gram_charlier(b, *popt),
-                                  bounds=(min(betas_arr), max(betas_arr)),
+                                  bounds=(mode_lo, mode_hi),
                                   method='bounded')
             mode = float(np.clip(res.x, min(betas_arr), max(betas_arr)))
             return tuple(popt), mode
         except Exception:
             return None, beta_init
 
-    # --- Pass 1 GC fit over the first fine points ---
-    fit_params_1, beta_pass1 = _gc_fit(list(fine_betas), fine_chis, beta_parabola)
+    # --- Pass 1 GC fit: use ALL accumulated data (coarse + fine) for a
+    #     robust fit, not just the narrow fine window.  This prevents the
+    #     "missed peak" failure mode where the fine window lands off-centre.
+    all_betas_1 = np.array(scan_betas)
+    all_chis_1  = np.array(scan_chis)
+    fit_params_1, beta_pass1 = _gc_fit(list(all_betas_1), list(all_chis_1), beta_parabola)
     if fit_params_1 is None:
-        beta_pass1 = fine_betas[int(np.argmax(fine_chis))]
+        # Fallback: weighted parabolic interpolation of top-3 points
+        _ord = np.argsort(all_chis_1)[::-1]
+        _top3_b = all_betas_1[_ord[:min(3, len(all_betas_1))]]
+        _top3_c = all_chis_1[_ord[:min(3, len(all_chis_1))]]
+        if len(_top3_b) >= 3:
+            _wt = _top3_c / _top3_c.sum()
+            beta_pass1 = float(np.sum(_wt * _top3_b))
+        else:
+            beta_pass1 = fine_betas[int(np.argmax(fine_chis))]
 
     # --- Pass 2: tighter bracket centred on pass-1 mode, half the width ---
     half2 = half / 2.0
@@ -334,9 +351,20 @@ def find_beta_c(exe: str, Lx: int, Ly: int, Tx: int, Ty: int,
         scan_chi_errs.append(chi_f_err)
         fine2_chis.append(chi_f)
 
-    fit_params_2, beta_c = _gc_fit(list(fine2_betas), fine2_chis, beta_pass1)
+    # --- Pass 2 GC fit: again use ALL accumulated data for robustness.
+    all_betas_2 = np.array(scan_betas)
+    all_chis_2  = np.array(scan_chis)
+    fit_params_2, beta_c = _gc_fit(list(all_betas_2), list(all_chis_2), beta_pass1)
     if fit_params_2 is None:
-        beta_c = fine2_betas[int(np.argmax(fine2_chis))]
+        # Fallback: weighted parabolic interpolation of top-3
+        _ord2 = np.argsort(all_chis_2)[::-1]
+        _top3_b2 = all_betas_2[_ord2[:min(3, len(all_betas_2))]]
+        _top3_c2 = all_chis_2[_ord2[:min(3, len(all_chis_2))]]
+        if len(_top3_b2) >= 3:
+            _wt2 = _top3_c2 / _top3_c2.sum()
+            beta_c = float(np.sum(_wt2 * _top3_b2))
+        else:
+            beta_c = fine2_betas[int(np.argmax(fine2_chis))]
 
     fit_params = (fit_params_1, fit_params_2)
     parabola_coeffs = fit_params  # keep variable name for compatibility
@@ -487,16 +515,19 @@ def _boundary_slices_cost(ref_data: dict, test_data: dict,
                            ref_Tx: int = 0, ref_Ty: int = 0,
                            copies: int = 2, n_samples: int = 400):
     """
-    Sum of integral_0^1 (G_test(t) - G_ref(t))^2 dt over the three
+    Sum of integral_0^1 (G_test(t) - G_ref(t))^4 dt over the three
     torus boundary paths, sampled as a function of the fractional
-    parameter t in [0, 1].
+    parameter t in [0, 1].  The quartic (diff^4) integrand strongly
+    penalises large pointwise deviations compared to a quadratic cost.
+
+    Per-direction costs are printed for diagnostics.
 
     When ref_Lx > 0, the reference and test may live on DIFFERENT tori
     (cross-geometry mode).  Each interpolator is built from its own
     geometry, and each direction is sampled along its own boundary path.
     The three directions are matched by index (v<->v, u<->u, w<->w).
 
-    Returns (total_cost, n_valid_paths, 0.0).
+    Returns (total_cost, n_valid_paths, total_err).
     """
     # Determine geometries
     cross = (ref_Lx > 0 and ref_Ly > 0)
@@ -508,14 +539,21 @@ def _boundary_slices_cost(ref_data: dict, test_data: dict,
     iref  = _tile_interp_conn(ref_data,  rLx, rLy, rTx, rTy, copies)
     itest = _tile_interp_conn(test_data, Lx,  Ly,  Tx,  Ty,  copies)
 
+    # Error interpolators for uncertainty propagation
+    iref_err  = _tile_interp_field(ref_data,  rLx, rLy, rTx, rTy, copies, "conn_err")
+    itest_err = _tile_interp_field(test_data, Lx,  Ly,  Tx,  Ty,  copies, "conn_err")
+
     ref_paths  = _boundary_paths(rLx, rLy, rTx, rTy)
     test_paths = _boundary_paths(Lx,  Ly,  Tx,  Ty)
 
     sqrt3_2 = math.sqrt(3.0) / 2.0
     total   = 0.0
+    total_var = 0.0
     n_valid = 0
+    dir_labels = ["v", "u", "w"]
+    per_dir = []  # per-direction costs for diagnostics
     t = np.linspace(0.0, 1.0, n_samples)
-    for (rdm, rdn), (tdm, tdn) in zip(ref_paths, test_paths):
+    for idx, ((rdm, rdn), (tdm, tdn)) in enumerate(zip(ref_paths, test_paths)):
         # Reference path in Cartesian
         rex = rdm + 0.5 * rdn;  rey = sqrt3_2 * rdn
         pts_ref = np.column_stack([t * rex, t * rey])
@@ -525,15 +563,181 @@ def _boundary_slices_cost(ref_data: dict, test_data: dict,
 
         cc_ref  = np.array(iref(pts_ref),   dtype=float)
         cc_test = np.array(itest(pts_test),  dtype=float)
-        mask = np.isfinite(cc_ref) & np.isfinite(cc_test)
+        ee_ref  = np.abs(np.asarray(iref_err(pts_ref),  dtype=float))
+        ee_test = np.abs(np.asarray(itest_err(pts_test), dtype=float))
+        mask = np.isfinite(cc_ref) & np.isfinite(cc_test) & np.isfinite(ee_ref) & np.isfinite(ee_test)
         if mask.sum() < 4:
+            per_dir.append(0.0)
             continue
         diff = cc_test[mask] - cc_ref[mask]
+        sigma_d = np.sqrt(ee_ref[mask]**2 + ee_test[mask]**2)
         tm   = t[mask]
         dt   = tm[1:] - tm[:-1]
-        total += float(np.sum(0.5 * (diff[:-1] ** 2 + diff[1:] ** 2) * dt))
+        # Quartic integrand: diff⁴ massively punishes large deviations
+        integrand = 0.5 * (diff[:-1] ** 4 + diff[1:] ** 4)
+        dir_cost = float(np.sum(integrand * dt))
+        per_dir.append(dir_cost)
+        total += dir_cost
+        # Error propagation: d(d^4)/d(d) = 4*d^3, so sigma(d^4) = 4*|d|^3*sigma_d
+        # Variance of the trapezoidal integral: sum of (0.5*(sigma_i^2 + sigma_{i+1}^2)) * dt^2
+        sig_int = 4.0 * np.abs(diff) ** 3 * sigma_d
+        var_integrand = 0.5 * (sig_int[:-1] ** 2 + sig_int[1:] ** 2)
+        total_var += float(np.sum(var_integrand * dt ** 2))
         n_valid += 1
-    return total, max(n_valid, 1), 0.0
+    if per_dir:
+        lbl = dir_labels[:len(per_dir)]
+        parts = "  ".join(f"{l}={c:.6e}" for l, c in zip(lbl, per_dir))
+        print(f"    [boundary_slices] per-direction cost (diff⁴): {parts}")
+    total_err = math.sqrt(total_var) if total_var > 0 else 0.0
+    return total, max(n_valid, 1), total_err
+
+
+def _boundary_slices_normed_cost(ref_data: dict, test_data: dict,
+                                  Lx: int, Ly: int, Tx: int, Ty: int,
+                                  ref_Lx: int = 0, ref_Ly: int = 0,
+                                  ref_Tx: int = 0, ref_Ty: int = 0,
+                                  copies: int = 2, n_samples: int = 400):
+    """
+    Variance-normalized boundary-slice cost:
+        sum over 3 paths of integral_0^1 [(G_test - G_ref)^2 / (sigma_ref^2 + sigma_test^2)] dt
+
+    This is a proper chi2-like statistic: when ref and test come from the
+    same distribution, the integrand has expectation ~1 at every sample
+    point, making the total cost proportional to the path length (n_samples)
+    and largely independent of MC statistics.
+
+    Returns (total_cost, n_valid_paths, total_err).
+    total_err is estimated as sqrt(2*total) (Gaussian chi2 std dev).
+    """
+    cross = (ref_Lx > 0 and ref_Ly > 0)
+    rLx = ref_Lx if cross else Lx
+    rLy = ref_Ly if cross else Ly
+    rTx = ref_Tx if cross else Tx
+    rTy = ref_Ty if cross else Ty
+
+    iref  = _tile_interp_conn(ref_data,  rLx, rLy, rTx, rTy, copies)
+    itest = _tile_interp_conn(test_data, Lx,  Ly,  Tx,  Ty,  copies)
+    iref_err  = _tile_interp_field(ref_data,  rLx, rLy, rTx, rTy, copies, "conn_err")
+    itest_err = _tile_interp_field(test_data, Lx,  Ly,  Tx,  Ty,  copies, "conn_err")
+
+    ref_paths  = _boundary_paths(rLx, rLy, rTx, rTy)
+    test_paths = _boundary_paths(Lx,  Ly,  Tx,  Ty)
+
+    sqrt3_2 = math.sqrt(3.0) / 2.0
+    total   = 0.0
+    n_valid = 0
+    dir_labels = ["v", "u", "w"]
+    per_dir = []
+    t = np.linspace(0.0, 1.0, n_samples)
+    for idx, ((rdm, rdn), (tdm, tdn)) in enumerate(zip(ref_paths, test_paths)):
+        rex = rdm + 0.5 * rdn;  rey = sqrt3_2 * rdn
+        pts_ref = np.column_stack([t * rex, t * rey])
+        tex = tdm + 0.5 * tdn;  tey = sqrt3_2 * tdn
+        pts_test = np.column_stack([t * tex, t * tey])
+
+        cc_ref  = np.array(iref(pts_ref),   dtype=float)
+        cc_test = np.array(itest(pts_test),  dtype=float)
+        ee_ref  = np.abs(np.asarray(iref_err(pts_ref),  dtype=float))
+        ee_test = np.abs(np.asarray(itest_err(pts_test), dtype=float))
+        mask = (np.isfinite(cc_ref) & np.isfinite(cc_test)
+                & np.isfinite(ee_ref) & np.isfinite(ee_test))
+        if mask.sum() < 4:
+            per_dir.append(0.0)
+            continue
+        diff = cc_test[mask] - cc_ref[mask]
+        var  = ee_ref[mask]**2 + ee_test[mask]**2
+        # Floor variance to avoid division by zero
+        var  = np.maximum(var, 1e-30)
+        tm   = t[mask]
+        dt   = tm[1:] - tm[:-1]
+        integrand = 0.5 * (diff[:-1]**2 / var[:-1] + diff[1:]**2 / var[1:])
+        dir_cost = float(np.sum(integrand * dt))
+        per_dir.append(dir_cost)
+        n_valid += 1
+    # Aggregate per-direction costs as sum-of-squares so that a large
+    # deviation in one direction is penalised more than moderate misses
+    # spread across all directions:  (30,0,0) → 900  vs  (10,10,10) → 300.
+    total = sum(c ** 2 for c in per_dir)
+    if per_dir:
+        lbl = dir_labels[:len(per_dir)]
+        parts = "  ".join(f"{l}={c:.6e}" for l, c in zip(lbl, per_dir))
+        print(f"    [boundary_slices_normed] per-direction cost (normed): {parts}")
+    total_err = math.sqrt(2.0 * abs(total)) if total > 0 else 0.0
+    return total, max(n_valid, 1), total_err
+
+
+def _boundary_slices_normed_quartic_cost(ref_data: dict, test_data: dict,
+                                          Lx: int, Ly: int, Tx: int, Ty: int,
+                                          ref_Lx: int = 0, ref_Ly: int = 0,
+                                          ref_Tx: int = 0, ref_Ty: int = 0,
+                                          copies: int = 2, n_samples: int = 400):
+    """
+    Variance-normalized *quartic* boundary-slice cost:
+        sum over 3 paths of integral_0^1 Z(t)^4 dt,
+    where Z(t) = (G_test - G_ref) / sqrt(sigma_ref^2 + sigma_test^2).
+
+    At the null (test == ref), Z ~ N(0,1) so E[Z^4] = 3 per sample point
+    and std(Z^4) = sqrt(96).  Away from the null with signal s = delta/sigma,
+    E[Z^4] = 3 + 6s^2 + s^4, giving steeper sensitivity than the normed
+    quadratic (Z^2) for s > 1 while retaining the stable normalisation.
+
+    Returns (total_cost, n_valid_paths, total_err).
+    total_err is estimated from the per-point variance of Z^4 (kurtosis of N(0,1) = 96).
+    """
+    cross = (ref_Lx > 0 and ref_Ly > 0)
+    rLx = ref_Lx if cross else Lx
+    rLy = ref_Ly if cross else Ly
+    rTx = ref_Tx if cross else Tx
+    rTy = ref_Ty if cross else Ty
+
+    iref  = _tile_interp_conn(ref_data,  rLx, rLy, rTx, rTy, copies)
+    itest = _tile_interp_conn(test_data, Lx,  Ly,  Tx,  Ty,  copies)
+    iref_err  = _tile_interp_field(ref_data,  rLx, rLy, rTx, rTy, copies, "conn_err")
+    itest_err = _tile_interp_field(test_data, Lx,  Ly,  Tx,  Ty,  copies, "conn_err")
+
+    ref_paths  = _boundary_paths(rLx, rLy, rTx, rTy)
+    test_paths = _boundary_paths(Lx,  Ly,  Tx,  Ty)
+
+    sqrt3_2 = math.sqrt(3.0) / 2.0
+    total   = 0.0
+    n_valid = 0
+    dir_labels = ["v", "u", "w"]
+    per_dir = []
+    t = np.linspace(0.0, 1.0, n_samples)
+    for idx, ((rdm, rdn), (tdm, tdn)) in enumerate(zip(ref_paths, test_paths)):
+        rex = rdm + 0.5 * rdn;  rey = sqrt3_2 * rdn
+        pts_ref = np.column_stack([t * rex, t * rey])
+        tex = tdm + 0.5 * tdn;  tey = sqrt3_2 * tdn
+        pts_test = np.column_stack([t * tex, t * tey])
+
+        cc_ref  = np.array(iref(pts_ref),   dtype=float)
+        cc_test = np.array(itest(pts_test),  dtype=float)
+        ee_ref  = np.abs(np.asarray(iref_err(pts_ref),  dtype=float))
+        ee_test = np.abs(np.asarray(itest_err(pts_test), dtype=float))
+        mask = (np.isfinite(cc_ref) & np.isfinite(cc_test)
+                & np.isfinite(ee_ref) & np.isfinite(ee_test))
+        if mask.sum() < 4:
+            per_dir.append(0.0)
+            continue
+        diff = cc_test[mask] - cc_ref[mask]
+        var  = ee_ref[mask]**2 + ee_test[mask]**2
+        var  = np.maximum(var, 1e-30)
+        z    = diff / np.sqrt(var)
+        z4   = z ** 4
+        tm   = t[mask]
+        dt   = tm[1:] - tm[:-1]
+        integrand = 0.5 * (z4[:-1] + z4[1:])
+        dir_cost = float(np.sum(integrand * dt))
+        per_dir.append(dir_cost)
+        n_valid += 1
+    # Sum-of-squares aggregation (same rationale as boundary_slices_normed).
+    total = sum(c ** 2 for c in per_dir)
+    if per_dir:
+        lbl = dir_labels[:len(per_dir)]
+        parts = "  ".join(f"{l}={c:.6e}" for l, c in zip(lbl, per_dir))
+        print(f"    [boundary_slices_normed_quartic] per-direction cost (Z^4): {parts}")
+    total_err = math.sqrt(96.0 * abs(total) / max(n_samples, 1)) if total > 0 else 0.0
+    return total, max(n_valid, 1), total_err
 
 
 def extract_boundary_slices(ref_data, test_data, Lx, Ly, Tx, Ty,
@@ -649,6 +853,20 @@ def compute_chi2(ref_data: dict, test_data: dict, r_min: float = 0.0,
         return _boundary_slices_cost(ref_data, test_data, Lx, Ly, Tx, Ty,
                                      ref_Lx=ref_Lx, ref_Ly=ref_Ly,
                                      ref_Tx=ref_Tx, ref_Ty=ref_Ty)
+    # ---- Variance-normalised boundary-slice cost ----
+    if cost == "boundary_slices_normed":
+        if Lx <= 0 or Ly <= 0:
+            raise ValueError("boundary_slices_normed cost requires Lx and Ly > 0")
+        return _boundary_slices_normed_cost(ref_data, test_data, Lx, Ly, Tx, Ty,
+                                            ref_Lx=ref_Lx, ref_Ly=ref_Ly,
+                                            ref_Tx=ref_Tx, ref_Ty=ref_Ty)
+    # ---- Variance-normalised quartic boundary-slice cost ----
+    if cost == "boundary_slices_normed_quartic":
+        if Lx <= 0 or Ly <= 0:
+            raise ValueError("boundary_slices_normed_quartic cost requires Lx and Ly > 0")
+        return _boundary_slices_normed_quartic_cost(ref_data, test_data, Lx, Ly, Tx, Ty,
+                                                    ref_Lx=ref_Lx, ref_Ly=ref_Ly,
+                                                    ref_Tx=ref_Tx, ref_Ty=ref_Ty)
     r_max = r_max_frac * L_eff
 
     # ---- single pass: collect all per-displacement quantities ----
@@ -792,6 +1010,7 @@ class LivePlotter:
     def set_current_point(self, r1, r2):
         """Call before evaluate_point to highlight the in-progress grid point."""
         self.current_point = (r1, r2)
+        self._update()
 
     def record_point(self, r1, r2, beta_c, chi2, ndof,
                      scan_betas, scan_chis, scan_chi_errs=None, parabola=None,
@@ -804,7 +1023,7 @@ class LivePlotter:
         self.last_beta_c = beta_c
         self.last_parabola = parabola  # (fit_params_1, fit_params_2)
         self.history_chi2_ndof.append(chi2_ndof)
-        self.history_chi2_err.append(chi2_err)
+        self.history_chi2_err.append(chi2_err / max(ndof, 1))
         self.history_beta_c.append(beta_c)
         if slices is not None:
             self.last_slices = slices
@@ -832,7 +1051,7 @@ class LivePlotter:
             sc = ax1.scatter(r1s, r2s, c=vals, cmap="RdYlGn_r",
                              vmin=vmin, vmax=vmax, s=80, zorder=3,
                              edgecolors="k", linewidths=0.5)
-            _score_label = ("Integrated difference" if self.cost in ("fem_integral", "boundary_slices")
+            _score_label = ("Integrated difference" if self.cost in ("fem_integral", "boundary_slices", "boundary_slices_normed", "boundary_slices_normed_quartic")
                             else r"$\chi^2/N_{\rm dof}$")
             self.fig.colorbar(sc, cax=self.cbar_ax, label=_score_label)
             best_idx = int(np.argmin(vals))
@@ -866,13 +1085,14 @@ class LivePlotter:
                 ax2.errorbar(iters, vals, yerr=errs, fmt="o", color="crimson",
                              ms=4, capsize=3, lw=1.0, zorder=3)
             else:
-                ax2.semilogy(iters, vals, "o", color="crimson",
-                             ms=4, zorder=3)
-        if self.cost not in ("fem_integral", "boundary_slices"):
+                ax2.plot(iters, vals, "o", color="crimson",
+                         ms=4, zorder=3)
+            ax2.set_yscale("log")
+        if self.cost not in ("fem_integral", "boundary_slices", "boundary_slices_normed", "boundary_slices_normed_quartic"):
             ax2.axhline(1.0, ls="--", color="gray", alpha=0.5,
                         label=r"$\chi^2/N_{\rm dof}=1$")
         ax2.set_xlabel("Evaluation #")
-        _y_label = ("Integrated difference" if self.cost in ("fem_integral", "boundary_slices")
+        _y_label = ("Integrated difference" if self.cost in ("fem_integral", "boundary_slices", "boundary_slices_normed", "boundary_slices_normed_quartic")
                     else r"$\chi^2 / N_{\rm dof}$")
         ax2.set_ylabel(_y_label)
         ax2.set_title("Fit quality")
@@ -1009,7 +1229,7 @@ def evaluate_point(exe, Lx, Ly, Tx, Ty, k1, k2, k3, beta_guess,
     r1 = k1 / k3
     r2 = k2 / k3
 
-    margin = max(0.15 * beta_guess, 0.02)
+    margin = max(0.20 * beta_guess, 0.04)
     beta_lo = max(0.01, beta_guess - margin)
     beta_hi = beta_guess + margin
 
@@ -1020,7 +1240,7 @@ def evaluate_point(exe, Lx, Ly, Tx, Ty, k1, k2, k3, beta_guess,
     beta_c, chi_peak, scan_betas, scan_chis, scan_chi_errs, parabola = find_beta_c(
         exe, Lx, Ly, Tx, Ty, k1, k2, k3,
         beta_lo, beta_hi,
-        n_coarse=7, n_refine=3, n_refine2=3,
+        n_coarse=11, n_refine=5, n_refine2=5,
         n_traj_coarse=n_traj_scan_coarse, n_traj_fine=n_traj_scan_fine,
         data_dir=scan_dir,
     )
@@ -1066,13 +1286,18 @@ def evaluate_point(exe, Lx, Ly, Tx, Ty, k1, k2, k3, beta_guess,
         beta_diff=beta_diff,
     )
     chi2_ndof = chi2 / max(ndof, 1)
-    err_str = f" ± {chi2_err:.4f}" if chi2_err > 0 else ""
-    print(f"  [{label}] chi2/ndof = {chi2_ndof:.4f}{err_str} (ndof={ndof}, cost={cost})")
+    if chi2_ndof < 1e-3:
+        val_str = f"{chi2_ndof:.4e}"
+        err_str = f" ± {chi2_err / max(ndof, 1):.4e}" if chi2_err > 0 else ""
+    else:
+        val_str = f"{chi2_ndof:.6f}"
+        err_str = f" ± {chi2_err / max(ndof, 1):.6f}" if chi2_err > 0 else ""
+    print(f"  [{label}] chi2/ndof = {val_str}{err_str} (ndof={ndof}, cost={cost})")
     sys.stdout.flush()
 
     # Extract boundary slices for live plotting (boundary_slices cost only)
     slices = None
-    if cost == "boundary_slices":
+    if cost in ("boundary_slices", "boundary_slices_normed", "boundary_slices_normed_quartic"):
         try:
             slices = extract_boundary_slices(
                 ref_data, test_data, Lx, Ly, Tx, Ty,
@@ -1099,33 +1324,50 @@ def grid_search(exe, Lx, Ly, Tx, Ty, ref_data, L_eff,
                 n_traj_scan_coarse=30000, n_traj_scan_fine=60000,
                 r_min=1.5, r_max_frac=0.33,
                 cost="log_ratio", beta_ref=None,
-                ref_Lx=0, ref_Ly=0, ref_Tx=0, ref_Ty=0):
+                ref_Lx=0, ref_Ly=0, ref_Tx=0, ref_Ty=0,
+                reeval_top_k=0, reeval_factor=10):
     """
     Adaptive grid search over (r1, r2) = (k1/k3, k2/k3).
 
-    Rules per level:
-      - Evaluate all n_grid x n_grid points.
-      - Interior minimum: refine (halve half_span) centred on the best point.
-      - Border minimum:   translate the grid so the best point becomes the
-                         new centre (half_span unchanged).
-    Stops when chi2/ndof <= 1.0 or max_levels reached.
+    Uses **independent half-spans** for each dimension so that refine and
+    translate operations act per-axis:
+
+      - If the best point is interior in a dimension → re-centre on the
+        best point and halve that dimension's half-span (zoom in).
+      - If the best point is on the border in a dimension → re-centre on
+        the best point, keeping the span unchanged (translate).
+
+    The two dimensions are handled independently: a corner minimum
+    translates both, a side-border minimum refines the interior axis
+    while translating the border axis.
+
+    Stops when chi2/ndof <= 1.5 (chi2-based costs only) or max_levels reached.
+
+    If reeval_top_k > 0, the top-K candidates (by initial cost) are
+    re-evaluated with reeval_factor × more statistics before choosing the
+    level winner.  This sharply reduces the chance of MC noise picking a
+    spurious best point, at modest extra cost (only K extra evaluations).
     """
     all_results = []   # (r1, r2, beta_c, chi2, ndof, chi2_ndof)
     best_beta_c = beta_guess
     grid_results = {}
 
+    # Independent half-spans for each axis
+    hs_r1 = half_span
+    hs_r2 = half_span
+
     for level in range(max_levels):
-        r1_lo = max(r1_center - half_span, 0.1)
-        r1_hi = r1_center + half_span
-        r2_lo = max(r2_center - half_span, 0.1)
-        r2_hi = r2_center + half_span
+        r1_lo = max(r1_center - hs_r1, 0.1)
+        r1_hi = r1_center + hs_r1
+        r2_lo = max(r2_center - hs_r2, 0.1)
+        r2_hi = r2_center + hs_r2
 
         r1_vals = np.linspace(r1_lo, r1_hi, n_grid)
         r2_vals = np.linspace(r2_lo, r2_hi, n_grid)
 
         print(f"\n{'='*60}")
         print(f"Grid level {level}: centre=({r1_center:.6f}, {r2_center:.6f}),"
-              f" half_span={half_span:.6f}")
+              f" hs_r1={hs_r1:.6f}, hs_r2={hs_r2:.6f}")
         print(f"  r1 in [{r1_lo:.6f}, {r1_hi:.6f}]")
         print(f"  r2 in [{r2_lo:.6f}, {r2_hi:.6f}]")
         print(f"{'='*60}")
@@ -1168,43 +1410,62 @@ def grid_search(exe, Lx, Ly, Tx, Ty, ref_data, L_eff,
         sys.stdout.flush()
         best_beta_c = beta_c_best
 
+        # Per-dimension border detection
+        r1_on_lo = (bi == 0)
+        r1_on_hi = (bi == n_grid - 1)
+        r2_on_lo = (bj == 0)
+        r2_on_hi = (bj == n_grid - 1)
+        r1_border = r1_on_lo or r1_on_hi
+        r2_border = r2_on_lo or r2_on_hi
+
         # Save per-level summary
         level_file = os.path.join(output_dir, f"grid_level_{level:02d}.json")
         with open(level_file, "w") as f:
             json.dump({
                 "level": level,
                 "r1_center": r1_center, "r2_center": r2_center,
-                "half_span": half_span,
+                "hs_r1": hs_r1, "hs_r2": hs_r2,
                 "r1_vals": r1_vals.tolist(), "r2_vals": r2_vals.tolist(),
                 "best_ij": [bi, bj],
                 "best_r1": r1_best, "best_r2": r2_best,
                 "best_chi2_ndof": chi2_ndof_best,
                 "best_beta_c": beta_c_best,
+                "r1_border": r1_border, "r2_border": r2_border,
             }, f, indent=2)
 
-        is_border = (bi == 0 or bi == n_grid - 1 or
-                     bj == 0 or bj == n_grid - 1)
-
         # Convergence check: only meaningful for chi2-based costs.
-        # fem_integral scores are not chi2/ndof and are << 1.0 by construction,
-        # so we never early-stop on them — always run all max_levels.
+        is_border = r1_border or r2_border
         converged = (not is_border
-                     and cost not in ("fem_integral", "boundary_slices")
+                     and cost not in ("fem_integral", "boundary_slices", "boundary_slices_normed", "boundary_slices_normed_quartic")
                      and chi2_ndof_best <= 1.5)
         if converged:
             print(f"  Converged at level {level}: chi2/ndof = {chi2_ndof_best:.4f}")
             break
 
-        if is_border:
-            r1_center = r1_best
-            r2_center = r2_best
-            print(f"  Border minimum → translating centre to "
-                  f"({r1_center:.6f}, {r2_center:.6f})")
+        # --- Per-dimension refine / translate ---
+        # Simple rule per axis:
+        #   Interior best → re-centre on best, halve the span (zoom 2×).
+        #   Border best   → re-centre on best, keep span unchanged.
+        #     Re-centring on the border point naturally extends the new grid
+        #     beyond the old edge by one full half-span.
+        # r1 axis: centre on best; halve span only if interior
+        r1_center = r1_best
+        if r1_border:
+            print(f"  r1: border → translate to r1_center={r1_center:.6f}"
+                  f"  (hs_r1={hs_r1:.6f} unchanged)")
         else:
-            r1_center = r1_best
-            r2_center = r2_best
-            half_span /= 2.0
-            print(f"  Interior minimum → refining, new half_span={half_span:.6f}")
+            hs_r1 /= 2.0
+            print(f"  r1: interior → refine, hs_r1={hs_r1:.6f}")
+
+        # r2 axis: centre on best; halve span only if interior
+        r2_center = r2_best
+        if r2_border:
+            print(f"  r2: border → translate to r2_center={r2_center:.6f}"
+                  f"  (hs_r2={hs_r2:.6f} unchanged)")
+        else:
+            hs_r2 /= 2.0
+            print(f"  r2: interior → refine, hs_r2={hs_r2:.6f}")
+
         sys.stdout.flush()
 
     return all_results, grid_results
@@ -1245,14 +1506,16 @@ def main():
                         help="Maximum displacement as fraction of L_eff")
     parser.add_argument("--cost", default="log_ratio",
                         choices=["log_ratio", "beta_deriv", "pair_ratio", "residuals",
-                                 "fem_integral", "boundary_slices"],
+                                 "fem_integral", "boundary_slices", "boundary_slices_normed",
+                                 "boundary_slices_normed_quartic"],
                         help=("Cost function: "
                               "'log_ratio' (GLS-mean amplitude-free, default); "
                               "'beta_deriv' (first-order beta-mismatch correction); "
                               "'pair_ratio' (all log-ratio pairs, exact amplitude cancellation); "
                               "'residuals' (plain L2, no amplitude correction); "
                               "'fem_integral' (integrated (G_test-G_ref)^2 over 2D domain); "
-                              "'boundary_slices' (sum of integrated (G_test-G_ref)^2 along v,u,w boundary paths)"))
+                              "'boundary_slices' (sum of integrated (G_test-G_ref)^4 along v,u,w boundary paths; "
+                              "quartic penalty strongly punishes large deviations)"))
     parser.add_argument("--beta_ref", type=float, default=None,
                         help="Reference beta_c (used by beta_deriv cost). "
                              "Loaded from ref_metadata.json if not given.")
@@ -1275,6 +1538,11 @@ def main():
                              "the same susceptibility-peak finder, then exit.")
     parser.add_argument("--ref_n_traj", type=int, default=500000,
                         help="Trajectories for reference production run")
+    parser.add_argument("--ref_beta_c", type=float, default=None,
+                        help="Exact beta_c for reference generation (skips "
+                             "susceptibility scan). E.g. --ref_beta_c 0.2746531 "
+                             "for the exact equilateral triangular Ising critical point "
+                             "ln(3)/4.")
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
@@ -1283,21 +1551,26 @@ def main():
     if args.gen_ref:
         print("Generating self-consistent reference at k=(1,1,1)...")
         sys.stdout.flush()
-        ref_dir = os.path.join(args.output_dir, "ref_scan")
-        os.makedirs(ref_dir, exist_ok=True)
-        margin = max(0.15 * args.beta_init, 0.03)
-        beta_lo = max(0.01, args.beta_init - margin)
-        beta_hi = args.beta_init + margin
-        print(f"  Susceptibility scan: beta in [{beta_lo:.4f}, {beta_hi:.4f}]")
-        sys.stdout.flush()
-        beta_c, chi_peak, scan_betas, scan_chis, scan_chi_errs, _ = find_beta_c(
-            args.exe, args.Lx, args.Ly, args.Tx, args.Ty,
-            1.0, 1.0, 1.0,
-            beta_lo, beta_hi,
-            n_coarse=11, n_refine=5, n_refine2=5,
-            n_traj_coarse=100000, n_traj_fine=200000,
-            data_dir=ref_dir,
-        )
+        if args.ref_beta_c is not None:
+            beta_c = args.ref_beta_c
+            chi_peak = 0.0
+            print(f"  Using supplied beta_c = {beta_c:.10f} (skipping susceptibility scan)")
+        else:
+            ref_dir = os.path.join(args.output_dir, "ref_scan")
+            os.makedirs(ref_dir, exist_ok=True)
+            margin = max(0.20 * args.beta_init, 0.04)
+            beta_lo = max(0.01, args.beta_init - margin)
+            beta_hi = args.beta_init + margin
+            print(f"  Susceptibility scan: beta in [{beta_lo:.4f}, {beta_hi:.4f}]")
+            sys.stdout.flush()
+            beta_c, chi_peak, scan_betas, scan_chis, scan_chi_errs, _ = find_beta_c(
+                args.exe, args.Lx, args.Ly, args.Tx, args.Ty,
+                1.0, 1.0, 1.0,
+                beta_lo, beta_hi,
+                n_coarse=11, n_refine=5, n_refine2=5,
+                n_traj_coarse=100000, n_traj_fine=200000,
+                data_dir=ref_dir,
+            )
         print(f"  beta_c = {beta_c:.8f} (chi_peak = {chi_peak:.6e})")
         print(f"  Running production at beta_c with {args.ref_n_traj} trajectories...")
         sys.stdout.flush()

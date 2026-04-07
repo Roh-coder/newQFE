@@ -1,0 +1,59 @@
+L_x: 39
+L_y: 48
+T_x: 9
+T_y: -9
+N_cell: 1791
+N_t: 20
+K1: 0.161000000000
+K2: 0.161000000000
+K3: 0.161000000000
+Kt: 0.161000000000
+beta: 1.000000000000
+seed: 0x000004D2
+n_therm: 500
+n_traj: 2000
+n_skip: 10
+n_wolff: 3
+n_metropolis: 5
+wall_time: 0.000000
+data_dir: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/Nt_scan_456/Lx39_Ly48_Tx9_Ty-9_Nt20_k0.161_0.161_0.161_kt0.161
+two_point_name: two_point_typed.dat
+full_two_point_name: two_point_all_to_all.dat
+time_two_point_name: two_point_time.dat
+full_3d_two_point_name: two_point_3d.dat
+n_sites: 35820
+n_links: 143280
+initial action: -0.000575321050
+periods e1/e2/e2-e1: 597 597 597
+progress_step: every 125 trajectories (total 2500)
+progress traj=125/2500 (5.0%) measured=0
+progress traj=250/2500 (10.0%) measured=0
+progress traj=375/2500 (15.0%) measured=0
+progress traj=500/2500 (20.0%) measured=0
+progress traj=625/2500 (25.0%) measured=13
+progress traj=750/2500 (30.0%) measured=25
+progress traj=875/2500 (35.0%) measured=38
+progress traj=1000/2500 (40.0%) measured=50
+progress traj=1125/2500 (45.0%) measured=63
+progress traj=1250/2500 (50.0%) measured=75
+progress traj=1375/2500 (55.0%) measured=88
+progress traj=1500/2500 (60.0%) measured=100
+progress traj=1625/2500 (65.0%) measured=113
+progress traj=1750/2500 (70.0%) measured=125
+progress traj=1875/2500 (75.0%) measured=138
+progress traj=2000/2500 (80.0%) measured=150
+progress traj=2125/2500 (85.0%) measured=163
+progress traj=2250/2500 (90.0%) measured=175
+progress traj=2375/2500 (95.0%) measured=188
+progress traj=2500/2500 (100.0%) measured=200
+duration: 1940.671973
+cluster_size/V: 0.1153
+accept_metropolis: 2.5761
+U4 (cluster-improved): 7.204544604466e-01 2.461176500289e-02
+U4 (spin-jackknife): 7.222641247957e-01 2.786286748730e-02
+m2 (cluster-improved): 4.140791044995e-02 1.987535336444e-03
+m_susc: 7.579470574225e-03 3.162293433108e-03
+opening file: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/Nt_scan_456/Lx39_Ly48_Tx9_Ty-9_Nt20_k0.161_0.161_0.161_kt0.161/Lx39_Ly48_Tx9_Ty-9_Nt20_k0.161_0.161_0.161_kt0.161/Lx39_Ly48_Tx9_Ty-9_Nt20_k0.161_0.161_0.161_kt0.161_000004D2.dat
+wrote: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/Nt_scan_456/Lx39_Ly48_Tx9_Ty-9_Nt20_k0.161_0.161_0.161_kt0.161/Lx39_Ly48_Tx9_Ty-9_Nt20_k0.161_0.161_0.161_kt0.161/two_point_typed.dat
+wrote: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/Nt_scan_456/Lx39_Ly48_Tx9_Ty-9_Nt20_k0.161_0.161_0.161_kt0.161/Lx39_Ly48_Tx9_Ty-9_Nt20_k0.161_0.161_0.161_kt0.161/two_point_all_to_all.dat
+wrote: /workspaces/newQFE/K_from_BC/twisted_parallelogram_3d/Nt_scan_456/Lx39_Ly48_Tx9_Ty-9_Nt20_k0.161_0.161_0.161_kt0.161/Lx39_Ly48_Tx9_Ty-9_Nt20_k0.161_0.161_0.161_kt0.161/two_point_time.dat
