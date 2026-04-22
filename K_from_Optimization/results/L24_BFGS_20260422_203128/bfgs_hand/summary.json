@@ -1,0 +1,15 @@
+{
+  "method": "bfgs_hand",
+  "status": "converged",
+  "n_evals": 10,
+  "best_eval_id": 8,
+  "best_r1": 1.0001219893471627,
+  "best_r2": 0.5098780866735104,
+  "best_cost": 0.00043978509086573523,
+  "best_sigma": 0.00019926421122364472,
+  "best_snr": 2.2070450492092695,
+  "best_beta_c": 0.3181553716460488,
+  "total_traj": 865780,
+  "total_wall_s": 314.87484431266785,
+  "wall_total_s": 319.2063548564911
+}

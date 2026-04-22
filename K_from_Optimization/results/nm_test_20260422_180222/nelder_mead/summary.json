@@ -1,0 +1,15 @@
+{
+  "method": "nelder_mead",
+  "status": "max_evals reached",
+  "n_evals": 60,
+  "best_eval_id": 52,
+  "best_r1": 0.897255039215088,
+  "best_r2": 0.936095666885376,
+  "best_cost": 1.7018535080228815e-05,
+  "best_sigma": 6.794779481646661e-05,
+  "best_snr": 0.2504648624167639,
+  "best_beta_c": 0.25517969121946876,
+  "total_traj": 16108000,
+  "total_wall_s": 731.9618813991547,
+  "wall_total_s": 769.7212188243866
+}

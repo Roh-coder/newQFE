@@ -1,0 +1,15 @@
+{
+  "method": "bfgs_fd",
+  "status": "max_evals reached",
+  "n_evals": 60,
+  "best_eval_id": 18,
+  "best_r1": 1.4741164216380476,
+  "best_r2": 0.4780914996087063,
+  "best_cost": 0.0015889335522892743,
+  "best_sigma": 0.0006022225351603632,
+  "best_snr": 2.638449177040783,
+  "best_beta_c": 0.2502415078243064,
+  "total_traj": 15723000,
+  "total_wall_s": 404.2926571369171,
+  "wall_total_s": 453.08655548095703
+}

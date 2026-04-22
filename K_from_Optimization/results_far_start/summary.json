@@ -1,0 +1,100 @@
+{
+  "reference": {
+    "L": 8,
+    "beta_c": 0.24029649170774295,
+    "n_traj": 60000,
+    "geometry": [
+      8,
+      8,
+      0,
+      0
+    ]
+  },
+  "test_geom": [
+    8,
+    8,
+    0,
+    0
+  ],
+  "x0": [
+    1.5,
+    0.5
+  ],
+  "methods": [
+    {
+      "method": "nelder_mead",
+      "status": "completed",
+      "n_evals": 60,
+      "best_eval_id": 49,
+      "best_r1": 1.452103844285011,
+      "best_r2": 0.5885660469532017,
+      "best_cost": 0.0011541232639102929,
+      "best_sigma": 0.0005265464868932711,
+      "best_snr": 2.191873448287253,
+      "best_beta_c": 0.24228874189031474,
+      "total_traj": 15646000,
+      "total_wall_s": 407.29500818252563,
+      "wall_total_s": 457.48414063453674
+    },
+    {
+      "method": "powell",
+      "status": "completed",
+      "n_evals": 31,
+      "best_eval_id": 30,
+      "best_r1": 1.9618034000000002,
+      "best_r2": 1.0927051025166,
+      "best_cost": 0.0016287743555353723,
+      "best_sigma": 0.0006601767059485477,
+      "best_snr": 2.4671793791862666,
+      "best_beta_c": 0.17936202740138127,
+      "total_traj": 8364000,
+      "total_wall_s": 207.92689681053162,
+      "wall_total_s": 230.4812295436859
+    },
+    {
+      "method": "bfgs_fd",
+      "status": "max_evals reached",
+      "n_evals": 60,
+      "best_eval_id": 18,
+      "best_r1": 1.4741164216380476,
+      "best_r2": 0.4780914996087063,
+      "best_cost": 0.0015889335522892743,
+      "best_sigma": 0.0006022225351603632,
+      "best_snr": 2.638449177040783,
+      "best_beta_c": 0.2502415078243064,
+      "total_traj": 15723000,
+      "total_wall_s": 404.2926571369171,
+      "wall_total_s": 453.08655548095703
+    },
+    {
+      "method": "gp",
+      "status": "completed",
+      "n_evals": 60,
+      "best_eval_id": 31,
+      "best_r1": 0.8636031875992409,
+      "best_r2": 0.9370222333868223,
+      "best_cost": 6.088981193396919e-05,
+      "best_sigma": 0.0001366923347029064,
+      "best_snr": 0.4454515468355266,
+      "best_beta_c": 0.2575937319984256,
+      "total_traj": 16017000,
+      "total_wall_s": 408.03653025627136,
+      "wall_total_s": 477.2755534648895
+    },
+    {
+      "method": "cma",
+      "status": "completed",
+      "n_evals": 60,
+      "best_eval_id": 53,
+      "best_r1": 0.8542266168265532,
+      "best_r2": 1.108708314931419,
+      "best_cost": 0.0001317768501767015,
+      "best_sigma": 0.00020203495181294608,
+      "best_snr": 0.6522477868022906,
+      "best_beta_c": 0.24518912201371343,
+      "total_traj": 15800000,
+      "total_wall_s": 427.757084608078,
+      "wall_total_s": 481.82454204559326
+    }
+  ]
+}

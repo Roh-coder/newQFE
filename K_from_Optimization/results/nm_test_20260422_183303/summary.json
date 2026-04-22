@@ -1,0 +1,40 @@
+{
+  "reference": {
+    "L": 8,
+    "beta_c": 0.24029649170774295,
+    "n_traj": 60000,
+    "geometry": [
+      8,
+      8,
+      0,
+      0
+    ]
+  },
+  "test_geom": [
+    8,
+    8,
+    0,
+    0
+  ],
+  "x0": [
+    1.5,
+    0.5
+  ],
+  "methods": [
+    {
+      "method": "nelder_mead",
+      "status": "indistinguishable from reference",
+      "n_evals": 8,
+      "best_eval_id": 8,
+      "best_r1": 0.9000000000000001,
+      "best_r2": 0.7999999999999999,
+      "best_cost": 0.00029746329049183917,
+      "best_sigma": 0.00033018244616613886,
+      "best_snr": 0.9009058293249294,
+      "best_beta_c": 0.2662403202376723,
+      "total_traj": 2158000,
+      "total_wall_s": 88.01636385917664,
+      "wall_total_s": 89.93503928184509
+    }
+  ]
+}

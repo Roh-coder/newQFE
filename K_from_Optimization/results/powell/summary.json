@@ -1,0 +1,15 @@
+{
+  "method": "powell",
+  "status": "completed",
+  "n_evals": 25,
+  "best_eval_id": 9,
+  "best_r1": 0.9909830063590948,
+  "best_r2": 1.0,
+  "best_cost": 8.052732724967083e-05,
+  "best_sigma": 0.00016948497527125543,
+  "best_snr": 0.4751295925835865,
+  "best_beta_c": 0.2409480386789369,
+  "total_traj": 6728000,
+  "total_wall_s": 277.8988792896271,
+  "wall_total_s": 286.05183577537537
+}

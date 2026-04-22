@@ -1,0 +1,15 @@
+{
+  "method": "gp",
+  "status": "completed",
+  "n_evals": 25,
+  "best_eval_id": 5,
+  "best_r1": 0.9592488919658673,
+  "best_r2": 0.833708611139022,
+  "best_cost": 6.228238204077732e-05,
+  "best_sigma": 0.00012990788014057413,
+  "best_snr": 0.47943498095251164,
+  "best_beta_c": 0.2595044788314318,
+  "total_traj": 6959000,
+  "total_wall_s": 283.5084307193756,
+  "wall_total_s": 299.6181974411011
+}
