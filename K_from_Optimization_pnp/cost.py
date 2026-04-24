@@ -1,13 +1,36 @@
 #!/usr/bin/env python3
 """
-cost.py — Plain L² cost function for the curve-collapse matching problem.
+cost.py — Anisotropy-penalising p-mean cost (p=4) over the three torus
+boundary directions.
 
-For each boundary direction d ∈ {v, u, w}, the correlator is sampled along a
-straight path parameterised by t ∈ [0, 1] (arc-length fraction).  The cost is
-the integrated squared difference summed over all three directions:
+For each of the three fundamental torus boundary directions d ∈ {v, u, w},
+the correlator is sampled along the corresponding lattice period vector,
+parameterised by the arc-length fraction t ∈ [0, 1] *of that period*.
+The per-direction L² mismatch is
 
-    C_d   = ∫₀¹ [G_test^d(t) - G_ref^d(t)]² dt
-    C(r1,r2) = Σ_d C_d
+    C_d = ∫₀¹ [G_test^d(t) - G_ref^d(t)]² dt
+
+and these are aggregated with a p-power mean (p = 4):
+
+    C(r1,r2) = ( (1/3) Σ_d C_d^p )^(1/p)
+
+This punishes anisotropy: a single direction with large C_d dominates
+the total, so the optimizer cannot trade a small gain in one direction
+for a large drift in another.  At perfect isotropy (C_v = C_u = C_w)
+the p-mean equals the common per-direction value.
+
+Curve collapse across differing ref / test geometries
+-----------------------------------------------------
+The reference and test lattices need NOT share (Lx, Ly, Tx, Ty).  Each
+direction's path endpoint is its *own* lattice period vector, so e.g.
+
+    ref  = (13, 16,  3, -3)  →  periods  (13,-3), (3,-16), (-16,19)
+    test = (15, 15,  0,  0)  →  periods  (15, 0), (0,-15), (-15,15)
+
+are each parameterised over the unit interval and compared point-by-point
+in t.  This is the fractional-arclength curve-collapse hypothesis: at the
+critical point, the boundary-directed two-point function along cycle i of
+torus A should collapse onto the same function of t as cycle i of torus B.
 
 The integral is approximated by the trapezoid rule on n_samples uniformly
 spaced points.
@@ -110,7 +133,12 @@ def l2_cost(ref_data, test_data,
     ref_paths  = boundary_paths(ref_Lx,  ref_Ly,  ref_Tx,  ref_Ty)
     test_paths = boundary_paths(test_Lx, test_Ly, test_Tx, test_Ty)
 
-    t = np.linspace(0.0, 1.0, n_samples)
+    # Torus periodicity: t=0 and t=1 are the same lattice site, so we sample
+    # only t ∈ [0, 1) and use the periodic trapezoid rule (= uniform sum /
+    # n_samples).  Including t=1 pushes LinearNDInterpolator onto the
+    # convex-hull boundary of the tiled point cloud, which gives a spurious
+    # spike in the residuals at t ≈ 1.
+    t = np.linspace(0.0, 1.0, n_samples, endpoint=False)
 
     per_dir       = []
     per_dir_sigma = []
@@ -137,24 +165,49 @@ def l2_cost(ref_data, test_data,
 
         diff     = G_test[mask] - G_ref[mask]
         var_prop = e_ref[mask]**2 + e_test[mask]**2
-        t_m      = t[mask]
-        dt       = t_m[1:] - t_m[:-1]
 
-        integrand_c = diff ** 2
-        C_d = float(np.sum(0.5 * (integrand_c[:-1] + integrand_c[1:]) * dt))
-
-        integrand_v = 4.0 * diff**2 * var_prop
-        V_d = float(np.sum(0.5 * (integrand_v[:-1] + integrand_v[1:]) * dt))
+        # Periodic trapezoid rule over t ∈ [0, 1) with n_samples equal
+        # intervals of width 1/n_samples — which reduces to a mean.
+        # Both the cost integral and its variance-propagation integral
+        # use the same ∫…dt convention as before, so SNR thresholds
+        # retain their previous calibration.
+        C_d = float(np.mean(diff ** 2))
+        V_d = float(np.mean(4.0 * diff ** 2 * var_prop))
 
         per_dir.append(C_d)
         per_dir_sigma.append(math.sqrt(max(V_d, 0.0)))
 
-    cost       = sum(per_dir)
-    sigma_cost = math.sqrt(sum(s**2 for s in per_dir_sigma))
+    # Aggregate across directions with a p-power mean (p=4) instead of a
+    # plain sum.  This penalises anisotropy: a single direction with a
+    # large C_d dominates the total, so the optimizer cannot trade a
+    # small gain in one direction for a large drift in another.  At
+    # perfect isotropy (C_v = C_u = C_w) the p-mean equals each C_d.
+    #
+    #     cost = ( (1/N) Σ_d C_d^p )^(1/p),  p = 4, N = 3
+    #
+    # Error propagation:
+    #     ∂cost/∂C_d = (1/N) C_d^(p-1) · cost^(1-p)
+    #     σ_cost²    = Σ_d (∂cost/∂C_d)² σ_{C_d}²
+    P     = 4
+    N_dir = len(per_dir)
+    if N_dir == 0 or all(c == 0.0 for c in per_dir):
+        cost       = 0.0
+        sigma_cost = 0.0
+    else:
+        mean_p = sum(c ** P for c in per_dir) / N_dir
+        cost   = mean_p ** (1.0 / P)
+        if cost > 0.0:
+            grads = [(c ** (P - 1)) / (N_dir * cost ** (P - 1))
+                     for c in per_dir]
+            sigma_cost = math.sqrt(sum((g * s) ** 2
+                                       for g, s in zip(grads, per_dir_sigma)))
+        else:
+            sigma_cost = 0.0
 
     parts = "  ".join(f"{l}={c:.4e}±{s:.4e}"
                       for l, c, s in zip(dir_labels, per_dir, per_dir_sigma))
-    print(f"    [L²] per-dir: {parts}  total={cost:.4e}±{sigma_cost:.4e}")
+    print(f"    [L⁴-mean] per-dir: {parts}  "
+          f"total={cost:.4e}±{sigma_cost:.4e}")
 
     return cost, sigma_cost, per_dir, per_dir_sigma
 

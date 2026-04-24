@@ -29,6 +29,7 @@ class EvalResult:
     r1: float
     r2: float
     beta_c: float
+    beta_c_sigma: float
     cost: float
     sigma_cost: float
     snr: float
@@ -49,9 +50,13 @@ class Evaluator:
     def __init__(self, exe, ref_data, ref_geom, test_geom, output_dir,
                  n_traj_prod=30000, n_traj_scan_coarse=4000,
                  n_traj_scan_fine=10000,
+                 scan_n_coarse=11, scan_n_refine=5,
+                 scan_n_refine2=5, scan_n_refine3=5,
+                 scan_max_shifts=4, scan_jackknife=False,
                  beta_seed=(0.20, 0.32),
                  optimizer_plot=None, beta_plot_dir=None,
-                 keep_mc_subdirs=False, dashboard=None):
+                 keep_mc_subdirs=False, dashboard=None,
+                 betac_cache=None):
         self.exe = exe
         self.ref_data = ref_data
         self.ref_geom = tuple(ref_geom)
@@ -60,11 +65,21 @@ class Evaluator:
         self.n_traj_prod = int(n_traj_prod)
         self.n_traj_scan_coarse = int(n_traj_scan_coarse)
         self.n_traj_scan_fine = int(n_traj_scan_fine)
+        self.scan_n_coarse = int(scan_n_coarse)
+        self.scan_n_refine = int(scan_n_refine)
+        self.scan_n_refine2 = int(scan_n_refine2)
+        self.scan_n_refine3 = int(scan_n_refine3)
+        self.scan_max_shifts = int(scan_max_shifts)
+        self.scan_jackknife = bool(scan_jackknife)
         self.beta_seed = tuple(beta_seed)
         self.optimizer_plot = optimizer_plot
         self.beta_plot_dir = beta_plot_dir
         self.keep_mc_subdirs = keep_mc_subdirs
         self.dashboard = dashboard
+        # Optional persistent β_c cache (Speedup 2).  When attached, we
+        # try the cache before launching a fresh 3-pass scan; misses fall
+        # through to mc_engine.find_beta_c and are then added back.
+        self.betac_cache = betac_cache
 
         os.makedirs(output_dir, exist_ok=True)
         self.log_path = os.path.join(output_dir, "eval_log.jsonl")
@@ -77,8 +92,12 @@ class Evaluator:
         self._eval_id = 0
         self._beta_prev: Optional[float] = None
         # Set by the optimizer before each evaluator call so the visualizer
-        # can draw the current simplex.
+        # can draw the current simplex (Nelder-Mead) or Gaussian search
+        # distribution (CMA-ES).
         self.current_simplex: Optional[list] = None
+        # CMA-ES writes {"mean": [m1, m2], "cov": [[..],[..]], "sigma": float,
+        # "gen": int} here at the start of each generation.
+        self.current_gaussian: Optional[dict] = None
 
     def __call__(self, r1: float, r2: float) -> EvalResult:
         self._eval_id += 1
@@ -99,28 +118,72 @@ class Evaluator:
         else:
             beta_lo, beta_hi = self.beta_seed
 
-        beta_cb = None
+        beta_cbs = []
         if self.dashboard is not None:
             self.dashboard.begin_eval(eid, r1, r2, (beta_lo, beta_hi))
-            beta_cb = self.dashboard.update_scan
-        elif self.beta_plot_dir is not None:
+            beta_cbs.append(self.dashboard.update_scan)
+        if self.optimizer_plot is not None and hasattr(self.optimizer_plot,
+                                                       "update_scan"):
+            beta_cbs.append(self.optimizer_plot.update_scan)
+        if self.beta_plot_dir is not None:
             from visualization import BetaScanPlotter
-            beta_cb = BetaScanPlotter(self.beta_plot_dir, label,
-                                      every_point=True)
+            beta_cbs.append(BetaScanPlotter(self.beta_plot_dir, label,
+                                            every_point=False))
+
+        if not beta_cbs:
+            beta_cb = None
+        elif len(beta_cbs) == 1:
+            beta_cb = beta_cbs[0]
+        else:
+            def beta_cb(state, _cbs=tuple(beta_cbs)):
+                for cb in _cbs:
+                    cb(state)
 
         print(f"[ev {eid:03d}] r1={r1:.4f} r2={r2:.4f}  "
               f"β∈[{beta_lo:.4f},{beta_hi:.4f}]")
-        beta_c, chi_peak, sb, sc, sce = mc_engine.find_beta_c(
-            self.exe, Lx, Ly, Tx, Ty, r1, r2, 1.0,
-            beta_lo, beta_hi,
-            n_traj_coarse=self.n_traj_scan_coarse,
-            n_traj_fine=self.n_traj_scan_fine,
-            data_dir=os.path.join(scratch, "scan"),
-            progress_cb=beta_cb,
-        )
-        n_scan = len(sb) * (self.n_traj_scan_coarse + self.n_traj_scan_fine) // 2
-        print(f"[ev {eid:03d}]  β_c={beta_c:.6f}  χ_peak={chi_peak:.3g}  "
-              f"({len(sb)} scan pts)")
+
+        # ---- Speedup 2: try the persistent β_c cache first ----
+        cache_hit = None
+        if self.betac_cache is not None:
+            cache_hit = self.betac_cache.lookup(r1, r2)
+
+        if cache_hit is not None:
+            beta_c, beta_c_sigma = cache_hit
+            chi_peak = float("nan")
+            sb, sc, sce = [], [], []
+            n_scan = 0
+            print(f"[ev {eid:03d}]  CACHE HIT β_c={beta_c:.6f}±{beta_c_sigma:.2e} "
+                  f"(skipping 3-pass scan)")
+        else:
+            beta_c, beta_c_sigma, chi_peak, sb, sc, sce = mc_engine.find_beta_c(
+                self.exe, Lx, Ly, Tx, Ty, r1, r2, 1.0,
+                beta_lo, beta_hi,
+                n_coarse=self.scan_n_coarse,
+                n_refine=self.scan_n_refine,
+                n_refine2=self.scan_n_refine2,
+                n_refine3=self.scan_n_refine3,
+                n_traj_coarse=self.n_traj_scan_coarse,
+                n_traj_fine=self.n_traj_scan_fine,
+                max_shifts=self.scan_max_shifts,
+                jackknife=self.scan_jackknife,
+                data_dir=os.path.join(scratch, "scan"),
+                progress_cb=beta_cb,
+            )
+            n_scan = (len(sb) *
+                      (self.n_traj_scan_coarse + self.n_traj_scan_fine) // 2)
+            if beta_c_sigma > 0:
+                print(f"[ev {eid:03d}]  β_c={beta_c:.6f}±{beta_c_sigma:.2e}  "
+                      f"χ_peak={chi_peak:.3g}  ({len(sb)} scan pts)")
+            else:
+                print(f"[ev {eid:03d}]  β_c={beta_c:.6f}  χ_peak={chi_peak:.3g}  "
+                      f"({len(sb)} scan pts)")
+            # Add the freshly-computed β_c to the cache for future hits.
+            if self.betac_cache is not None:
+                self.betac_cache.add(
+                    r1, r2, beta_c, beta_c_sigma,
+                    source_run=os.path.basename(self.output_dir),
+                    n_traj_total=n_scan,
+                )
 
         # --- 2. production MC at β_c ---
         prod_dir = os.path.join(scratch, "prod")
@@ -147,6 +210,7 @@ class Evaluator:
         result = EvalResult(
             eval_id=eid, r1=float(r1), r2=float(r2),
             beta_c=float(beta_c),
+            beta_c_sigma=float(beta_c_sigma),
             cost=float(c_val), sigma_cost=float(sig),
             snr=float(snr_val), snr_status=status,
             per_dir=[float(x) for x in per_dir],
@@ -167,7 +231,8 @@ class Evaluator:
 
         if self.optimizer_plot is not None:
             self.optimizer_plot.update(r1, r2, c_val, sig, beta_c, test_data,
-                                       simplex=self.current_simplex)
+                                       simplex=self.current_simplex,
+                                       gaussian=self.current_gaussian)
         if self.dashboard is not None:
             self.dashboard.update_eval(result)
 

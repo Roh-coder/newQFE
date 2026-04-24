@@ -159,15 +159,47 @@ def _gc_fit(betas_arr, chis_arr, beta_init):
         return None, beta_init
 
 
+def _gc_jackknife_sigma(scan_betas, scan_chis, beta_init):
+    """Leave-one-out jackknife estimate of σ(β_c) over the scan points.
+
+    For each i, refit the GC curve on the remaining N-1 points and record
+    the resulting peak β_c^{(i)}.  Then
+        σ² = (N-1)/N * Σ (β_c^{(i)} - <β_c>)².
+
+    Cost is N extra `_gc_fit` calls (~1–5 ms each on ~30 points), so far
+    below MC time.  Returns 0.0 if fewer than 6 jackknife samples succeed
+    — the GC fit needs at least ~6 points to be well-posed.
+    """
+    n = len(scan_betas)
+    if n < 7:
+        return 0.0
+    samples = []
+    for i in range(n):
+        bi = scan_betas[:i] + scan_betas[i + 1:]
+        ci = scan_chis[:i] + scan_chis[i + 1:]
+        _, beta_loo = _gc_fit(bi, ci, beta_init)
+        if beta_loo is None or not np.isfinite(beta_loo):
+            continue
+        samples.append(float(beta_loo))
+    if len(samples) < 6:
+        return 0.0
+    arr = np.asarray(samples, dtype=float)
+    mean = arr.mean()
+    var = (len(arr) - 1) / len(arr) * np.sum((arr - mean) ** 2)
+    return float(np.sqrt(var))
+
+
 def find_beta_c(exe, Lx, Ly, Tx, Ty, k1, k2, k3,
                 beta_lo, beta_hi,
-                n_coarse=11, n_refine=5, n_refine2=5,
+                n_coarse=11, n_refine=5, n_refine2=5, n_refine3=5,
                 n_traj_coarse=10000, n_traj_fine=30000,
                 data_dir="/tmp/k_from_cs_scan",
-                max_shifts=4, progress_cb=None):
+                max_shifts=4, progress_cb=None, jackknife=False):
     """
     Locate susceptibility peak in [beta_lo, beta_hi] via 3-pass GC scan.
-    Returns (beta_c, chi_peak, scan_betas, scan_chis, scan_chi_errs).
+    Returns (beta_c, beta_c_sigma, chi_peak, scan_betas, scan_chis, scan_chi_errs).
+    ``beta_c_sigma`` is the leave-one-out jackknife estimate when
+    ``jackknife=True``, otherwise 0.0.
 
     If *progress_cb* is not None it is called after each GC pass with a dict:
         {"pass_num": 0-3, "all_betas": [...], "all_chis": [...],
@@ -350,7 +382,7 @@ def find_beta_c(exe, Lx, Ly, Tx, Ty, k1, k2, k3,
 
     # --- Pass 3: very tight bracket from gc2 sigma -------------------
     half3 = _half_width(3, gc2_params)
-    fine3_betas = np.linspace(beta_c - half3, beta_c + half3, 7)
+    fine3_betas = np.linspace(beta_c - half3, beta_c + half3, n_refine3 + 2)
     _pass_counter[:] = [0, len(fine3_betas)]
     for b in fine3_betas:
         _run_beta(float(b), n_traj_fine)
@@ -359,7 +391,15 @@ def find_beta_c(exe, Lx, Ly, Tx, Ty, k1, k2, k3,
     _notify(3, gc3_params, beta_c_final)
 
     chi_peak = max(scan_chis)
-    return beta_c_final, chi_peak, scan_betas, scan_chis, scan_chi_errs
+
+    # --- Optional jackknife uncertainty on β_c ------------------------
+    if jackknife:
+        beta_c_sigma = _gc_jackknife_sigma(scan_betas, scan_chis, beta_c_final)
+    else:
+        beta_c_sigma = 0.0
+
+    return (beta_c_final, beta_c_sigma, chi_peak,
+            scan_betas, scan_chis, scan_chi_errs)
 
 
 # ===================================================================

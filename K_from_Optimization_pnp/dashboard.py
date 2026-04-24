@@ -52,6 +52,93 @@ def _fmt(x, fmt: str = "{:+.4f}") -> str:
         return str(x)
 
 
+def _ascii_scatter(xs, ys, *, width: int = 56, height: int = 8,
+                   vline: float = None, vline_label: str = "β_c",
+                   xlabel: str = "β", ylabel: str = "χ") -> Text:
+    """Render a small scatter of (xs, ys) as styled rich Text.
+
+    Returns a multi-line Text suitable for embedding in a Panel.
+    Empty input renders an empty plot frame.
+    """
+    out = Text()
+    if not xs or not ys or len(xs) != len(ys):
+        for _ in range(height):
+            out.append(" " * width + "\n")
+        return out
+
+    xs = list(xs); ys = list(ys)
+    xmin, xmax = min(xs), max(xs)
+    ymin, ymax = min(ys), max(ys)
+    if xmax - xmin < 1e-12:
+        xmax = xmin + 1e-12
+    if ymax - ymin < 1e-12:
+        ymax = ymin + 1e-12
+
+    # Build empty grid.
+    grid = [[" "] * width for _ in range(height)]
+
+    def to_col(x):
+        return min(width - 1, max(0, int(round((x - xmin) / (xmax - xmin) * (width - 1)))))
+
+    def to_row(y):
+        # row 0 is top (highest y)
+        return min(height - 1, max(0, int(round((ymax - y) / (ymax - ymin) * (height - 1)))))
+
+    # Draw vline first (so points overwrite it).
+    vcol = None
+    if vline is not None and xmin <= vline <= xmax:
+        vcol = to_col(vline)
+        for r in range(height):
+            grid[r][vcol] = "│"
+
+    # Index of max-χ point
+    imax = max(range(len(ys)), key=lambda j: ys[j])
+
+    for i, (x, y) in enumerate(zip(xs, ys)):
+        c, r = to_col(x), to_row(y)
+        if i == imax:
+            grid[r][c] = "◆"  # peak marker
+        else:
+            cur = grid[r][c]
+            grid[r][c] = "•" if cur in (" ", "│") else cur
+
+    # Render with colours.
+    for r in range(height):
+        for c in range(width):
+            ch = grid[r][c]
+            if ch == "◆":
+                out.append(ch, style="bold red")
+            elif ch == "│":
+                out.append(ch, style="green")
+            elif ch == "•":
+                out.append(ch, style="yellow")
+            else:
+                out.append(ch)
+        out.append("\n")
+
+    # X-axis annotation: min, vline (if any), max
+    axis = [" "] * width
+    lo_str = f"{xmin:.4f}"
+    hi_str = f"{xmax:.4f}"
+    for k, ch in enumerate(lo_str):
+        if k < width:
+            axis[k] = ch
+    for k, ch in enumerate(hi_str):
+        idx = width - len(hi_str) + k
+        if 0 <= idx < width:
+            axis[idx] = ch
+    if vcol is not None:
+        v_str = f"{vline:.4f}"
+        start = max(0, min(width - len(v_str), vcol - len(v_str) // 2))
+        # Don't clobber the corner labels.
+        end = start + len(v_str)
+        if start > len(lo_str) + 1 and end < width - len(hi_str) - 1:
+            for k, ch in enumerate(v_str):
+                axis[start + k] = ch
+    out.append("".join(axis), style="dim")
+    return out
+
+
 # ---------------------------------------------------------------------------
 # Dashboard
 # ---------------------------------------------------------------------------
@@ -87,7 +174,7 @@ class Dashboard:
         self._layout = Layout()
         self._layout.split(
             Layout(name="header", size=4),
-            Layout(name="scan",   size=10),
+            Layout(name="scan",   size=20),
             Layout(name="opt"),
         )
         self._refresh()
@@ -143,12 +230,13 @@ class Dashboard:
 
     def _render_header(self) -> Panel:
         meta = self.ref_meta
-        ref_geom = tuple(meta.get("geometry", (meta.get("L"),) * 2 + (0, 0)))
+        rgeom = tuple(meta.get("geometry", (0, 0, 0, 0)))
+        rLx, rLy, rTx, rTy = (rgeom + (0, 0, 0, 0))[:4]
         Lx, Ly, Tx, Ty = self.test_geom
         wall = time.time() - self._t0
         text = Text()
         text.append("ref:  ", style="bold cyan")
-        text.append(f"L={meta.get('L', '?')}×{meta.get('L', '?')}  "
+        text.append(f"{rLx}×{rLy}  Tx={rTx} Ty={rTy}  "
                     f"β_c={meta.get('beta_c', float('nan')):.6f}  "
                     f"n_traj={meta.get('n_traj', '?')}\n")
         text.append("test: ", style="bold cyan")
@@ -193,18 +281,27 @@ class Dashboard:
                     f"bracket=[{_fmt(lo)}, {_fmt(hi)}]\n")
 
         text.append(f"pass {pass_num}", style="bold yellow")
-        text.append(f"   pts={n_pts}   traj={traj_done}\n")
-
+        text.append(f"   pts={n_pts}   traj={traj_done}")
         if pts_total:
-            text.append(f"  this pass: {_bar(pts_done, pts_total)} "
-                        f"{pts_done}/{pts_total}\n")
+            text.append(f"   {_bar(pts_done, pts_total)} "
+                        f"{pts_done}/{pts_total}")
+        text.append("\n")
 
-        text.append(f"  current β_c estimate : ")
+        text.append("  current β_c : ")
         text.append(_fmt(beta_est, "{:.6f}"), style="bold green")
-        text.append("\n  argmax χ              : ")
+        text.append("   argmax χ : ")
         text.append(_fmt(beta_argmax, "{:.6f}"))
-        text.append("    χ_max = ")
+        text.append("   χ_max = ")
         text.append(_fmt(chi_max, "{:.4g}"))
+        text.append("\n")
+
+        # ASCII χ-vs-β scatter plot.
+        plot = _ascii_scatter(
+            betas, chis,
+            width=58, height=10,
+            vline=beta_est if beta_est is not None else None,
+        )
+        text.append(plot)
         return Panel(text, title=f"β_c scan", border_style="yellow")
 
     def _render_opt(self) -> Panel:

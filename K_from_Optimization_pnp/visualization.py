@@ -20,53 +20,75 @@ Disable by passing --no-vis (callers should accept None and skip).
 from __future__ import annotations
 
 import os
-import queue
-import threading
 from typing import Optional, Sequence
 
 import matplotlib
 
-matplotlib.use("Agg")  # noqa: E402
+# Pick a backend.  If we're inside an IPython kernel (Spyder, Jupyter,
+# qtconsole) leave whatever inline / Qt backend is already configured so
+# `plt.show()` actually pops figures into the Plots pane.  In a plain
+# headless interpreter, fall back to the non-GUI Agg backend.
+def _select_backend():
+    if os.environ.get("KOPT_FORCE_AGG"):
+        matplotlib.use("Agg", force=True)
+        return
+    try:
+        from IPython import get_ipython
+        if get_ipython() is not None:
+            return  # respect the kernel's inline / Qt5Agg / etc.
+    except Exception:
+        pass
+    # Plain Python: use Agg so we don't need a display.
+    matplotlib.use("Agg", force=True)
+
+
+_select_backend()
 import matplotlib.pyplot as plt  # noqa: E402
 import matplotlib.patches as mpatches  # noqa: E402
 import numpy as np  # noqa: E402
 
-# ---------------------------------------------------------------------------
-#  Background render thread — savefig never blocks the optimizer loop.
-# ---------------------------------------------------------------------------
 
-_render_queue: queue.Queue = queue.Queue()
-_SENTINEL = object()
+def _is_interactive_backend() -> bool:
+    return matplotlib.get_backend().lower() not in ("agg", "pdf", "svg", "ps")
 
 
-def _render_worker():
-    """Worker: each item is a zero-arg callable that creates, saves, closes
-    a figure entirely within this thread.  All matplotlib calls happen here;
-    the main thread never touches plt after queuing."""
-    while True:
-        item = _render_queue.get()
-        if item is _SENTINEL:
-            break
+def _show_or_close(fig) -> None:
+    """Display the figure (interactive backend) or close it (Agg)."""
+    if _is_interactive_backend():
         try:
-            item()  # callable: create + savefig + close
-        except Exception as exc:
-            print(f"[vis] render error: {exc}")
-        _render_queue.task_done()
+            plt.show()
+        except Exception:
+            pass
+    plt.close(fig)
 
 
-_render_thread = threading.Thread(target=_render_worker, daemon=True,
-                                   name="vis-render")
-_render_thread.start()
-
+# ---------------------------------------------------------------------------
+#  Render queue (kept for backward compatibility — now a synchronous no-op).
+# ---------------------------------------------------------------------------
 
 def _queue_render(fn) -> None:
-    """Queue a zero-arg render callable; returns immediately."""
-    _render_queue.put(fn)
+    """Run a zero-arg render callable immediately on the main thread.
+
+    Rendering must happen on the main thread when an interactive backend
+    (Qt, inline, …) is in use; doing it synchronously also makes plots
+    appear in Spyder/Jupyter in the right order.
+    """
+    try:
+        fn()
+    except Exception as exc:
+        print(f"[vis] render error: {exc}")
 
 
 def flush_render_queue() -> None:
-    """Block until all queued frames have been written to disk."""
-    _render_queue.join()
+    """No-op: rendering is now synchronous."""
+    return
+
+
+# Back-compat: some callers may still call display_inline(path).  When the
+# matplotlib backend is interactive we don't need to do anything (the figure
+# is already shown via plt.show); keep a stub so old code doesn't break.
+def display_inline(png_path: str, *, replace: bool = True) -> None:  # noqa: D401
+    return
 
 from mc_engine import _gram_charlier  # re-use the exact fit formula
 from cost import boundary_paths, _tile_interp, _triangular_xy
@@ -161,7 +183,7 @@ class BetaScanPlotter:
                      transform=fig.transFigure)
             fig.tight_layout()
             fig.savefig(out_path, dpi=110)
-            plt.close(fig)
+            _show_or_close(fig)
 
         _queue_render(_do_render)
 
@@ -183,21 +205,37 @@ class OptimizerPlotter:
         Reference correlator dataset (output of cost.load_correlator).
         Used for the curve-collapse panel.
     Lx, Ly, Tx, Ty : int
-        Lattice dimensions of the reference run (for boundary paths).
+        Lattice dimensions of the **test** run (for the test boundary
+        paths).
+    ref_Lx, ref_Ly, ref_Tx, ref_Ty : int, optional
+        Lattice dimensions of the **reference** run.  When omitted they
+        default to the test geometry (back-compat for callers that don't
+        yet pass them).  When ref_geom != test_geom, each correlator is
+        sampled on its own torus's boundary path (matching the cost-
+        function convention in cost.py) before computing the residual.
     n_copies : int, default 1
         Number of periodic tile copies to use in interpolation.
     """
 
     def __init__(self, output_dir: str, method: str,
                  ref_data: dict, Lx: int, Ly: int, Tx: int, Ty: int,
-                 n_copies: int = 1, save_every: int = 5):
+                 n_copies: int = 1, save_every: int = 5,
+                 ref_Lx: Optional[int] = None, ref_Ly: Optional[int] = None,
+                 ref_Tx: Optional[int] = None, ref_Ty: Optional[int] = None):
         self.output_dir = output_dir
         self.method = method
         self.ref_data = ref_data
+        # Test geometry (used for sampling the test correlator).
         self.Lx = Lx
         self.Ly = Ly
         self.Tx = Tx
         self.Ty = Ty
+        # Reference geometry (used for sampling the reference correlator).
+        # Defaults to the test geometry when not supplied.
+        self.ref_Lx = Lx if ref_Lx is None else int(ref_Lx)
+        self.ref_Ly = Ly if ref_Ly is None else int(ref_Ly)
+        self.ref_Tx = Tx if ref_Tx is None else int(ref_Tx)
+        self.ref_Ty = Ty if ref_Ty is None else int(ref_Ty)
         self.n_copies = n_copies
         # Write a frame every `save_every` evaluations (+ always the first).
         # Set save_every=1 to recover the old every-eval behaviour.
@@ -215,11 +253,42 @@ class OptimizerPlotter:
         # Populated by run_nelder_mead via evaluator.current_simplex.
         self.simplex_hist: list = []
         self.current_simplex: Optional[list] = None
+        # Gaussian history: each entry is a dict {mean, cov, sigma, gen}
+        # written by run_cmaes via evaluator.current_gaussian, one per
+        # CMA-ES generation.
+        self.gaussian_hist: list = []
+        self.current_gaussian: Optional[dict] = None
+
+        # Latest β_c-scan state, captured via update_scan().  Used to draw
+        # the 5th panel of the optimizer PNG.
+        self._scan_snap: Optional[dict] = None
+
+    # ------------------------------------------------------------------
+    def update_scan(self, state: dict) -> None:
+        """Hook usable as ``progress_cb`` for ``mc_engine.find_beta_c``.
+
+        Stores a deep-copied snapshot of the current scan so the next
+        call to ``update()`` can render it as the optimizer PNG's
+        β_c-scan panel.
+        """
+        try:
+            self._scan_snap = {
+                "betas": list(state.get("all_betas", [])),
+                "chis":  list(state.get("all_chis", [])),
+                "errs":  list(state.get("all_chi_errs", [])),
+                "pids":  list(state.get("pass_ids", [])),
+                "gc":    state.get("gc_params"),
+                "b_est": state.get("beta_estimate"),
+                "pass":  int(state.get("pass_num", 0)),
+            }
+        except Exception as exc:
+            print(f"[vis] update_scan error: {exc}")
 
     # ------------------------------------------------------------------
     def update(self, r1: float, r2: float, cost: float, sigma_cost: float,
                beta_c: float, test_data: Optional[dict] = None,
-               simplex: Optional[list] = None) -> None:
+               simplex: Optional[list] = None,
+               gaussian: Optional[dict] = None) -> None:
         """Record one evaluation; write a frame every ``save_every`` steps."""
         self.r1_hist.append(float(r1))
         self.r2_hist.append(float(r2))
@@ -235,6 +304,16 @@ class OptimizerPlotter:
                 self.simplex_hist.append(simplex)
         else:
             self.current_simplex = None
+        if gaussian is not None:
+            self.current_gaussian = gaussian
+            # One entry per CMA-ES generation: dedupe on the "gen" field if
+            # present, otherwise on object identity.
+            new_gen = gaussian.get("gen") if isinstance(gaussian, dict) else None
+            if (not self.gaussian_hist
+                    or self.gaussian_hist[-1].get("gen") != new_gen):
+                self.gaussian_hist.append(dict(gaussian))
+        else:
+            self.current_gaussian = None
         self._step += 1
         # Only write a PNG on the first step and every save_every steps after.
         if self._step == 1 or self._step % self.save_every == 0:
@@ -249,22 +328,31 @@ class OptimizerPlotter:
         s  = np.asarray(self.sigma_hist).copy()
         bc = np.asarray(self.beta_hist).copy()
         simplex_snap = list(self.simplex_hist)
+        gaussian_snap = [dict(g) for g in self.gaussian_hist]
         step_snap    = self._step
         method       = self.method
         out_path     = os.path.join(self.output_dir, f"optimizer_{self.method}.png")
         # For curve-collapse panel: copy everything needed.
         ref_data_snap = self.ref_data
         Lx, Ly, Tx, Ty = self.Lx, self.Ly, self.Tx, self.Ty
+        ref_geom = (self.ref_Lx, self.ref_Ly, self.ref_Tx, self.ref_Ty)
         n_copies = self.n_copies
         test_data_snap = test_data
         sigma_cost_snap = sigma_cost
+        scan_snap = dict(self._scan_snap) if self._scan_snap else None
 
         def _do_render():
             import matplotlib.pyplot as _plt
             import matplotlib.patches as _mpatches
             n = len(c)
             idx = np.arange(1, n + 1)
-            fig, axes = _plt.subplots(2, 2, figsize=(11.0, 8.0))
+            fig = _plt.figure(figsize=(15.5, 8.5))
+            gs = fig.add_gridspec(2, 3, width_ratios=[1.0, 1.0, 1.2])
+            axes = np.array([
+                [fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])],
+                [fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])],
+            ])
+            ax_scan = fig.add_subplot(gs[:, 2])
 
             # ---- Panel 1: (r1, r2) trajectory + NM simplex ----------------
             ax = axes[0, 0]
@@ -296,6 +384,52 @@ class OptimizerPlotter:
                     ax.plot(np.append(tri[:, 0], tri[0, 0]),
                             np.append(tri[:, 1], tri[0, 1]),
                             "-", color="deepskyblue", lw=lw, alpha=alpha_edge, zorder=5)
+            # CMA-ES Gaussian ghost trail: 1σ + 2σ confidence ellipses.
+            gaussians_to_draw = gaussian_snap[-(n_ghost + 1):]
+            n_g = len(gaussians_to_draw)
+            for k, g in enumerate(gaussians_to_draw):
+                try:
+                    mean = np.asarray(g["mean"], dtype=float).reshape(2)
+                    cov  = np.asarray(g["cov"], dtype=float).reshape(2, 2)
+                    sigma = float(g.get("sigma", 1.0))
+                except Exception:
+                    continue
+                # Eigendecomposition of σ²·C gives ellipse axes.
+                C = (sigma ** 2) * cov
+                try:
+                    evals, evecs = np.linalg.eigh(C)
+                except np.linalg.LinAlgError:
+                    continue
+                evals = np.clip(evals, 0.0, None)
+                order = np.argsort(evals)[::-1]
+                evals = evals[order]; evecs = evecs[:, order]
+                angle = float(np.degrees(np.arctan2(evecs[1, 0], evecs[0, 0])))
+                width_1s  = 2.0 * float(np.sqrt(evals[0]))
+                height_1s = 2.0 * float(np.sqrt(evals[1]))
+                is_current = (k == n_g - 1)
+                alpha_face = 0.22 if is_current else 0.04 + 0.05 * (k / max(n_g - 1, 1))
+                alpha_edge = 0.85 if is_current else 0.20
+                lw = 1.4 if is_current else 0.6
+                z_face = 5 if is_current else 0
+                # 1σ ellipse (filled).
+                ell1 = _mpatches.Ellipse(
+                    xy=mean, width=width_1s, height=height_1s, angle=angle,
+                    facecolor="orange", edgecolor="darkorange",
+                    alpha=alpha_face, linewidth=lw, zorder=z_face,
+                )
+                ax.add_patch(ell1)
+                # 2σ ellipse (outline only) for the current generation.
+                if is_current:
+                    ell2 = _mpatches.Ellipse(
+                        xy=mean, width=2.0 * width_1s, height=2.0 * height_1s,
+                        angle=angle, facecolor="none", edgecolor="darkorange",
+                        alpha=alpha_edge * 0.7, linewidth=lw * 0.8,
+                        linestyle="--", zorder=z_face,
+                    )
+                    ax.add_patch(ell2)
+                    ax.plot(mean[0], mean[1], "x", color="darkorange",
+                            ms=8, mew=1.6, zorder=z_face + 1,
+                            label=f"CMA mean (gen {g.get('gen', '?')})")
             ax.set_xlabel("r₁"); ax.set_ylabel("r₂")
             ax.set_title(f"(r₁, r₂) trajectory — {method}, eval {n}")
             ax.legend(loc="best", fontsize=8); ax.grid(alpha=0.25)
@@ -321,7 +455,11 @@ class OptimizerPlotter:
             # ---- Panel 4: curve collapse --------------------------------
             ax = axes[1, 1]
             _render_curve_collapse(ax, test_data_snap, sigma_cost_snap,
-                                   ref_data_snap, Lx, Ly, Tx, Ty, n_copies)
+                                   ref_data_snap, Lx, Ly, Tx, Ty, n_copies,
+                                   ref_geom=ref_geom)
+
+            # ---- Panel 5: β_c scan (latest pass) -----------------------
+            _render_betac_scan_panel(ax_scan, scan_snap)
 
             fig.suptitle(
                 f"{method}  |  current best: cost={c[best_i]:.4g}, "
@@ -332,7 +470,7 @@ class OptimizerPlotter:
                      transform=fig.transFigure)
             fig.tight_layout(rect=(0, 0, 1, 0.96))
             fig.savefig(out_path, dpi=110)
-            _plt.close(fig)
+            _show_or_close(fig)
 
         _queue_render(_do_render)
 
@@ -340,19 +478,81 @@ class OptimizerPlotter:
     def _plot_curve_collapse(self, ax, test_data, sigma_cost=0.0):
         _render_curve_collapse(ax, test_data, sigma_cost,
                                self.ref_data, self.Lx, self.Ly,
-                               self.Tx, self.Ty, self.n_copies)
+                               self.Tx, self.Ty, self.n_copies,
+                               ref_geom=(self.ref_Lx, self.ref_Ly,
+                                         self.ref_Tx, self.ref_Ty))
+
+
+def _render_betac_scan_panel(ax, scan_snap):
+    """Render the latest β_c scan onto a single axis (5th panel of opt PNG)."""
+    if not scan_snap or not scan_snap.get("betas"):
+        ax.text(0.5, 0.5, "(no β_c scan yet)", ha="center", va="center",
+                transform=ax.transAxes, color="gray")
+        ax.set_axis_off()
+        return
+    betas = np.asarray(scan_snap["betas"], dtype=float)
+    chis  = np.asarray(scan_snap["chis"],  dtype=float)
+    errs  = np.asarray(scan_snap["errs"],  dtype=float)
+    pids  = np.asarray(scan_snap["pids"],  dtype=int)
+    gc    = scan_snap.get("gc")
+    b_est = scan_snap.get("b_est")
+    pass_num = int(scan_snap.get("pass", 0))
+
+    cmap = plt.get_cmap("viridis")
+    n_passes_seen = max(int(pids.max()) + 1, 1) if len(pids) else 1
+    for p in range(n_passes_seen):
+        mask = pids == p
+        if not mask.any():
+            continue
+        col = cmap(p / max(n_passes_seen - 1, 1))
+        ax.errorbar(betas[mask], chis[mask], yerr=errs[mask],
+                    fmt="o", ms=5, lw=0,
+                    ecolor=col, color=col,
+                    elinewidth=1.0, capsize=2,
+                    label=f"pass {p}  (n={int(mask.sum())})")
+    if gc is not None and len(betas) >= 4:
+        b_fit = np.linspace(betas.min(), betas.max(), 400)
+        try:
+            y_fit = _gram_charlier(b_fit, *gc)
+            ax.plot(b_fit, y_fit, "-", color="crimson", lw=1.5,
+                    label="GC fit")
+        except Exception:
+            pass
+    if b_est is not None and np.isfinite(b_est):
+        ax.axvline(b_est, color="black", ls="--", lw=1.0,
+                   label=f"β_c ≈ {b_est:.5f}")
+    ax.set_xlabel("β")
+    ax.set_ylabel("χ (susceptibility)")
+    ax.set_title(f"β_c scan (pass {pass_num})")
+    ax.legend(loc="best", fontsize=7, framealpha=0.9)
+    ax.grid(alpha=0.25)
 
 
 def _render_curve_collapse(ax, test_data, sigma_cost,
-                           ref_data, Lx, Ly, Tx, Ty, n_copies):
+                           ref_data, Lx, Ly, Tx, Ty, n_copies,
+                           ref_geom=None):
+        """Plot the boundary residuals  G_test(t) − G_ref(t)  along the
+        three torus boundary directions.
+
+        Each correlator is sampled on its OWN torus's boundary path
+        (parameterised by t ∈ [0, 1)), then differenced at matching t.
+        This matches the cost-function convention in cost.py and is
+        required when ref_geom != test_geom (e.g. ref 26×32 twisted vs
+        test 24×24 untwisted).  The curve is closed by appending the
+        t=0 sample at t=1 since the parameterisation is periodic.
+        """
         if test_data is None:
             ax.text(0.5, 0.5, "(no test data this step)",
                     ha="center", va="center", transform=ax.transAxes,
                     color="gray")
             ax.set_axis_off()
             return
+        if ref_geom is None:
+            ref_geom = (Lx, Ly, Tx, Ty)
+        rLx, rLy, rTx, rTy = ref_geom
         try:
-            dirs = boundary_paths(Lx, Ly, Tx, Ty)
+            test_dirs = boundary_paths(Lx, Ly, Tx, Ty)
+            ref_dirs  = boundary_paths(rLx, rLy, rTx, rTy)
         except Exception as exc:
             ax.text(0.5, 0.5, f"(boundary_paths error: {exc})",
                     ha="center", va="center", transform=ax.transAxes,
@@ -362,8 +562,8 @@ def _render_curve_collapse(ax, test_data, sigma_cost,
 
         colors = {"v": "C0", "u": "C1", "w": "C2"}
         try:
-            g_ref = _tile_interp(ref_data, Lx, Ly,
-                                 Tx, Ty, "conn",
+            g_ref = _tile_interp(ref_data, rLx, rLy,
+                                 rTx, rTy, "conn",
                                  copies=n_copies)
             g_test = _tile_interp(test_data, Lx, Ly,
                                   Tx, Ty, "conn",
@@ -377,14 +577,19 @@ def _render_curve_collapse(ax, test_data, sigma_cost,
 
         names = ["v", "u", "w"]
         n_samples = 64
-        t = np.linspace(0.0, 1.0, n_samples)
+        # Periodic sampling: t ∈ [0, 1) avoids the LinearNDInterpolator
+        # convex-hull spike at t=1 (see cost.py).  We close the loop for
+        # plotting by appending the t=0 value at t=1.
+        t = np.linspace(0.0, 1.0, n_samples, endpoint=False)
+        t_plot = np.concatenate([t, [1.0]])
         ax.axhline(0.0, color="black", lw=0.9, ls="--", alpha=0.5,
                    label="zero (perfect match)")
-        for name, (dm, dn) in zip(names, dirs):
+        for name, (rdm, rdn), (tdm, tdn) in zip(names, ref_dirs, test_dirs):
             try:
-                xs, ys = _triangular_xy(t * dm, t * dn)
-                ref_vals  = np.asarray(g_ref(np.column_stack([xs, ys])),  float)
-                test_vals = np.asarray(g_test(np.column_stack([xs, ys])), float)
+                rxs, rys = _triangular_xy(t * rdm, t * rdn)
+                txs, tys = _triangular_xy(t * tdm, t * tdn)
+                ref_vals  = np.asarray(g_ref(np.column_stack([rxs, rys])),  float)
+                test_vals = np.asarray(g_test(np.column_stack([txs, tys])), float)
             except Exception as exc:
                 ax.text(0.5, 0.5, f"(interp error: {exc})",
                         ha="center", va="center", transform=ax.transAxes,
@@ -392,7 +597,8 @@ def _render_curve_collapse(ax, test_data, sigma_cost,
                 ax.set_axis_off()
                 return
             diff = test_vals - ref_vals
-            ax.plot(t, diff, "-", color=colors[name], lw=1.3,
+            diff_plot = np.concatenate([diff, diff[:1]])
+            ax.plot(t_plot, diff_plot, "-", color=colors[name], lw=1.3,
                     label=f"Δ{name}")
             # Ribbon: ±per-point noise estimate following the curve.
             # Derived from sigma_cost: if sigma_cost is the MC error on the
@@ -402,8 +608,8 @@ def _render_curve_collapse(ax, test_data, sigma_cost,
                 noise = float(np.sqrt(max(sigma_cost, 0.0) / (3 * n_samples)))
             else:
                 # Fallback: use RMS of the residual itself.
-                noise = float(np.sqrt(np.nanmean(diff**2)))
-            ax.fill_between(t, diff - noise, diff + noise,
+                noise = float(np.sqrt(np.nanmean(diff_plot**2)))
+            ax.fill_between(t_plot, diff_plot - noise, diff_plot + noise,
                             color=colors[name], alpha=0.18)
 
         ax.set_xlabel("path parameter  t")
