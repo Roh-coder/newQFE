@@ -1078,3 +1078,275 @@ Phase 3:  [ ] all sub-phases
 ```
 Legend: `[x]` done · `[~]` partial · `[ ]` not done.
 
+---
+
+## Continuation plan (pick up here next session)
+
+Concrete, ordered task list to take the implementation from "code
+landed, defaults off" to "S2 + S3 promoted, S1 sub-phase 3.1 in
+flight."  Each block is sized to one focused work session.  Commands
+assume CWD = `K_from_Optimization_pnp/` and the venv at
+`/workspaces/newQFE/.venv` is active.
+
+### Session A — Close Phase 0 (unblocks everything)
+
+Goal: produce the recorded baselines that every later acceptance
+check diffs against, and add the `make test` shortcut.
+
+1. **Add `make test` target.** In [Makefile](Makefile), append:
+   ```makefile
+   .PHONY: test
+   test:
+   	pytest tests/ -q
+   ```
+   Verify: `make test` → 16 passed.
+
+2. **Capture NM baseline (24×24).**
+   ```bash
+   # Default CONFIG already targets 24×24, NM, max_evals=30, all
+   # speedup flags off. Run once with a fixed seed so the baseline
+   # is reproducible.
+   python run.py
+   # Move the produced run dir into tests/baselines/
+   mkdir -p tests/baselines
+   cp results/<run_name>/eval_log.jsonl tests/baselines/baseline_nm_24x24.jsonl
+   cp results/<run_name>/summary.json   tests/baselines/baseline_nm_24x24_summary.json
+   ```
+   Note in the commit message: which `<run_name>`, which seed, wall
+   time.  Expect ~30–45 min.
+
+3. **Capture CMA-ES baseline (24×24).**  Edit `CONFIG["optimizer"] =
+   "cmaes"` and `CONFIG["cma_seed"] = 12345` (any fixed int), rerun:
+   ```bash
+   python run.py
+   cp results/<run_name>/eval_log.jsonl tests/baselines/baseline_cma_24x24.jsonl
+   cp results/<run_name>/summary.json   tests/baselines/baseline_cma_24x24_summary.json
+   ```
+
+4. **Optional: tiny baselines** for fast CI-style regression.  Same
+   thing on the `tiny_geom` (Lx=Ly=8, n_traj_prod=2_000) — runs in
+   ~2 min, useful for `pytest`-driven parity checks added later.
+
+5. **Commit:** `K_from_Optimization_pnp: capture Phase 0 baselines + make test target`.
+
+**Acceptance:** `tests/baselines/` contains the four files; `make test`
+runs.  Box `[ ] 0.1` → `[x]`, `[~] 0.4` → `[x]`, `[ ] 0.B` → `[x]`.
+
+### Session B — Promote Speedup 2 (β_c cache)
+
+Prereq: Session A complete.
+
+1. **Build `tools/validate_cache.py`** (~80 lines).  Skeleton:
+   ```python
+   # CLI: python tools/validate_cache.py --geom 24 24 0 0 --n 10
+   # Loads BetacCache, picks N random hits inside the hull, re-runs
+   # mc_engine.find_beta_c at each, asserts
+   #   median(|β_MC - β_interp|) < 3 * cache.tol_beta
+   # Exit 0 on pass, 2 on fail.
+   ```
+   Reuse `mc_engine.find_beta_c` and `BetacCache.lookup` directly; no
+   Evaluator needed.  Expect 10 hits × ~5–15 s each ≈ 1–3 min.
+
+2. **Add `--validate-cache N` to `run.py`** (5-line `argparse` shim
+   that just delegates to `tools/validate_cache.py` for the configured
+   geometry).  Lighter alternative: skip the shim and document the
+   tools-script invocation in the README.  Pick whichever is faster.
+
+3. **Run check 1.B (cache OFF bit-equal).**
+   ```bash
+   python run.py   # CONFIG["betac_cache"] = False, fixed seed
+   diff results/<new_run>/eval_log.jsonl tests/baselines/baseline_nm_24x24.jsonl
+   # Must be byte-identical (modulo timestamps and wall_time_s fields —
+   # filter via jq if needed).
+   ```
+
+4. **Run check 1.C (cache ON cold start).**  Flip
+   `CONFIG["betac_cache"] = True`, rerun, confirm `summary.json`
+   `best_cost` is within 1× per-eval `sigma_cost` of the baseline.
+   Verify `results/_betac_cache_Lx24_Ly24_Tx0_Ty0/samples.jsonl` now
+   has ≥ 30 entries.
+
+5. **Run check 1.D.**  `python tools/validate_cache.py --geom 24 24 0 0 --n 10` → exit 0.
+
+6. **Run check 1.E (warm restart).**  Rerun `python run.py` with the
+   cache populated, record wall time.  Must be ≤ 60 % of the cold
+   wall time from step 4.  Append the two numbers to
+   `tests/baselines/cache_warmstart_log.txt`.
+
+7. **Repeat 1.C–1.E on a second geometry** (e.g. 16×16) by editing
+   `CONFIG["test_Lx"]`, `CONFIG["test_Ly"]`.  Reuse a tiny `ref_n_traj`
+   if wall time is a concern.
+
+8. **Promote default.**  Edit [run.py](run.py):
+   `CONFIG["betac_cache"] = True`.  Rerun `make test` (must stay
+   green), then commit:
+   `K_from_Optimization_pnp: promote betac_cache default to True (S2)`.
+
+**Acceptance:** boxes 1.B–1.E `[x]`, "promote" `[x]`.
+
+### Session C — Finish + promote Speedup 3 (parallel CMA-ES)
+
+Prereq: Session A complete.  Independent of Session B; can swap order
+or do in parallel branches.
+
+1. **PNG render-by-`eval_id`** (closes 2.5).  In
+   [visualization.py](visualization.py), add to `OptimizerPlotter`:
+   ```python
+   self._buffer = {}        # eval_id -> render-payload
+   self._next_id = 1
+   def update(self, payload):
+       self._buffer[payload["eval_id"]] = payload
+       while self._next_id in self._buffer:
+           self._render(self._buffer.pop(self._next_id))
+           self._next_id += 1
+   def flush_render_queue(self):
+       for eid in sorted(self._buffer):
+           self._render(self._buffer[eid])
+       self._buffer.clear()
+   ```
+   Add `tests/test_parallel.py::test_png_render_order`: feed scrambled
+   payloads, assert renderer was called in `eval_id` order.
+
+2. **Dashboard aggregate panel** (closes 2.4).  In
+   [dashboard.py](dashboard.py), add a "λ workers active [██████░░] k/λ
+   done" line.  Drive it from `pool.map_generation` returning
+   per-result events; keep the existing per-eval table unchanged.
+   Skip if rich-rendering refactor is too big — promotion does not
+   strictly require it, only the spec does.
+
+3. **Capture parallel baselines for parity test 2.B.**  With
+   `n_workers=1`, fixed `master_seed`, run `optimizer="cmaes"`:
+   ```bash
+   python run.py
+   diff results/<run>/eval_log.jsonl tests/baselines/baseline_cma_24x24.jsonl
+   # Expect identical (the n_workers=1 path skips the pool entirely).
+   ```
+
+4. **Statistical parity (2.C).**  Script `tools/parity_campaign.py`:
+   loop 5× each over `n_workers ∈ {1, λ}`, fresh random `master_seed`
+   each iteration, collect `best_cost`.  Assert
+   `|mean(parallel) − mean(serial)| < 0.5 * std(serial)`.  Expect
+   2–3 hours wall on 6 cores; run overnight if needed.
+
+5. **Wall-clock benchmark (2.D).**  Use the same campaign output.
+   Median CMA-ES `wall_total_s` with `n_workers=λ` ≤ `1.6/λ` × serial
+   median.
+
+6. **Ctrl-C cleanliness (2.E).**  Manual smoke: start a parallel run,
+   send SIGINT mid-generation, confirm no orphan processes
+   (`pgrep -f ising_tri_twisted_parallelogram`) and `mc_scratch/w*/`
+   is empty.  Add a 1-line note to a `tests/regressions/` log.
+
+7. **Promote default.**  Edit [run.py](run.py):
+   ```python
+   "n_workers": min(int(cfg["cma_popsize"]), os.cpu_count() or 1),
+   ```
+   (or simpler: leave `n_workers=0` meaning "auto" and add a 2-line
+   resolver in `run.main`).  Commit:
+   `K_from_Optimization_pnp: promote n_workers auto-default (S3)`.
+
+**Acceptance:** boxes 2.4 `[x]`, 2.5 `[x]`, 2.B–2.E `[x]`, "promote" `[x]`.
+
+### Session D — Phase 3 sub-phase 3.1 (persistent C++ simulator)
+
+Prereq: Sessions A–C ideally complete (so we have CMA-ES baselines
+to diff against), but technically only Session A is required.
+
+This is the largest remaining phase.  Sub-phase 3.1 alone is ~1–2
+sessions of focused work.
+
+1. **Refactor the C++ entry point.**  In
+   [src/ising_tri_twisted_parallelogram.cc](src/ising_tri_twisted_parallelogram.cc):
+   - Move the body of `main()` into `static int run_once(const Args&)`
+     so the existing CLI mode is preserved bit-for-bit.
+   - New `main()` parses `argv`; if `--rpc` is present, call into the
+     RPC dispatcher instead of `run_once`.
+
+2. **Hand-roll the JSON tokenizer.**  New `src/rpc.h`, ~120 lines.
+   Targets: numbers (int/double), quoted strings, flat arrays of
+   numbers, single-level objects.  No nesting beyond
+   `{"op": "...", ...}`.  No allocations on the hot path beyond a
+   reused `std::string` line buffer.
+
+3. **RPC dispatcher.**  New `src/rpc_server.cc`.  Verbs for sub-phase
+   3.1: `ping`, `production`.  Output one JSON line per response.
+   Production handler reuses the existing simulator state in-process
+   (constructed once, reseeded per call).
+
+4. **Update [Makefile](Makefile).**  Compile `rpc_server.cc` into the
+   same binary; the `--rpc` switch picks the entry point at runtime.
+   No new external libraries.
+
+5. **Python client.**  New `simulator_client.py`:
+   ```python
+   class SimulatorClient:
+       def __init__(self, exe, timeout=600.0): ...
+       def production(self, **kwargs) -> dict: ...
+       def ping(self) -> dict: ...
+       def shutdown(self): ...
+   ```
+   `subprocess.Popen([exe, "--rpc"], stdin=PIPE, stdout=PIPE,
+   bufsize=1, text=True)`; watchdog via `threading.Timer`; SIGKILL on
+   timeout.  Context-manager support.
+
+6. **Wire backend switch.**  In [mc_engine.py](mc_engine.py), the
+   production-MC call site dispatches on `cfg["backend"]`:
+   `"subprocess"` (legacy) or `"rpc"` (new client).  β_c scan and
+   cost still use the legacy path until 3.2 / 3.3 land.
+
+7. **Tests** — `tests/test_rpc_parity.py`, the 5 cases in spec
+   sub-phase 3.1.  The critical one is
+   `test_rpc_production_matches_subprocess`: same seed, same
+   parameters, byte-identical `two_point_all_to_all.dat`.
+
+8. **Acceptance check 3.1.B.**  Run `python run.py` with
+   `CONFIG["backend"] = "rpc"`, confirm per-line `cost` agrees with
+   the recorded baseline to identical floats.
+
+9. **Commit:**
+   `K_from_Optimization_pnp: persistent simulator + production RPC (S1.3.1)`.
+
+**Acceptance:** boxes 3.1 + 3.1.A + 3.1.B `[x]`.
+
+### Sessions E–F — Phase 3 sub-phases 3.2 and 3.3
+
+Follow the spec in this README's "Detailed implementation strategy"
+section verbatim.  Each sub-phase has its own bit-equivalence parity
+test that gates progress; do not advance until the replay test passes
+on the recorded baselines.
+
+### Risk register / things that may bite tomorrow
+
+- **Path lengths on Windows.** Run names are kept short
+  (`j<HHMMSS>_p<pid>`) for a reason — see repo memory note about
+  MAX_PATH=260 and the `mc_scratch/eval####_r1.../scan/...` blowup.
+  If you switch host, verify run names stay short.
+- **Worker scratch dirs.** Parallel workers must use separate
+  `mc_scratch/w{worker_id}/` subdirs.  A regression here silently
+  corrupts MC outputs; the existing `test_worker_scratch_isolation`
+  test catches it.
+- **Float-equality of baselines.**  Wall-time fields and timestamps
+  drift; parity diffs must filter those out.  Recommended:
+  ```bash
+  jq 'del(.wall_time_s, .ts)' baseline.jsonl > baseline.norm.jsonl
+  ```
+  before `diff`.
+- **CMA-ES seed plumbing.**  `cma_seed` controls the offspring sampler
+  but the C++ MC has its own per-call seed; for true reproducibility
+  both must be fixed.  Check `mc_engine.run_simulator` for how the
+  per-eval `seed` is derived before you record CMA baselines.
+- **`betac_cache` rebuild cadence.**  `_rebuild()` triggers every 8
+  adds; if you preseed a 25-point grid then run optimization, the
+  first lookup happens *after* the rebuild fires, but the unit tests
+  do not exercise this race.  Smoke-test with a `tools/preseed_betac.py`
+  run before flipping the default.
+
+### One-paragraph TL;DR for tomorrow
+
+Start with Session A (capture two baselines + `make test`).  That
+single session unblocks the entire promotion path.  After that,
+Sessions B and C are independent and can be done in either order;
+both are mostly running and recording, not new code.  Session D is
+the big new-code session and is the natural place to budget two days
+rather than one.
+
