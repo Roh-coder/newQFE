@@ -1071,7 +1071,7 @@ states below override the placeholder checklist above.
 ### Quick checklist deltas
 
 ```
-Phase 0:  [x] 0.2  [x] 0.3  [~] 0.4  [x] 0.A  [ ] 0.1  [ ] 0.B
+Phase 0:  [x] 0.2  [x] 0.3  [x] 0.4  [x] 0.A  [ ] 0.1  [ ] 0.B
 Phase 1:  [x] 1.1–1.6, 1.A    [ ] 1.B 1.C 1.D 1.E   [ ] promote
 Phase 2:  [x] 2.1–2.3, 2.6, 2.A   [~] 2.4 2.5   [ ] 2.B 2.C 2.D 2.E   [ ] promote
 Phase 3:  [ ] all sub-phases
@@ -1091,14 +1091,12 @@ assume CWD = `K_from_Optimization_pnp/` and the venv at
 ### Session A — Close Phase 0 (unblocks everything)
 
 Goal: produce the recorded baselines that every later acceptance
-check diffs against, and add the `make test` shortcut.
+check diffs against.
 
-1. **Add `make test` target.** In [Makefile](Makefile), append:
-   ```makefile
-   .PHONY: test
-   test:
-   	pytest tests/ -q
-   ```
+1. **`make test` target.** Already present in [Makefile](Makefile) and
+   already wired to `g++` via the top-level `CXX = g++` (do **not**
+   change to `clang++` — the simulator and any future RPC sources must
+   build with the same compiler the baselines were captured under).
    Verify: `make test` → 16 passed.
 
 2. **Capture NM baseline (24×24).**
@@ -1275,7 +1273,10 @@ sessions of focused work.
 
 4. **Update [Makefile](Makefile).**  Compile `rpc_server.cc` into the
    same binary; the `--rpc` switch picks the entry point at runtime.
-   No new external libraries.
+   Keep `CXX = g++` (the existing setting); do not introduce a
+   per-target compiler override.  No new external libraries.
+   Build with `make all` and confirm the produced binary is the
+   same path the Python client launches (`bin/ising_tri_twisted_parallelogram`).
 
 5. **Python client.**  New `simulator_client.py`:
    ```python
@@ -1317,6 +1318,14 @@ on the recorded baselines.
 
 ### Risk register / things that may bite tomorrow
 
+- **Compiler.** All baselines (and any future C++ replay-parity
+  fixtures) must be built with `g++` — the [Makefile](Makefile) sets
+  `CXX = g++` and that must not drift.  If a contributor's environment
+  silently swaps in `clang++` (e.g. via `CXX` exported in the shell),
+  the GC-fit replay parity test in sub-phase 3.2 may fail at the
+  1e-10 tolerance because of differing libm / FMA selection.  When in
+  doubt: `make clean && CXX=g++ make all` and re-run
+  `tests/test_rpc_parity.py`.
 - **Path lengths on Windows.** Run names are kept short
   (`j<HHMMSS>_p<pid>`) for a reason — see repo memory note about
   MAX_PATH=260 and the `mc_scratch/eval####_r1.../scan/...` blowup.
