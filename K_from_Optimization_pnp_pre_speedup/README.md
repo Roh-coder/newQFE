@@ -500,25 +500,252 @@ robins; CMA-ES still synchronises at the end of each generation.
   per direction × 3 directions ≈ kilobytes for L=24, megabytes for
   L=128).  Negligible at current sizes; review at L≥256.
 
-### Stacking the three speedups
+### Speedup 4 — Ferrenberg–Swendsen β reweighting (collapse the 3-pass scan)
 
-| Stage                                       | Today | +S1  | +S1+S2 | +S1+S2+S3 (6 cores) |
-|---------------------------------------------|-------|------|--------|---------------------|
-| Per-miss eval (β_c scan + production MC)    | 60 s  | 55 s | 55 s   | 55 s                |
-| Per-hit eval (cache + production MC)        | 60 s  | 55 s | 35 s   | 35 s                |
-| Generation wall (λ=6, 4 hits + 2 misses)    | 360 s | 330 s| 250 s  | **≈ 55 s**          |
-| 30-eval CMA-ES wall (5 generations)         | 30 min| 28 min| 21 min | **≈ 4.5 min**       |
+**Motivation.**
+Per-evaluation MC time is dominated not by the production run but by
+the **β_c scan**: the default CONFIG runs ~30 subprocess calls per
+evaluation at 10–20 k trajectories each = **200–400 k trajectories per
+eval just to find β_c**, vs ~50 k trajectories for the production
+measurement.  Yet every scan point is a fresh canonical MC at a
+slightly different β.  Single-histogram (Ferrenberg–Swendsen) and
+multi-histogram reweighting let us derive `⟨χ⟩(β)` over a Δβ window
+from one MC run at a reference β₀, using only the cached energy
+histogram.
 
-The biggest single win is Speedup 3; Speedup 2 amortises across runs
-(so its value grows over a campaign of related geometries); Speedup 1
-is the prerequisite that makes both 2 and 3 cleanly composable and
-removes the subprocess fork/exec floor.
+**What we add.**
 
-**Suggested implementation order:** S2 → S3 → S1.
-Reasoning: S2 needs only Python and gives an immediate single-run win;
-S3 sits cleanly on top of either pre- or post-S1; S1 is the largest
-code change but mostly mechanical once the C++ surface area is
-identified.
+- The simulator already accumulates per-trajectory `energy` and
+  `magnetisation` arrays.  Persist them to disk
+  (`energy_traj.dat`, `mag2_traj.dat`) at every MC call — currently
+  thrown away after computing scalar means.
+- New `reweight.py` module:
+  ```python
+  def reweight_chi(E, M2, beta_ref, beta_targets, V):
+      """Single-histogram FS reweighting of χ = V*(<M^2> - <|M|>^2)."""
+      log_w = -(beta_targets[:, None] - beta_ref) * E[None, :]
+      log_w -= log_w.max(axis=1, keepdims=True)
+      w = np.exp(log_w)
+      Z = w.sum(axis=1)
+      m2 = (w * M2).sum(axis=1) / Z
+      return V * m2     # plus connected piece if needed
+  ```
+- `find_beta_c` grows a `reweight=True` mode: instead of `n_coarse`
+  separate MC runs at β₀…β_{n-1}, run **one** MC at the bracket
+  midpoint with `n_traj_scan_coarse * n_coarse` trajectories, then
+  reweight to a dense β grid for the GC fit.  Refinement passes
+  reweight from the same single histogram if the new bracket lies
+  within the validity window; otherwise spawn a fresh MC at the new
+  centre.
+- A *validity gate* on the reweighting window: reject the reweighted
+  estimate at β if the effective sample size
+  `N_eff(β) = (Σwᵢ)² / Σwᵢ²` drops below e.g. `0.1·N` of the parent
+  run.  In practice this gives a usable Δβ window of **~σ_E / √N
+  ≈ 0.01–0.03** at L=24, which already covers the typical refinement
+  bracket in passes 1–3.
+- Multi-histogram (WHAM) extension: when two parent MC runs at β₁
+  and β₂ both have nonzero `N_eff` at β, combine them.  This handles
+  the rare case that pass 0 needs a window translation.
+
+**Estimated speedup.**
+
+- The 3-pass scan today does ≈ 28 MC subprocess calls × 15 k
+  trajectories ≈ **420 k trajectories**.  Reweighting collapses this
+  to **1 MC run of ~200 k trajectories** in pass 0 (sized to give
+  good `N_eff` over the full bracket) plus 0–1 fresh MC runs per
+  refinement pass that lands outside the validity window.
+- **2–3× reduction in per-eval scan trajectories** → roughly
+  **1.5–2× end-to-end speedup**, on top of any other speedups.
+- Composes multiplicatively with S2: a cache **miss** is now cheap
+  enough that misses cost ~MC-production-time only, narrowing the
+  hit/miss gap that motivates S2 in the first place.  Together they
+  make the entire optimization roughly production-MC-bound.
+
+**Pros.**
+
+- Attacks the actual bottleneck (the scan, not the production MC).
+- ~200 lines of NumPy, no C++ work, no subprocess plumbing.
+- Composes cleanly with S2 (cache stores reweighted β_c just as well
+  as MC β_c — the consumer doesn't know the difference) and with S3
+  (each parallel worker reweights its own histogram independently).
+- Side benefit: the persisted `energy_traj.dat` enables proper
+  *autocorrelation analysis* and *jackknife errors on χ* that the
+  current per-trajectory scalar dump doesn't support cleanly.
+- Side benefit: post-hoc χ(β) curves at arbitrary β resolution for
+  diagnostic plots, no extra MC cost.
+
+**Cons / risks.**
+
+- **Validity-window failures cause silent bias.**  If `N_eff` drops
+  but the gate is too lax, the GC fit converges to a biased β_c and
+  the cost surface develops a fictitious gradient.  Need a hard
+  N_eff floor and a regression test that compares reweighted vs.
+  fresh-MC β_c on a known geometry to ≤ 1× σ_β.
+- **First-order phase transitions** (not relevant here, the 2D Ising
+  is second order, but worth flagging) make reweighting windows
+  pathologically narrow because the energy distribution is bimodal.
+- Adds a minor I/O cost (energy/M² arrays per call) — negligible at
+  L=24 (≈ 1.6 MB per 100 k trajectories), worth checking at L≥128.
+- Bookkeeping: each cached histogram needs to be tagged with its
+  `(geom, k, β_parent, n_traj, seed)`; messy if not designed up front.
+- The GC-fit error model assumes independent χ measurements at each
+  β; reweighted χ values are **strongly correlated** (they share a
+  parent histogram), so the GC-fit covariance must use a jackknife
+  on the *parent* histogram, not on the per-β χ values.  This is
+  the single subtle correctness bug to guard against.
+
+**Suggested order.** Land **after S2** but **before S1**.  Once S2 +
+S4 are both in, the per-evaluation cost is ≈ production-MC-only,
+which is the regime where S3 (parallel CMA-ES) gives its full
+multiplicative win and S1's marginal savings become irrelevant.
+
+### Speedup 5 — Cost-surface surrogate (Bayesian-optimization style)
+
+**Motivation.**
+The cost function `C(r1, r2)` is, like β_c(r1, r2), a smooth function
+of the couplings — the `K_from_CritSurface` work shows the entire
+landscape is well-described by ~25 sample points.  The current
+optimizers (NM, CMA-ES) make no use of this: every evaluation is a
+fresh MC from scratch even if a Gaussian-process surrogate predicts
+the point is far from the optimum and far from any informative
+contour.
+
+A *cost-surface surrogate* fits a GP (or RBF, or a small neural net)
+to all `(r1, r2, cost, σ_cost)` tuples seen so far, then drives the
+optimizer with **acquisition-function queries** instead of raw cost
+evaluations.  Most cycles, the surrogate predicts and the MC is
+skipped; the MC fires only when the acquisition function (expected
+improvement, lower confidence bound, etc.) selects a high-information
+point.
+
+**What we add.**
+
+- New `surrogate.py`:
+  ```python
+  class CostSurrogate:
+      def __init__(self, kernel="matern52", noise="hetero"): ...
+      def add(self, r1, r2, cost, sigma_cost): ...
+      def predict(self, r1, r2) -> (mu, sigma_pred): ...
+      def acquisition(self, r1, r2, kind="ei") -> float: ...
+  ```
+  Heteroscedastic noise model: `σ_pred² = σ_GP² + σ_cost²`, so the
+  surrogate respects the per-point MC uncertainty (which the standard
+  `sklearn.gaussian_process` doesn't out of the box but is a 30-line
+  patch).
+- New optimizer backend `"bo"` (Bayesian optimization) that:
+  - Seeds with a Latin-hypercube of 5–8 evaluations.
+  - Each subsequent step picks `argmax EI(r1, r2)` over a dense
+    candidate grid (or via L-BFGS on the surrogate).
+  - Stops on `max_evals` or when `max(EI) < ε`.
+- Optional **surrogate-assisted** mode that wraps NM or CMA-ES: at
+  each candidate `(r1, r2)`, query the surrogate; only call the real
+  evaluator if `σ_pred > σ_threshold` *or* if the surrogate's
+  predicted improvement is large.  Otherwise return the surrogate's
+  mean as a "free" evaluation.  This is a continuum between pure BO
+  and pure MC.
+
+**Estimated speedup.**
+
+- Empirically (from BO benchmarks on similar smooth, noisy 2D
+  surfaces): converges to within 1× σ of the true optimum in
+  **8–15 evals** vs **20–30 for NM/CMA-ES** — roughly **2× reduction
+  in eval count**.
+- Combined with S2 + S4 (per-eval cost ≈ 1 production MC ≈ 30 s),
+  total wall-clock for a typical run drops from ~30 min to ~5–8 min
+  even without parallelism.
+- Surrogate-assisted mode is more conservative: skips ~30–50 % of MC
+  calls in the late phase of an NM/CMA-ES run when the simplex/
+  population is exploring a region the surrogate already knows well.
+  **1.3–1.6× speedup with no algorithmic risk** (you still call MC on
+  any high-uncertainty point).
+
+**Pros.**
+
+- **Algorithmic** speedup, not infrastructure: composes with every
+  other speedup multiplicatively.
+- Surrogate-assisted mode is **risk-free**: any point the surrogate is
+  unsure about still gets a real MC call, so the worst case is "BO
+  added some bookkeeping overhead" rather than "BO converged to the
+  wrong optimum."
+- Built-in uncertainty quantification on the *cost surface*, not just
+  the optimum: gives free contour plots, sensitivity analyses, and
+  honest error bars on the recovered `(r1*, r2*)`.
+- Excellent fit to the noise model we have: per-point σ_cost from the
+  MC propagation slot directly into the GP likelihood.
+- Native handling of *cheap surrogate evaluations during Latin-
+  hypercube planning* enables warm-starting from a tiny grid (e.g.
+  the same 5×5 grid `tools/preseed_betac.py` walks), so the first
+  "real" optimizer step starts informed.
+
+**Cons / risks.**
+
+- GP scales as O(N³) in number of evaluations.  At N≤100 (our
+  regime) this is microseconds; at N≥10⁴ it would matter.  Not a
+  current concern.
+- **Kernel choice matters**: a too-smooth kernel (RBF) over-confidently
+  extrapolates; a too-flexible kernel (Matérn-1/2) under-extrapolates.
+  Matérn-5/2 with ARD is the safe default.  Add a unit test that
+  fits the surrogate to a known analytic surface and asserts the GP
+  prediction lies within 2× σ_pred of the truth on a held-out grid.
+- BO's exploration is *driven by* the acquisition function; a
+  poorly-tuned EI parameter can stagnate ("over-exploitation") in
+  noisy regimes.  Mitigation: use **noisy EI** (Letham et al. 2019),
+  not vanilla EI, when σ_cost is non-negligible.
+- The surrogate is **per-cost-function**: changing the cost (e.g.
+  switching the L⁴ power-mean to a Wasserstein distance) invalidates
+  the cache.  Same caveat as S2 but worse, because the cost surface
+  is more sensitive than β_c to definition changes.
+- Adds two dependencies: `scikit-learn` (already widely used) and
+  optionally `botorch` if we want noisy-EI off-the-shelf.  Pure
+  NumPy implementation is feasible but ~600 lines instead of ~150.
+
+**Suggested order.** Land **after S2 + S4** as a sixth optimizer
+backend (`CONFIG["optimizer"] = "bo"`).  Surrogate-assisted mode for
+existing NM/CMA-ES is a follow-up that can ship even later.
+
+### Stacking the speedups
+
+Approximate per-evaluation and end-to-end wall times for a 24×24 NM/
+CMA-ES run with 30 evals, building on the **S2 → S4 → S3 → S5 → S1**
+order recommended below.
+
+| Stage                                       | Today | +S2   | +S2+S4 | +S2+S4+S3 (6c) | +S2+S4+S3+S5 |
+|---------------------------------------------|-------|-------|--------|----------------|--------------|
+| Per-miss eval (β_c scan + production MC)    | 60 s  | 60 s  | ~35 s  | ~35 s          | ~35 s        |
+| Per-hit eval (cache + production MC)        | 60 s  | ~30 s | ~30 s  | ~30 s          | ~30 s        |
+| Surrogate-only "free" eval (no MC)          | n/a   | n/a   | n/a    | n/a            | <0.1 s       |
+| Generation wall (λ=6, 4 hits + 2 misses)    | 360 s | 190 s | 140 s  | **≈ 35 s**     | ≈ 25 s       |
+| 30-eval CMA-ES wall (5 generations)         | 30 min| 16 min| 12 min | **≈ 3 min**    | **≈ 2 min**  |
+| 30-eval NM wall (serial)                    | 30 min| 16 min| 12 min | 12 min         | **≈ 6 min**  |
+
+**Notes on the table:**
+- S1 (C++ RPC backend) is omitted — its standalone speedup (1.1–1.2×)
+  is dominated by every other entry once S2 + S4 land.  Its main
+  value is "cleaner profile" rather than wall-clock.
+- S3's contribution is **CMA-ES only**; the NM column doesn't change
+  when S3 is added.  This makes S3's value contingent on CMA-ES being
+  the production optimizer.
+- S5's contribution is in *eval count* (≈ 2× fewer real MC calls);
+  the per-eval cost is unchanged.  Surrogate-assisted mode (rather
+  than pure BO) gives a more conservative ~1.4×.
+
+**Revised suggested implementation order:** S2 → S4 → S3 → S5 → (S1).
+
+Reasoning:
+- **S2** is the smallest LOC investment with the clearest single-run
+  win and unblocks campaigns of related geometries.
+- **S4** attacks the actual bottleneck (the scan), composes
+  multiplicatively with S2, and stays in pure NumPy.
+- **S3** then has its full value because per-eval cost is now
+  production-MC-bound, and it slots in only if CMA-ES is the
+  chosen optimizer.
+- **S5** is an algorithmic eval-count reducer that composes with
+  everything else; ship in surrogate-assisted mode first (risk-free)
+  and pure-BO mode later.
+- **S1** is deferred indefinitely.  Revisit if (a) we move to L ≥ 128
+  where Python overhead becomes a larger fraction, or (b) an
+  interactive UI / long-lived daemon becomes desirable for other
+  reasons.
 
 ---
 
