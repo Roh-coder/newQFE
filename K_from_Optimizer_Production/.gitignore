@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Build artefacts
+bin/ising_tri_twisted_parallelogram
+bin/ising_tri_twisted_parallelogram.exe
+
+# Run outputs
+results/
+*.log
