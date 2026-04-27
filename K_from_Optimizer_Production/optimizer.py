@@ -44,11 +44,12 @@ class _ResultProxy:
         self.__dict__.update(d)
 
 
-def _summary(history: list, status: str) -> dict:
+def _summary(history: list, status: str, *,
+             final_gaussian: dict | None = None) -> dict:
     if not history:
         return {"status": status, "n_evals": 0}
     best = min(history, key=lambda r: r.cost)
-    return {
+    d = {
         "status": status,
         "n_evals": len(history),
         "best_eval_id": best.eval_id,
@@ -62,6 +63,9 @@ def _summary(history: list, status: str) -> dict:
                           for r in history),
         "total_wall_s": sum(r.wall_time_s for r in history),
     }
+    if final_gaussian is not None:
+        d["final_gaussian"] = final_gaussian
+    return d
 
 
 def run_nelder_mead(evaluator, x0=(1.0, 1.0), *,
@@ -532,7 +536,14 @@ def run_cmaes(evaluator, x0=(1.0, 1.0), *,
     if hasattr(evaluator, "current_gaussian"):
         evaluator.current_gaussian = None
 
-    return _summary(history, status)
+    final_gaussian = {
+        "mean":  [float(m[0]), float(m[1])],
+        "sigma": float(sigma),
+        "cov":   [[float(C[0, 0]), float(C[0, 1])],
+                  [float(C[1, 0]), float(C[1, 1])]],
+        "gen":   int(gen),
+    }
+    return _summary(history, status, final_gaussian=final_gaussian)
 
 
 # ===================================================================
