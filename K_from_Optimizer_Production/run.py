@@ -125,7 +125,9 @@ CONFIG = {
     "live_poll_ms":   500,          # viewer refresh interval (ms)
 
     # --- Simulator binary -------------------------------------------------
-    "exe": "bin/ising_tri_twisted_parallelogram",
+    "exe": ("bin/ising_tri_twisted_parallelogram.exe"
+            if sys.platform == "win32"
+            else "bin/ising_tri_twisted_parallelogram"),
 }
 
 # ============================================================================
@@ -137,23 +139,28 @@ CONFIG = {
 
 def ensure_binary(exe: str) -> None:
     """Compile the C++ simulator if missing, using $CXX or g++/clang++/c++."""
-    if os.path.exists(exe):
+    # Resolve paths relative to this file so the function works regardless
+    # of the caller's cwd.
+    exe_abs = exe if os.path.isabs(exe) else os.path.join(_HERE, exe)
+    if os.path.exists(exe_abs):
         return
-    out_dir = os.path.dirname(exe) or "."
+    out_dir = os.path.dirname(exe_abs)
     os.makedirs(out_dir, exist_ok=True)
-    src = "src/ising_tri_twisted_parallelogram.cc"
-    if not os.path.exists(src):
-        raise FileNotFoundError(f"Cannot build {exe}: {src} not found")
+    src_abs = os.path.join(_HERE, "src", "ising_tri_twisted_parallelogram.cc")
+    inc_abs = os.path.join(_HERE, "include")
+    if not os.path.exists(src_abs):
+        raise FileNotFoundError(f"Cannot build {exe_abs}: {src_abs} not found")
     candidates = [os.environ.get("CXX")] + ["g++", "clang++", "c++"]
-    for cxx in candidates:
-        if not cxx or not shutil.which(cxx):
+    import subprocess
+    for cxx in filter(None, candidates):
+        if not shutil.which(cxx):
             continue
-        cmd = [cxx, "-O3", "-std=c++17", "-Iinclude", src, "-o", exe]
-        print(f"[build] {' '.join(cmd)}")
-        import subprocess
+        cmd = [cxx, "-O3", "-std=c++17", f"-I{inc_abs}", src_abs, "-o", exe_abs]
+        print(f"[build] {' '.join(cmd)}", flush=True)
         if subprocess.run(cmd).returncode == 0:
+            print(f"[build] OK → {exe_abs}", flush=True)
             return
-    raise RuntimeError(f"No working C++ compiler found to build {exe}")
+    raise RuntimeError(f"No working C++ compiler found to build {exe_abs}")
 
 
 def build_reference(cfg, ref_dir):
