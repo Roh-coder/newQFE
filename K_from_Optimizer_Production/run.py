@@ -606,7 +606,18 @@ class _PoolForwarder:
                     if self._ev is not None else None)
         # Forward each EvalResult-shaped dict to the plotter / dashboard
         # in eval_id order so the visualizer's monotone buffer is happy.
-        for d in results:
+        # Suppress mid-batch renders: only render on the last result so the
+        # whole generation costs exactly one matplotlib figure build.
+        n = len(results)
+        if self._opt is not None and n > 1:
+            _orig_save_every = self._opt.save_every
+            self._opt.save_every = n + 1   # suppress renders for all but last
+        else:
+            _orig_save_every = None
+        for i, d in enumerate(results):
+            is_last = (i == n - 1)
+            if _orig_save_every is not None and is_last:
+                self._opt.save_every = _orig_save_every  # restore before final update
             test_data = d.pop("_test_data", None)
             if self._opt is not None:
                 # Populate the susceptibility scan panel from EvalResult data.
