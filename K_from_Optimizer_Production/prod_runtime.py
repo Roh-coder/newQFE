@@ -64,9 +64,13 @@ _FB_CFG: dict = {
     "scan_kwargs":  {},      # passed to mc_engine.find_beta_c on fallback
     "enabled":      False,
     "verbose":      True,
+    # Multi-donor reweighting (primary path, when enabled).
+    "multidonor":   False,
+    "md_kwargs":    {},      # passed to mc_engine.find_beta_c_multidonor
 }
 
 _FB_STATS: dict = {
+    "multidonor_ok":  0,
     "reweight_ok":   0,
     "fallback_used": 0,
     "fallback_failed": 0,
@@ -93,7 +97,53 @@ def _patched_reweight(exe, Lx, Ly, Tx, Ty, k1, k2, k3,
                       n_eff_floor=0.10, max_recenters=3,
                       data_dir="/tmp/k_from_cs_rw",
                       progress_cb=None, jackknife=False):
-    """Reweight first; on RuntimeError, fall back to 3-pass GC scan."""
+    """Try multi-donor → single-donor reweight → 3-pass GC scan.
+
+    The multi-donor path is taken only when ``install_reweight_fallback``
+    was called with ``multidonor=True``.  Otherwise behaves as the
+    original single-donor reweight wrapper.
+    """
+    # ----- 0. Multi-donor reweighting (primary, if enabled) -----
+    if _FB_CFG.get("multidonor"):
+        try:
+            md_kw = dict(_FB_CFG.get("md_kwargs", {}))
+            # Use a sibling scratch dir so multidonor + reweight + fallback
+            # don't collide on simulator output paths.
+            md_data_dir = data_dir.rstrip("/").rstrip("\\") + "_md"
+            result = mc_engine.find_beta_c_multidonor(
+                exe, Lx, Ly, Tx, Ty, k1, k2, k3, beta_lo, beta_hi,
+                n_traj_parent=n_traj_parent, n_grid=n_grid,
+                n_eff_floor=n_eff_floor,
+                data_dir=md_data_dir,
+                progress_cb=progress_cb, jackknife=jackknife,
+                **md_kw,
+            )
+            with _FB_LOCK:
+                _FB_STATS["multidonor_ok"] += 1
+            _audit({
+                "status": "multidonor",
+                "geom":   [Lx, Ly, Tx, Ty],
+                "k":      [k1, k2, k3],
+                "beta":   [beta_lo, beta_hi],
+                "beta_c": float(result[0]),
+                "sigma":  float(result[1]),
+            })
+            return result
+        except Exception as exc_md:
+            if _FB_CFG["verbose"]:
+                print(f"[prod] multidonor FAILED "
+                      f"({type(exc_md).__name__}: {exc_md}); "
+                      f"falling back to single-donor reweight…")
+            _audit({
+                "status": "multidonor_failed",
+                "geom":   [Lx, Ly, Tx, Ty],
+                "k":      [k1, k2, k3],
+                "beta":   [beta_lo, beta_hi],
+                "error":  f"{type(exc_md).__name__}: {exc_md}",
+            })
+            # Fall through to single-donor path below.
+
+    # ----- 1. Single-donor reweight (original path) -----
     try:
         result = _ORIG_REWEIGHT(
             exe, Lx, Ly, Tx, Ty, k1, k2, k3, beta_lo, beta_hi,
@@ -158,7 +208,10 @@ def _patched_reweight(exe, Lx, Ly, Tx, Ty, k1, k2, k3,
 
 def install_reweight_fallback(scan_kwargs: dict,
                               log_path: Optional[str] = None,
-                              verbose: bool = True) -> None:
+                              verbose: bool = True,
+                              *,
+                              multidonor: bool = False,
+                              md_kwargs: Optional[dict] = None) -> None:
     """Activate the reweight→3-pass fallback in the current process.
 
     ``scan_kwargs`` must contain the legacy ``find_beta_c`` knobs —
@@ -166,11 +219,21 @@ def install_reweight_fallback(scan_kwargs: dict,
     ``n_traj_coarse``, ``n_traj_fine``, ``max_shifts`` — to use on the
     fallback path.  Identical defaults to the production CONFIG keys
     ``scan_n_*`` / ``n_traj_scan_*`` / ``scan_max_shifts``.
+
+    When ``multidonor=True``, the patched function tries
+    :func:`mc_engine.find_beta_c_multidonor` first (tiles the bracket
+    with multiple parent histograms whose spacing is set by the
+    action-variance heuristic); on failure it falls through to the
+    single-donor reweight, then to the legacy 3-pass GC scan.
+    ``md_kwargs`` is forwarded to ``find_beta_c_multidonor`` (e.g.
+    ``var_E``, ``n_donors``, ``donor_overlap_alpha``, ``pilot_n_traj``).
     """
     _FB_CFG["scan_kwargs"] = dict(scan_kwargs)
     _FB_CFG["log_path"]    = str(log_path) if log_path else None
     _FB_CFG["verbose"]     = bool(verbose)
     _FB_CFG["enabled"]     = True
+    _FB_CFG["multidonor"]  = bool(multidonor)
+    _FB_CFG["md_kwargs"]   = dict(md_kwargs) if md_kwargs else {}
     mc_engine.find_beta_c_reweight = _patched_reweight
 
 
@@ -202,6 +265,8 @@ def _prod_worker_init(eval_kwargs: dict, seed_state: bytes,
         scan_kwargs=fb_kwargs.get("scan_kwargs", {}),
         log_path=fb_kwargs.get("log_path"),
         verbose=fb_kwargs.get("verbose", False),
+        multidonor=fb_kwargs.get("multidonor", False),
+        md_kwargs=fb_kwargs.get("md_kwargs"),
     )
 
     ss = pickle.loads(seed_state)

@@ -591,6 +591,252 @@ def find_beta_c_reweight(exe, Lx, Ly, Tx, Ty, k1, k2, k3,
 
 
 # ===================================================================
+# Multi-donor reweighting
+# ===================================================================
+
+def _spawn_parent_traces(exe, Lx, Ly, Tx, Ty, k1, k2, k3, beta_parent,
+                         n_traj, data_dir, *, n_skip=20, n_therm=2000,
+                         seed=None, timeout=1200):
+    """Run one MC parent at *beta_parent* with traces dump.
+
+    Returns the path to ``traces_*.dat`` in the simulator's output
+    subdirectory.  Raises RuntimeError on simulator failure.
+    """
+    import reweight as rw_mod  # local import (avoid circulars)
+    if seed is None:
+        seed = int(time.time() * 1_000_000) & 0xFFFFFFFF
+    cmd = [
+        exe,
+        "--L_x", str(Lx), "--L_y", str(Ly),
+        "--T_x", str(Tx), "--T_y", str(Ty),
+        "--k1", f"{k1:.12f}", "--k2", f"{k2:.12f}", "--k3", f"{k3:.12f}",
+        "--beta", f"{beta_parent:.12f}",
+        "--n_traj", str(n_traj), "--n_skip", str(n_skip),
+        "--n_therm", str(n_therm),
+        "--seed", str(seed),
+        "--data_dir", data_dir,
+        "--dump_traces", "1",
+    ]
+    os.makedirs(data_dir, exist_ok=True)
+    result = subprocess.run(cmd, capture_output=True, text=True,
+                            timeout=timeout)
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"multidonor: simulator failed at β={beta_parent:.5f}:\n"
+            f"{result.stderr}"
+        )
+    subdir = None
+    for line in result.stdout.splitlines():
+        if line.startswith("opening file:"):
+            subdir = os.path.dirname(line.split(":", 1)[1].strip())
+            break
+    if subdir is None:
+        raise RuntimeError(
+            f"multidonor: could not parse simulator subdir at β={beta_parent:.5f}"
+        )
+    traces_path = rw_mod.find_traces_file(subdir)
+    if traces_path is None:
+        raise RuntimeError(
+            f"multidonor: no traces_*.dat in {subdir} (rebuild simulator?)"
+        )
+    return traces_path
+
+
+def find_beta_c_multidonor(exe, Lx, Ly, Tx, Ty, k1, k2, k3,
+                           beta_lo, beta_hi,
+                           n_traj_parent=40000,
+                           n_grid=201,
+                           n_eff_floor=0.10,
+                           data_dir="/tmp/k_from_cs_md",
+                           progress_cb=None,
+                           jackknife=False,
+                           *,
+                           var_E=None,
+                           n_donors=None,
+                           donor_overlap_alpha=0.75,
+                           pilot_n_traj=2000,
+                           min_donors=1,
+                           max_donors=16):
+    """Locate the susceptibility peak in [beta_lo, beta_hi] using
+    multiple parent histograms tiled across the bracket.
+
+    The donor spacing is set by the action-variance heuristic
+
+        |Δβ|_safe ≈ sqrt( -ln(n_eff_floor) / Var(E_extensive) )
+
+    so that adjacent parents overlap with N_eff/N ≥ ``n_eff_floor``.
+    Donors are placed at ``donor_overlap_alpha · |Δβ|_safe`` apart
+    (alpha < 1 enforces overlap).
+
+    Total MC budget ``n_traj_parent`` is split evenly across donors.
+
+    Parameters
+    ----------
+    var_E : float or None
+        If provided, skip the pilot run.  This is the extensive-energy
+        variance ``Var(E_total)`` near the bracket midpoint, typically
+        cached from the reference build.
+    n_donors : int or None
+        If given, override the auto-determined donor count.
+    donor_overlap_alpha : float
+        Donor-spacing multiplier (in units of |Δβ|_safe).  0.75 gives
+        ~50%% N_eff overlap between neighbours.
+    pilot_n_traj : int
+        Trajectories for the pilot run when var_E is unknown.
+
+    Returns the same 6-tuple as :func:`find_beta_c_reweight`:
+        (beta_c, beta_c_sigma, chi_peak,
+         scan_betas, scan_chis, scan_chi_errs)
+    """
+    import reweight as rw_mod  # local import (circular-import guard)
+
+    beta_mid = 0.5 * (beta_lo + beta_hi)
+    grid = np.linspace(beta_lo, beta_hi, n_grid)
+
+    # ---------------------------------------------------------------
+    # 1. Estimate Var(E_extensive) — cheap pilot if not cached.
+    # ---------------------------------------------------------------
+    if var_E is None:
+        pilot_path = _spawn_parent_traces(
+            exe, Lx, Ly, Tx, Ty, k1, k2, k3, beta_mid,
+            n_traj=pilot_n_traj,
+            data_dir=os.path.join(data_dir, "pilot"),
+        )
+        pilot_rw = rw_mod.Reweighter(pilot_path, n_eff_floor=n_eff_floor)
+        var_E = float(np.var(pilot_rw._E_total))
+    var_E = max(var_E, 1e-30)
+
+    # ---------------------------------------------------------------
+    # 2. Determine donor count and spacing.
+    # ---------------------------------------------------------------
+    delta_safe = math.sqrt(-math.log(max(n_eff_floor, 1e-12)) / var_E)
+    span = float(beta_hi - beta_lo)
+    if n_donors is None:
+        # span / spacing + 1, with overlap factor alpha
+        spacing = max(donor_overlap_alpha * delta_safe, 1e-12)
+        n_auto = int(math.ceil(span / spacing)) + 1
+        n_donors = int(np.clip(n_auto, min_donors, max_donors))
+    n_donors = max(1, int(n_donors))
+
+    if n_donors == 1:
+        donor_betas = np.array([beta_mid])
+    else:
+        donor_betas = np.linspace(beta_lo, beta_hi, n_donors)
+
+    n_traj_per = max(500, int(n_traj_parent // n_donors))
+
+    if progress_cb is not None:
+        progress_cb({
+            "pass_num": 0,
+            "all_betas": [], "all_chis": [], "all_chi_errs": [],
+            "pass_ids": [],
+            "gc_params": None, "beta_estimate": beta_mid,
+            "scan_progress": {"pts_done": 0, "pts_total": n_grid},
+            "traj_done": 0,
+            "n_eff_min": 0.0,
+            "multidonor": {
+                "n_donors": int(n_donors),
+                "delta_safe": float(delta_safe),
+                "var_E": float(var_E),
+                "n_traj_per": int(n_traj_per),
+                "donor_betas": [float(b) for b in donor_betas],
+            },
+        })
+
+    # ---------------------------------------------------------------
+    # 3. Spawn donors and build a CombinedReweighter.
+    # ---------------------------------------------------------------
+    rws = []
+    traj_done = 0
+    for i, b_par in enumerate(donor_betas):
+        sub = os.path.join(data_dir, f"donor_{i:02d}")
+        traces_path = _spawn_parent_traces(
+            exe, Lx, Ly, Tx, Ty, k1, k2, k3, float(b_par),
+            n_traj=n_traj_per, data_dir=sub,
+        )
+        rws.append(rw_mod.Reweighter(traces_path, n_eff_floor=n_eff_floor))
+        traj_done += n_traj_per
+        if progress_cb is not None:
+            progress_cb({
+                "pass_num": 1,
+                "all_betas": [], "all_chis": [], "all_chi_errs": [],
+                "pass_ids": [],
+                "gc_params": None, "beta_estimate": beta_mid,
+                "scan_progress": {"pts_done": i + 1, "pts_total": n_donors},
+                "traj_done": traj_done,
+                "n_eff_min": 0.0,
+            })
+
+    combo = rw_mod.CombinedReweighter(rws, n_eff_floor=n_eff_floor)
+    chis_grid, sigmas_grid, neff_grid = combo.chi_grid(grid)
+
+    valid = np.isfinite(chis_grid)
+    if not valid.any():
+        raise RuntimeError(
+            f"multidonor: no donor passed N_eff floor on bracket "
+            f"[{beta_lo:.4f}, {beta_hi:.4f}] (n_donors={n_donors}); "
+            f"increase n_traj_parent or widen donor_overlap_alpha."
+        )
+
+    # ---------------------------------------------------------------
+    # 4. GC fit on the combined (β, χ) curve.
+    # ---------------------------------------------------------------
+    valid_betas = grid[valid].tolist()
+    valid_chis = chis_grid[valid].tolist()
+    gc_params, beta_c_est = _gc_fit(valid_betas, valid_chis, beta_mid)
+    beta_c_final = float(beta_c_est) if beta_c_est is not None else beta_mid
+
+    if progress_cb is not None:
+        progress_cb({
+            "pass_num": 2,
+            "all_betas": list(grid),
+            "all_chis": list(chis_grid),
+            "all_chi_errs": list(sigmas_grid),
+            "pass_ids": [2] * len(grid),
+            "gc_params": gc_params,
+            "beta_estimate": beta_c_final,
+            "scan_progress": {"pts_done": int(valid.sum()),
+                              "pts_total": n_grid},
+            "traj_done": traj_done,
+            "n_eff_min": float(np.nanmin([
+                neff_grid[i] / max(rws[0]._n, 1) for i in range(len(grid))
+            ])),
+        })
+
+    # ---------------------------------------------------------------
+    # 5. Optional jackknife on β_c (per-donor leave-one-out).
+    # ---------------------------------------------------------------
+    beta_c_sigma = 0.0
+    if jackknife and len(rws) >= 3:
+        peaks = []
+        for j in range(len(rws)):
+            sub_rws = [r for k, r in enumerate(rws) if k != j]
+            sub_combo = rw_mod.CombinedReweighter(sub_rws,
+                                                  n_eff_floor=n_eff_floor)
+            cb, _, _ = sub_combo.chi_grid(grid)
+            ok = np.isfinite(cb)
+            if ok.sum() < 6:
+                continue
+            _, peak_b = _gc_fit(grid[ok].tolist(), cb[ok].tolist(),
+                                beta_c_final)
+            if peak_b is not None and np.isfinite(peak_b):
+                peaks.append(float(peak_b))
+        if len(peaks) >= 3:
+            arr = np.asarray(peaks)
+            B = len(arr)
+            beta_c_sigma = float(
+                math.sqrt((B - 1) / B * float(np.sum((arr - arr.mean()) ** 2)))
+            )
+
+    chi_peak = float(np.nanmax(chis_grid))
+
+    return (float(beta_c_final), float(beta_c_sigma), chi_peak,
+            grid.tolist(),
+            [float(c) if np.isfinite(c) else float("nan") for c in chis_grid],
+            [float(s) if np.isfinite(s) else float("nan") for s in sigmas_grid])
+
+
+# ===================================================================
 # Boundary-slice cost functions
 # ===================================================================
 

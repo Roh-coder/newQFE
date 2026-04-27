@@ -107,6 +107,17 @@ CONFIG = {
     "reweight_n_eff_floor":   0.10,
     "reweight_max_recenters":    3,
 
+    # --- Multi-donor reweighting (tiles bracket with N donors whose -------
+    # spacing is set by Var(E_extensive) so adjacent N_eff overlaps stay
+    # above ``reweight_n_eff_floor``).  When True, takes priority over
+    # the single-donor reweight; on failure falls through to single-donor
+    # reweight, then to the 3-pass GC scan.
+    "multidonor":              False,
+    "multidonor_n_donors":     0,        # 0 = auto from Var(E)/n_eff_floor
+    "multidonor_alpha":     0.75,        # spacing factor (in units of |Δβ|_safe)
+    "multidonor_pilot_n_traj": 2000,     # pilot run when var_E unknown
+    "multidonor_max_donors":   16,
+
     # --- Speedup S3: parallel CMA-ES population ---------------------------
     # n_workers=0 (default) → auto: uses min(os.cpu_count(), cma_popsize).
     # n_workers=1 → serial (no subprocess overhead).
@@ -264,6 +275,15 @@ def build_argparser() -> argparse.ArgumentParser:
     p.add_argument("--cma-sigma0", type=float, default=None)
     p.add_argument("--n-traj-prod", type=int, default=None)
     p.add_argument("--reweight-n-traj", type=int, default=None)
+    p.add_argument("--multidonor", action="store_true",
+                   help="Enable multi-donor reweighting (tile bracket with N "
+                        "donors spaced by Var(E_extensive) heuristic).")
+    p.add_argument("--multidonor-n-donors", type=int, default=None,
+                   help="Override auto donor count (0=auto from Var(E)).")
+    p.add_argument("--multidonor-alpha", type=float, default=None,
+                   help="Donor spacing factor in units of |Δβ|_safe (default 0.75).")
+    p.add_argument("--multidonor-pilot-n-traj", type=int, default=None,
+                   help="Pilot trajectories when var_E is unknown (default 2000).")
     p.add_argument("--save-every", type=int, default=None)
     p.add_argument("--ref-Lx", type=int, default=None)
     p.add_argument("--ref-Ly", type=int, default=None)
@@ -310,6 +330,9 @@ def apply_cli(cfg: dict, args: argparse.Namespace) -> dict:
         "cma_sigma0":     args.cma_sigma0,
         "n_traj_prod":    args.n_traj_prod,
         "reweight_n_traj": args.reweight_n_traj,
+        "multidonor_n_donors":     args.multidonor_n_donors,
+        "multidonor_alpha":        args.multidonor_alpha,
+        "multidonor_pilot_n_traj": args.multidonor_pilot_n_traj,
         "save_every":     args.save_every,
         "ref_Lx":         args.ref_Lx,
         "ref_Ly":         args.ref_Ly,
@@ -326,6 +349,8 @@ def apply_cli(cfg: dict, args: argparse.Namespace) -> dict:
         cfg["x0"] = tuple(args.x0)
     if args.no_reweight:
         cfg["reweight"] = False
+    if args.multidonor:
+        cfg["multidonor"] = True
     if args.no_vis:
         cfg["no_vis"] = True
     if args.no_dashboard:
@@ -364,6 +389,14 @@ def _make_evaluator_kwargs(cfg, ref_data, ref_geom, test_geom, nm_dir):
 
 
 def _fb_kwargs(cfg, log_path):
+    md_kwargs = {
+        "donor_overlap_alpha": float(cfg.get("multidonor_alpha", 0.75)),
+        "pilot_n_traj":        int(cfg.get("multidonor_pilot_n_traj", 2000)),
+        "max_donors":          int(cfg.get("multidonor_max_donors", 16)),
+    }
+    n_donors_cfg = int(cfg.get("multidonor_n_donors", 0) or 0)
+    if n_donors_cfg > 0:
+        md_kwargs["n_donors"] = n_donors_cfg
     return dict(
         scan_kwargs=dict(
             n_coarse=cfg["scan_n_coarse"],
@@ -376,6 +409,8 @@ def _fb_kwargs(cfg, log_path):
         ),
         log_path=log_path,
         verbose=True,
+        multidonor=bool(cfg.get("multidonor", False)),
+        md_kwargs=md_kwargs,
     )
 
 
@@ -418,9 +453,12 @@ def run_optimizer(cfg: dict) -> dict:
 
     # Install reweight → 3-pass fallback in the main process.
     fb_log = os.path.join(nm_dir, "fallback_log.jsonl")
+    _fb = _fb_kwargs(cfg, fb_log)
     prod_runtime.install_reweight_fallback(
-        scan_kwargs=_fb_kwargs(cfg, fb_log)["scan_kwargs"],
+        scan_kwargs=_fb["scan_kwargs"],
         log_path=fb_log, verbose=True,
+        multidonor=_fb["multidonor"],
+        md_kwargs=_fb["md_kwargs"],
     )
 
     # Build the optimizer-side plotter / dashboard.
