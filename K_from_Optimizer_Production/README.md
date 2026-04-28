@@ -13,22 +13,30 @@ dependencies.
 ## Contents
 
 ```
-run.py             ← single CLI entry point + the editable CONFIG dict
-prod_runtime.py    ← reweight→3-pass fallback patch + parallel pool
-live_viewer.py     ← Tk window that auto-reloads the optimizer PNG
-run_overnight.sh   ← 4-run validation harness (legacy / RW / RW+FB / parallel)
-check_overnight.py ← post-run report generator (writes OVERNIGHT_REPORT.md)
-Makefile           ← builds bin/ising_tri_twisted_parallelogram
-src/, include/     ← C++ simulator source
-evaluator.py       ← per-eval (r1, r2) → (cost, σ_cost) [from upstream]
-mc_engine.py       ← run_simulator, find_beta_c, find_beta_c_reweight
-optimizer.py       ← run_cmaes (hand-coded), run_nelder_mead, run_bo
-parallel.py        ← legacy GenerationPool (kept for reference)
-reweight.py        ← Reweighter, CombinedReweighter
-visualization.py   ← OptimizerPlotter (4-panel PNG)
-dashboard.py       ← rich-based terminal dashboard
-cost.py            ← L⁴ power-mean curve-collapse cost
-betac_cache.py     ← optional persistent β_c interpolation cache
+run.py                      ← single CLI entry point + the editable CONFIG dict
+prod_runtime.py             ← reweight→3-pass fallback patch + parallel pool
+live_viewer.py              ← Tk window that auto-reloads the optimizer PNG
+run_overnight.sh            ← 4-run validation harness (legacy / RW / RW+FB / parallel)
+check_overnight.py          ← post-run report generator (writes OVERNIGHT_REPORT.md)
+Makefile                    ← builds bin/ising_tri_twisted_parallelogram
+src/, include/              ← C++ simulator source
+evaluator.py                ← per-eval (r1, r2) → (cost, σ_cost) [from upstream]
+mc_engine.py                ← run_simulator, find_beta_c, find_beta_c_reweight,
+                               find_beta_c_multidonor, find_beta_c_multidonor_2pass
+optimizer.py                ← run_cmaes (hand-coded), run_nelder_mead, run_bo
+parallel.py                 ← legacy GenerationPool (kept for reference)
+reweight.py                 ← Reweighter, CombinedReweighter
+visualization.py            ← OptimizerPlotter (4-panel PNG)
+dashboard.py                ← rich-based terminal dashboard
+cost.py                     ← L⁴ power-mean curve-collapse cost
+betac_cache.py              ← optional persistent β_c interpolation cache
+test_multidonor_vs_3pass.py ← side-by-side: multi-donor 1-pass vs 3-pass GC scan
+test_multidonor_2pass.py    ← three-way: 1-pass MD vs 2-pass MD vs 3-pass GC scan
+fss_betac_scan.py           ← isotropic FSS validation of β_c finder (ν fit)
+fss_aniso_betac.py          ← per-anisotropy FSS validation of β_c finder
+stress_aniso_betac.py       ← β_c finder stress test across anisotropic couplings
+stress_twisted.py           ← end-to-end workflow stress test on twisted tori
+stress_workflow.py          ← end-to-end workflow stress test (untwisted, vs L)
 ```
 
 ---
@@ -110,7 +118,9 @@ The per-evaluation cost has two terms: the **β_c finder** and the
 | Speed-up | What it does | Effect | How to enable |
 |---|---|---|---|
 | **S4 — FS reweighting** | Replaces the 3-pass GC scan with one long parent MC + reweighted χ(β) on a dense grid | β_c finder time drops from ~3× to ~1× the production MC | `reweight: True` (default) |
-| **3-pass fallback**     | Catches reweight failures (bracket too narrow, peak outside validity window) and re-runs the legacy GC scan transparently | Makes S4 safe to leave on for far-from-equilateral starts | always on, audited via `fallback_log.jsonl` |
+| **S4a — multi-donor 1-pass** | Tiles `n_donors` parent ensembles across the bracket; `CombinedReweighter` merges them so every β has sufficient N_eff | Ends cold-start / narrow-bracket failures without triggering the 3-pass fallback | `--multidonor` |
+| **S4b — multi-donor 2-pass** | Pass 1: coarse tile → GC fit locates peak interval, with automatic bracket translation if the peak lands on an edge. Pass 2: dense donors over ±1 gap around that interval. All donors combined for final fit. | Concentrates MC budget near the peak; ~1.5–2× faster than 3-pass at comparable accuracy; robust to far-from-equilateral starts where the seed bracket misses β_c | `--multidonor-2pass` |
+| **3-pass fallback**     | Catches reweight failures transparently and re-runs the legacy GC scan | Makes S4/S4a/S4b safe to leave on for far-from-equilateral starts | always on, audited via `fallback_log.jsonl` |
 | **S3 — parallel pop**   | Fans the λ candidates of each CMA-ES generation across N worker processes | ~min(λ, N)× wall-time reduction per generation | `--n-workers N` (≥2) |
 
 ### Audit the fallback rate
@@ -138,7 +148,125 @@ that's the safety net doing its job.
 
 ---
 
-## 4. The visualizer
+## 4. β_c finder hierarchy
+
+`prod_runtime.py` patches `mc_engine.find_beta_c_reweight` with a
+three-tier cascade.  At each call the fastest method that succeeds is
+used; failures fall through to the next:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Tier 1 — multi-donor reweighting  (find_beta_c_multidonor)     │
+│    • N donors auto-placed by action-variance heuristic          │
+│    • CombinedReweighter guarantees N_eff coverage everywhere    │
+│    • Validated: ≤0.21σ bias vs 3-pass on 12×12, 1.3× faster    │
+│    enabled via --multidonor                                      │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │ N_eff floor not met anywhere
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Tier 2 — single-donor FS reweighting  (find_beta_c_reweight)  │
+│    • One parent MC at bracket midpoint                          │
+│    • Fast when β_c is close to the starting point              │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │ peak outside reweight validity window
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Tier 3 — 3-pass GC scan  (find_beta_c)                        │
+│    • Trusted ground truth; most expensive                       │
+│    • Always succeeds within the bracket                         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Two-pass multi-donor (S4b)
+
+`find_beta_c_multidonor_2pass` implements an interval-based refinement
+strategy on top of the standard multi-donor tile:
+
+1. **Pass 1** — `pass1_n_donors` donors evenly across `[beta_lo, beta_hi]`
+   with `pass1_budget_frac` of the total trajectory budget.  A GC fit
+   on the combined χ(β) identifies which gap `[p1_betas[i], p1_betas[i+1]]`
+   contains the approximate peak β*.
+
+2. **Pass 2** — dense donors over the interval-based window
+   `[p1_betas[max(0, i−1)], p1_betas[min(N−1, i+2)]]` — the peak gap
+   **plus one neighbouring gap on each side** — with the remaining budget.
+   Donor spacing is controlled by the action-variance heuristic
+   `|Δβ|_safe = sqrt(−ln(n_eff_floor) / Var(E))`.
+
+3. **Combined fit** — all Pass-1 and Pass-2 donors are merged in a single
+   `CombinedReweighter`.  The final GC fit is restricted to the Pass-2
+   window for sharper peak resolution; Pass-1 wings prevent N_eff dropout
+   in the tails.
+
+Benchmark (12×12 equilateral lattice, 30 000 traj/method, single run):
+
+| method       | β_c     | Δ vs 3-pass | wall |
+|--------------|---------|-------------|------|
+| 3-pass GC    | 0.2537  | —           | 5.5s |
+| 1-pass MD    | 0.2492  | 3.4 σ       | 4.5s |
+| **2-pass MD**| **0.2514** | **1.7 σ** | **3.3s** |
+
+The 2-pass approach halves the bias relative to 1-pass while remaining
+1.7× faster than the 3-pass scan.  The larger jackknife σ on β_c is a
+budget-split artefact (see next-steps item 2 below).
+
+### Bracket translation (off-isotropic robustness)
+
+Both `find_beta_c_reweight` and `find_beta_c_multidonor_2pass` now
+detect when the χ(β) maximum (or the GC-fit peak) lands within the
+first/last 10 % of the current scan grid.  In that case the bracket is
+translated by **half its span** in the direction of the peak (left if
+the peak is at the low edge, right if at the high edge) and the scan
+resumes:
+
+* In `find_beta_c_reweight` the parent ensemble is re-spawned at the
+  new bracket midpoint; the recenter loop continues up to
+  `max_recenters` translations.
+* In `find_beta_c_multidonor_2pass` Pass-1 donors are *accumulated*
+  across translations (up to `MAX_TRANSLATIONS = 6` half-span hops),
+  so wing coverage strictly grows.  Only when the combined χ(β)
+  argmax lands in the interior does the routine proceed to Pass 2.
+
+This makes the optimizer robust on strongly anisotropic geometries
+(e.g. the 4-5-6 triangle) where the true β_c can sit far outside the
+initial seed bracket.
+
+### CLI flags for the 2-pass path
+
+| Flag | CONFIG key | Default | Meaning |
+|---|---|---|---|
+| `--multidonor-2pass` | `multidonor_2pass` | False | Enable the 2-pass path (slots in *ahead* of 1-pass MD) |
+| `--multidonor-2pass-pass1-n-donors` | `multidonor_2pass_pass1_n_donors` | 4 | Donors used in Pass 1 |
+| `--multidonor-2pass-pass1-budget-frac` | `multidonor_2pass_pass1_budget_frac` | 0.30 | Trajectory share for Pass 1 |
+| `--multidonor-2pass-alpha` | `multidonor_2pass_alpha` | 0.75 | Pass-2 donor spacing in units of `|Δβ|_safe` |
+| `--multidonor-2pass-pilot-n-traj` | `multidonor_2pass_pilot_n_traj` | 2000 | Pilot traj. count when `Var(E)` unknown |
+
+When `--multidonor-2pass` is set the runtime cascade in
+`prod_runtime.py` becomes
+
+    2-pass MD  →  1-pass MD (if --multidonor)  →  single-donor reweight  →  3-pass GC scan
+
+failing through transparently and recording each step in
+`fallback_log.jsonl`.
+
+### Planned augmentations (next steps)
+
+1. **Adaptive `pass1_n_donors`** — set gap width = δ_safe from a cheap
+   pilot run, giving guaranteed single-gap resolution without user tuning.
+2. **Budget recycling** — after the Pass-2 window is chosen, reallocate
+   the Pass-1 budget from outside-window donors to Pass-2 donors, keeping
+   the total trajectory count fixed and reducing the jackknife uncertainty.
+3. **Three-pass extension** — optional Pass 3 placing a handful of donors
+   within a single δ_safe of the Pass-2 β_c for sub-percent uncertainty
+   at large lattice sizes.
+4. **Unified test script** — merge `test_multidonor_2pass.py` into
+   `test_multidonor_vs_3pass.py` as a third curve on the same shared-budget
+   comparison plot.
+
+---
+
+## 5. The visualizer
 
 The 4-panel PNG (`frames/optimizer_cmaes.png`) shows:
 
@@ -161,7 +289,7 @@ quality.
 
 ---
 
-## 5. Overnight validation suite
+## 6. Overnight validation suite
 
 ```bash
 bash run_overnight.sh                    # → results/_overnight/
@@ -183,7 +311,7 @@ counts).  Total wall ~30–90 min on a typical 4-core laptop.
 
 ---
 
-## 6. Switching geometries / starting points
+## 7. Switching geometries / starting points
 
 Edit the geometry block of `CONFIG`, or pass on the CLI:
 
@@ -200,9 +328,44 @@ The reference correlator is cached per-geometry under
 `results/_reference_Lx<..>_Ly<..>_Tx<..>_Ty<..>/`.  Switching back to a
 previously-built geometry skips the ~1-minute reference build entirely.
 
+### Cross-geometry runs (twisted ref vs untwisted test)
+
+The ref and test lattices may have *different twists*.  Pass twist
+parameters via a small JSON config:
+
+```bash
+cat > /tmp/cfg_456.json <<'EOF'
+{"ref_Tx": -3, "ref_Ty": 3, "test_Tx": 0, "test_Ty": 0}
+EOF
+
+python run.py \
+    --config /tmp/cfg_456.json \
+    --ref-Lx 13 --ref-Ly 16 --test-Lx 13 --test-Ly 16 \
+    --x0 3.0 4.0 --cma-sigma0 3.0 \
+    --max-evals 150 --multidonor-2pass \
+    --n-workers 2 --save-frames \
+    --run-name 4_5_6_triangle --no-dashboard
+```
+
+This is the canonical setup for matching an *untwisted* test torus to
+an asymmetrically twisted reference.  The (Lx,Ly,Tx,Ty) = (13,16,−3,3)
+geometry above gives reference cycle lengths in ratio 4 : 5 : 6 to
+within 0.04 %; the analytic optimum from the sinh rule is
+
+* r1 = (2 ln 5 − ln 7)/(2 ln 3 − ln 7) ≈ 5.0652
+* r2 = ln 7/(2 ln 3 − ln 7) ≈ 7.7429
+* β_c = ln(3/√7)/2 ≈ 0.0628
+
+Note that β_c here is far below the default seed bracket [0.20, 0.32].
+The bracket-translation logic in the β_c finders (see §4) sweeps until
+the χ(β) peak sits in the interior, so the seed bracket need not
+contain β_c — but a very wide CMA-ES initial Gaussian (σ₀ ≳ 3 in
+the r-space units of this example) is required to actually reach the
+far-from-isotropic optimum.
+
 ---
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
@@ -214,7 +377,7 @@ previously-built geometry skips the ~1-minute reference build entirely.
 
 ---
 
-## 8. Programmatic use
+## 9. Programmatic use
 
 `run_optimizer(cfg) → summary_dict` in `run.py` is the library entry
 point.  Build a CONFIG dict in your own script, optionally run a
@@ -234,7 +397,7 @@ for sigma0 in (0.05, 0.10, 0.20):
 
 ---
 
-## 9. Provenance
+## 10. Provenance
 
 The C++ simulator and the bulk of the Python pipeline (`mc_engine.py`,
 `evaluator.py`, `optimizer.py`, `reweight.py`, `visualization.py`,
@@ -246,6 +409,31 @@ The C++ simulator and the bulk of the Python pipeline (`mc_engine.py`,
 - `live_viewer.py` — the Tk live PNG viewer,
 - `run.py` — a single-file, fully-CLI-overridable driver,
 - `run_overnight.sh` + `check_overnight.py` — the validation harness.
+- `mc_engine.find_beta_c_multidonor` — multi-donor 1-pass reweighting
+  (added here; not in upstream).
+- `mc_engine.find_beta_c_multidonor_2pass` — interval-based 2-pass
+  multi-donor reweighting (added here; not in upstream).
+- `test_multidonor_vs_3pass.py` — validation script comparing 1-pass
+  multi-donor against the 3-pass GC scan.
+- `test_multidonor_2pass.py` — three-way comparison: 1-pass MD vs
+  2-pass MD vs 3-pass GC scan on a shared trajectory budget.
+- `fss_betac_scan.py` — isotropic finite-size-scaling validation of
+  the β_c finder (fits β_c(L) = β_c(∞) + a·L^{−1/ν} on the equilateral
+  triangular Ising model; verifies ν ≈ 1 and β_c(∞) ≈ ln(3)/4).
+- `fss_aniso_betac.py` — per-anisotropy FSS scan that fits β_c(L)
+  with a/L (and a/L + b/L²) for each (k1, k2, k3) case, comparing
+  the extrapolated β_c(∞) to the exact triangular-Ising sinh-rule
+  value.
+- `stress_aniso_betac.py` — β_c finder stress test on a fixed L
+  across anisotropic couplings, with FSS-corrected residuals in σ
+  units.
+- `stress_workflow.py` — end-to-end workflow stress test on
+  isotropic (untwisted) ref = test = (L,L,0,0) lattices for several
+  L; ground truth (r1,r2) = (1,1).  Reports best, CMA-mean and
+  trailing-5 distances from the answer.
+- `stress_twisted.py` — same harness as `stress_workflow.py` on
+  twisted-equilateral tori (Lx, Ly, Tx, Ty) = (L, L+T, T, T) where
+  the three cycle lengths are equal; ground truth still (1,1).
 
 Bug fixes that land in the upstream copies should be `cp`-mirrored back
 into this directory (the upstream `parallel.py`, `evaluator.py`, etc.

@@ -509,9 +509,56 @@ def find_beta_c_reweight(exe, Lx, Ly, Tx, Ty, k1, k2, k3,
                 "n_eff_min": float(np.nanmin(neff_grid / max(rw.n_samples, 1))),
             })
 
-        # --- Validity gate: did the GC peak land inside the window? ---
-        # Define "inside" as having N_eff ≥ floor at the peak AND at
-        # ±1 GC-sigma around it.  If not, recenter parent and retry.
+        # --- Validity gates ---------------------------------------
+        # (A) Edge gate: did the χ(β) maximum (or GC peak) land at the
+        #     boundary of the current bracket?  If so the *true* peak
+        #     is almost certainly outside the window — translate the
+        #     bracket in that direction by half its span (à la
+        #     find_beta_c) regardless of what N_eff says, since N_eff
+        #     is happy at the parent centre but tells us nothing about
+        #     phase space we have not yet visited.
+        # (B) N_eff gate: even if the peak is interior, require
+        #     N_eff ≥ floor at the peak and at ±1 GC-σ around it.
+        # ---------------------------------------------------------
+        idx_argmax = int(np.nanargmax(np.where(valid, chis_grid, -np.inf)))
+        edge_band = max(1, n_grid // 10)
+        chi_at_lo = (idx_argmax < edge_band)
+        chi_at_hi = (idx_argmax >= n_grid - edge_band)
+        gc_at_lo  = (gc_params is not None and
+                     beta_c_est <= grid[edge_band - 1] + 1e-12)
+        gc_at_hi  = (gc_params is not None and
+                     beta_c_est >= grid[n_grid - edge_band] - 1e-12)
+        at_lo_edge = chi_at_lo or gc_at_lo
+        at_hi_edge = chi_at_hi or gc_at_hi
+
+        if at_lo_edge or at_hi_edge:
+            if recenter_iter == max_recenters:
+                print(f"[rw] WARNING: peak still at bracket edge after "
+                      f"{max_recenters} translations; using edge estimate "
+                      f"β={beta_c_est:.5f}.")
+                beta_c_final = beta_c_est
+                break
+            # Translate bracket by half its span in the direction of
+            # the peak.  Keep the same half-width so we sweep fresh
+            # phase space symmetrically about the new parent.
+            span = beta_hi - beta_lo
+            shift = 0.5 * span
+            if at_lo_edge:
+                beta_hi = beta_lo
+                beta_lo = max(0.01, beta_lo - shift)
+                direction = "LEFT"
+            else:
+                beta_lo = beta_hi
+                beta_hi = beta_hi + shift
+                direction = "RIGHT"
+            beta_parent = 0.5 * (beta_lo + beta_hi)
+            grid = np.linspace(beta_lo, beta_hi, n_grid)
+            print(f"[rw] translate {direction} → "
+                  f"β∈[{beta_lo:.4f},{beta_hi:.4f}] "
+                  f"(parent={beta_parent:.4f}, "
+                  f"recenter {recenter_iter + 1}/{max_recenters})")
+            continue
+
         if gc_params is None:
             beta_c_final = beta_c_est
             break
@@ -836,9 +883,323 @@ def find_beta_c_multidonor(exe, Lx, Ly, Tx, Ty, k1, k2, k3,
             [float(s) if np.isfinite(s) else float("nan") for s in sigmas_grid])
 
 
-# ===================================================================
-# Boundary-slice cost functions
-# ===================================================================
+def find_beta_c_multidonor_2pass(exe, Lx, Ly, Tx, Ty, k1, k2, k3,
+                                 beta_lo, beta_hi,
+                                 n_traj_parent=40000,
+                                 n_grid=201,
+                                 n_eff_floor=0.10,
+                                 data_dir="/tmp/k_from_cs_md2",
+                                 progress_cb=None,
+                                 jackknife=False,
+                                 *,
+                                 var_E=None,
+                                 pass1_n_donors=4,
+                                 pass1_budget_frac=0.30,
+                                 donor_overlap_alpha=0.75,
+                                 pilot_n_traj=2000,
+                                 max_donors=16):
+    """Two-pass multi-donor reweighting.
+
+    Pass 1
+        ``pass1_n_donors`` donors evenly spaced across [beta_lo, beta_hi]
+        using ``pass1_budget_frac`` of the total trajectory budget.
+        A GC fit on the combined chi(beta) locates the approximate peak
+        beta* and identifies which gap [p1_betas[i], p1_betas[i+1]]
+        contains it.
+
+    Pass 2
+        Dense donors are placed over the *interval-based* window:
+        the gap that contains beta* PLUS one neighbouring gap on each
+        side.  Concretely, if beta* falls in gap i (0-based), the
+        Pass-2 bracket is
+
+            p2_lo = p1_betas[max(0, i-1)]
+            p2_hi = p1_betas[min(N-1, i+2)]
+
+        so Pass-2 always spans at most 3 consecutive Pass-1 gaps
+        (fewer at the bracket edges).  Donor spacing within that window
+        is set by the action-variance heuristic
+        |Delta_beta|_safe = sqrt(-ln(n_eff_floor) / Var(E)).
+        All Pass-1 donors are kept in the combined reweighter so the
+        chi(beta) wings outside the refinement window stay covered.
+
+    The final GC fit is restricted to the Pass-2 window for sharper
+    peak resolution.
+
+    Falls back gracefully if the Pass-1 GC fit fails: uses the raw
+    chi(beta) argmax to choose the gap.
+
+    Returns the same 6-tuple as :func:`find_beta_c_reweight`:
+        (beta_c, beta_c_sigma, chi_peak, scan_betas, scan_chis,
+         scan_chi_errs)
+
+    Next steps / planned augmentations
+    ------------------------------------
+    1. Adaptive pass1_n_donors: set N so that the Pass-1 gap width
+       matches the action-variance delta_safe from a cheap pilot run
+       (``pilot_n_traj`` trajectories at beta_mid), giving guaranteed
+       single-gap resolution without user tuning.
+    2. Budget recycling: after the Pass-2 window is chosen, redistribute
+       any over-allocated Pass-1 budget (from gaps outside the window)
+       to the Pass-2 donors, keeping the total trajectory count fixed.
+    3. Three-pass extension: after Pass-2 the function already knows a
+       much tighter beta_c estimate; add an optional Pass-3 that places
+       a handful of donors within a single delta_safe of beta_c for
+       sub-percent beta_c uncertainty at large lattice sizes.
+    4. Wire into prod_runtime.py: expose via a ``multidonor_2pass``
+       CONFIG flag and ``--multidonor-2pass`` CLI switch in run.py,
+       slotting in as the primary reweighting path ahead of the current
+       single-pass multidonor.
+    5. Test-script extension: add the 2-pass method as a third curve in
+       test_multidonor_vs_3pass.py so all three methods appear on the
+       same plot with a shared budget.
+    """
+    import reweight as rw_mod
+
+    beta_mid = 0.5 * (beta_lo + beta_hi)
+    span = float(beta_hi - beta_lo)
+    grid = np.linspace(beta_lo, beta_hi, n_grid)
+
+    # Budget split.
+    pass1_budget_frac = float(np.clip(pass1_budget_frac, 0.05, 0.9))
+    p1_total = max(2000, int(n_traj_parent * pass1_budget_frac))
+    p2_total = max(2000, n_traj_parent - p1_total)
+
+    # ---------------------------------------------------------------
+    # PASS 1 — sparse coarse tile, with bracket translation
+    #
+    # If the χ(β) maximum lands at the edge of [beta_lo, beta_hi] the
+    # true peak is outside the window.  Translate by half-span in the
+    # appropriate direction (à la find_beta_c) and resweep, accumulating
+    # donors so wing coverage strictly grows.
+    # ---------------------------------------------------------------
+    pass1_n_donors = max(2, int(pass1_n_donors))
+    rws_p1 = []
+    p1_beta_list = []         # ALL pass-1 donor betas across translations
+    p1_per   = max(500, p1_total // pass1_n_donors)
+    traj_done = 0
+
+    # Trajectory budget is fixed; allow up to MAX_TRANSLATIONS extra
+    # half-span hops without inflating the per-donor sample count.
+    MAX_TRANSLATIONS = 6
+    for shift_iter in range(MAX_TRANSLATIONS + 1):
+        new_betas = np.linspace(beta_lo, beta_hi, pass1_n_donors)
+        for i, b_par in enumerate(new_betas):
+            sub = os.path.join(data_dir,
+                               f"p1_shift{shift_iter:02d}_donor_{i:02d}")
+            traces_path = _spawn_parent_traces(
+                exe, Lx, Ly, Tx, Ty, k1, k2, k3, float(b_par),
+                n_traj=p1_per, data_dir=sub,
+            )
+            rws_p1.append(rw_mod.Reweighter(traces_path,
+                                            n_eff_floor=n_eff_floor))
+            p1_beta_list.append(float(b_par))
+            traj_done += p1_per
+            if progress_cb is not None:
+                progress_cb({
+                    "pass_num": 1, "all_betas": [], "all_chis": [],
+                    "all_chi_errs": [], "pass_ids": [],
+                    "gc_params": None, "beta_estimate": beta_mid,
+                    "scan_progress": {"pts_done": i + 1,
+                                      "pts_total": pass1_n_donors},
+                    "traj_done": traj_done, "n_eff_min": 0.0,
+                })
+
+        # Re-grid so the χ check spans every donor accumulated so far.
+        full_lo = min(min(p1_beta_list), beta_lo)
+        full_hi = max(max(p1_beta_list), beta_hi)
+        grid = np.linspace(full_lo, full_hi, n_grid)
+        combo1 = rw_mod.CombinedReweighter(rws_p1, n_eff_floor=n_eff_floor)
+        chis1, sigmas1, _ = combo1.chi_grid(grid)
+        valid1 = np.isfinite(chis1)
+        if not valid1.any():
+            raise RuntimeError(
+                f"multidonor_2pass: pass-1 has no valid points on "
+                f"[{full_lo:.4f}, {full_hi:.4f}]; widen bracket or "
+                f"increase pass1_budget_frac."
+            )
+
+        # Edge detection on the χ(β) profile.
+        chis_v = np.where(valid1, chis1, -np.inf)
+        idx_max = int(np.nanargmax(chis_v))
+        edge_band = max(1, n_grid // 10)
+        at_lo = (idx_max < edge_band)
+        at_hi = (idx_max >= n_grid - edge_band)
+        if not at_lo and not at_hi:
+            break  # interior peak — proceed to Pass 2
+        if shift_iter == MAX_TRANSLATIONS:
+            print(f"[md2] WARNING: pass-1 peak still at edge of "
+                  f"[{full_lo:.4f}, {full_hi:.4f}] after "
+                  f"{MAX_TRANSLATIONS} translations; using edge.")
+            break
+        shift = 0.5 * span
+        if at_lo:
+            beta_hi = beta_lo
+            beta_lo = max(0.01, beta_lo - shift)
+            direction = "LEFT"
+        else:
+            beta_lo = beta_hi
+            beta_hi = beta_hi + shift
+            direction = "RIGHT"
+        beta_mid = 0.5 * (beta_lo + beta_hi)
+        print(f"[md2] pass-1 peak at edge — translate {direction} → "
+              f"adding donors in [{beta_lo:.4f}, {beta_hi:.4f}] "
+              f"(shift {shift_iter + 1}/{MAX_TRANSLATIONS})")
+
+    # Final pass-1 grid spans every donor accumulated.
+    p1_betas = np.array(sorted(set(p1_beta_list)))
+    pass1_n_donors = len(p1_betas)
+    full_lo = float(grid[0])
+    full_hi = float(grid[-1])
+    span = full_hi - full_lo
+    beta_mid = 0.5 * (full_lo + full_hi)
+    gc_p1, beta_est_p1 = _gc_fit(grid[valid1].tolist(),
+                                 chis1[valid1].tolist(), beta_mid)
+
+    # ---------------------------------------------------------------
+    # Pass-2 window: the Pass-1 gap that contains β* plus one
+    # neighbour on each side.
+    #
+    # With pass1_n_donors = N donors there are N-1 gaps.  If β* falls
+    # in gap i (0-based), the window is
+    #   p2_lo = p1_betas[max(0, i-1)]
+    #   p2_hi = p1_betas[min(N-1, i+2)]
+    # so Pass-2 spans at most 3 consecutive Pass-1 gaps.
+    # ---------------------------------------------------------------
+    if gc_p1 is not None and beta_est_p1 is not None and np.isfinite(beta_est_p1):
+        beta_star = float(beta_est_p1)
+    else:
+        # Pass 1 GC failed — fall back to raw chi argmax.
+        idx = int(np.nanargmax(np.where(valid1, chis1, -np.inf)))
+        beta_star = float(grid[idx])
+
+    p1_arr = np.asarray(p1_betas)
+    # right_idx: index of first Pass-1 donor strictly right of β*
+    right_idx = int(np.searchsorted(p1_arr, beta_star, side="right"))
+    # gap_i: index of interval [p1_arr[gap_i], p1_arr[gap_i+1]]
+    gap_i = int(np.clip(right_idx - 1, 0, len(p1_arr) - 2))
+    lo_idx = max(0, gap_i - 1)
+    hi_idx = min(len(p1_arr) - 1, gap_i + 2)
+    p2_lo = float(p1_arr[lo_idx])
+    p2_hi = float(p1_arr[hi_idx])
+
+    # Action-variance heuristic governs donor *spacing* within the window.
+    if var_E is None:
+        nearest = min(rws_p1, key=lambda r: abs(r._beta - beta_star))
+        var_E = float(np.var(nearest._E_total))
+    var_E = max(var_E, 1e-30)
+    delta_safe = math.sqrt(-math.log(max(n_eff_floor, 1e-12)) / var_E)
+
+    # Extend the Pass-2 window by one delta_safe on each side so that
+    # Pass-2 donors reach into the Pass-1 wing coverage, eliminating the
+    # N_eff gap (and resulting chi shear) at the p2_lo / p2_hi boundaries.
+    overlap = donor_overlap_alpha * delta_safe
+    p2_lo = max(float(beta_lo), p2_lo - overlap)
+    p2_hi = min(float(beta_hi), p2_hi + overlap)
+
+    spacing = max(donor_overlap_alpha * delta_safe, 1e-12)
+    n_p2 = int(math.ceil((p2_hi - p2_lo) / spacing)) + 1
+    n_p2 = int(np.clip(n_p2, 2, max_donors))
+    p2_betas = np.linspace(p2_lo, p2_hi, n_p2)
+    p2_per   = max(500, p2_total // n_p2)
+
+    # ---------------------------------------------------------------
+    # PASS 2 — dense refinement around β*
+    # ---------------------------------------------------------------
+    rws_p2 = []
+    for i, b_par in enumerate(p2_betas):
+        sub = os.path.join(data_dir, f"p2_donor_{i:02d}")
+        traces_path = _spawn_parent_traces(
+            exe, Lx, Ly, Tx, Ty, k1, k2, k3, float(b_par),
+            n_traj=p2_per, data_dir=sub,
+        )
+        rws_p2.append(rw_mod.Reweighter(traces_path, n_eff_floor=n_eff_floor))
+        traj_done += p2_per
+        if progress_cb is not None:
+            progress_cb({
+                "pass_num": 2, "all_betas": [], "all_chis": [],
+                "all_chi_errs": [], "pass_ids": [],
+                "gc_params": gc_p1, "beta_estimate": beta_star,
+                "scan_progress": {"pts_done": i + 1, "pts_total": n_p2},
+                "traj_done": traj_done, "n_eff_min": 0.0,
+            })
+
+    # Combine ALL donors (both passes) — pass-1 covers the wings,
+    # pass-2 nails the peak.
+    rws_all = rws_p1 + rws_p2
+    combo = rw_mod.CombinedReweighter(rws_all, n_eff_floor=n_eff_floor)
+    chis_grid, sigmas_grid, neff_grid = combo.chi_grid(grid)
+    valid = np.isfinite(chis_grid)
+    if not valid.any():
+        raise RuntimeError(
+            "multidonor_2pass: combined coverage failed N_eff floor; "
+            "increase budget or n_eff_floor."
+        )
+
+    # Final GC fit on the combined curve, restricted to the pass-2
+    # window when possible (gives a sharper peak fit).
+    fit_mask = valid & (grid >= p2_lo) & (grid <= p2_hi)
+    if fit_mask.sum() >= 6:
+        gc_params, beta_c_est = _gc_fit(
+            grid[fit_mask].tolist(),
+            chis_grid[fit_mask].tolist(),
+            beta_star,
+        )
+    else:
+        gc_params, beta_c_est = _gc_fit(
+            grid[valid].tolist(),
+            chis_grid[valid].tolist(),
+            beta_star,
+        )
+    beta_c_final = float(beta_c_est) if beta_c_est is not None else beta_star
+
+    # Build pass_ids for the combined grid: points inside the Pass-2
+    # refinement window get id=1; Pass-1 wings get id=0.
+    _pass_ids = [1 if p2_lo <= float(b) <= p2_hi else 0 for b in grid]
+    if progress_cb is not None:
+        progress_cb({
+            "pass_num": 3,
+            "all_betas": list(grid),
+            "all_chis": list(chis_grid),
+            "all_chi_errs": list(sigmas_grid),
+            "pass_ids": _pass_ids,
+            "gc_params": gc_params, "beta_estimate": beta_c_final,
+            "p2_lo": float(p2_lo), "p2_hi": float(p2_hi),
+            "scan_progress": {"pts_done": int(valid.sum()),
+                              "pts_total": n_grid},
+            "traj_done": traj_done, "n_eff_min": 0.0,
+        })
+
+    # Per-donor jackknife on β_c (leave-one-out across pass-2 donors).
+    beta_c_sigma = 0.0
+    if jackknife and len(rws_p2) >= 3:
+        peaks = []
+        for j in range(len(rws_p2)):
+            sub_p2 = [r for k, r in enumerate(rws_p2) if k != j]
+            sub_combo = rw_mod.CombinedReweighter(rws_p1 + sub_p2,
+                                                  n_eff_floor=n_eff_floor)
+            cb, _, _ = sub_combo.chi_grid(grid)
+            ok = np.isfinite(cb) & (grid >= p2_lo) & (grid <= p2_hi)
+            if ok.sum() < 6:
+                continue
+            _, peak_b = _gc_fit(grid[ok].tolist(), cb[ok].tolist(),
+                                beta_c_final)
+            if peak_b is not None and np.isfinite(peak_b):
+                peaks.append(float(peak_b))
+        if len(peaks) >= 3:
+            arr = np.asarray(peaks)
+            B = len(arr)
+            beta_c_sigma = float(
+                math.sqrt((B - 1) / B * float(np.sum((arr - arr.mean()) ** 2)))
+            )
+
+    chi_peak = float(np.nanmax(chis_grid))
+
+    return (float(beta_c_final), float(beta_c_sigma), chi_peak,
+            grid.tolist(),
+            [float(c) if np.isfinite(c) else float("nan") for c in chis_grid],
+            [float(s) if np.isfinite(s) else float("nan") for s in sigmas_grid])
+
 
 def _a2a_to_xy_arrays(data):
     keys = list(data.keys())

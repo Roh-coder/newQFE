@@ -304,14 +304,24 @@ class OptimizerPlotter:
         except Exception:
             pass
 
+        # Assign pass IDs so the scan panel shows the two-pass structure.
+        # In parallel mode the progress_cb never fires in workers, so we
+        # derive the split from chi values: points near the peak (chi >
+        # half-max) are the Pass-2 refinement window; the wings are Pass-1.
+        fin_chis = [c for c in scan_chis if np.isfinite(c)]
+        chi_max = max(fin_chis) if fin_chis else 1.0
+        half_max = 0.5 * chi_max
+        pids = [1 if np.isfinite(c) and c >= half_max else 0
+                for c in scan_chis]
+
         self._scan_snap = {
             "betas": list(scan_betas),
             "chis":  list(scan_chis),
             "errs":  errs,
-            "pids":  [0] * n,
+            "pids":  pids,
             "gc":    gc_params,
             "b_est": float(beta_c),
-            "pass":  0,
+            "pass":  1,
         }
 
     # ------------------------------------------------------------------

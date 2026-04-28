@@ -118,6 +118,17 @@ CONFIG = {
     "multidonor_pilot_n_traj": 2000,     # pilot run when var_E unknown
     "multidonor_max_donors":   16,
 
+    # --- Two-pass multi-donor reweighting (S4b) ---------------------------
+    # Takes priority over 1-pass multidonor when enabled.  Pass 1 tiles
+    # the bracket coarsely to locate the peak gap; Pass 2 concentrates
+    # donors around that gap for higher accuracy.
+    "multidonor_2pass":              False,
+    "multidonor_2pass_pass1_n_donors":   4,   # donors in Pass 1
+    "multidonor_2pass_pass1_budget_frac": 0.30, # fraction of budget for Pass 1
+    "multidonor_2pass_alpha":         0.75,  # donor spacing factor for Pass 2
+    "multidonor_2pass_pilot_n_traj":  2000,  # pilot when var_E unknown
+    "multidonor_2pass_max_donors":    16,    # cap on Pass-2 donors
+
     # --- Speedup S3: parallel CMA-ES population ---------------------------
     # n_workers=0 (default) → auto: uses min(os.cpu_count(), cma_popsize).
     # n_workers=1 → serial (no subprocess overhead).
@@ -284,6 +295,18 @@ def build_argparser() -> argparse.ArgumentParser:
                    help="Donor spacing factor in units of |Δβ|_safe (default 0.75).")
     p.add_argument("--multidonor-pilot-n-traj", type=int, default=None,
                    help="Pilot trajectories when var_E is unknown (default 2000).")
+    p.add_argument("--multidonor-2pass", action="store_true",
+                   help="Enable two-pass multi-donor reweighting (S4b): "
+                        "Pass 1 locates the peak gap; Pass 2 concentrates "
+                        "donors there for higher accuracy.")
+    p.add_argument("--multidonor-2pass-pass1-n-donors", type=int, default=None,
+                   help="Number of donors in Pass 1 (default 4).")
+    p.add_argument("--multidonor-2pass-pass1-budget-frac", type=float, default=None,
+                   help="Fraction of trajectory budget allocated to Pass 1 (default 0.30).")
+    p.add_argument("--multidonor-2pass-alpha", type=float, default=None,
+                   help="Pass-2 donor spacing factor in units of |Δβ|_safe (default 0.75).")
+    p.add_argument("--multidonor-2pass-pilot-n-traj", type=int, default=None,
+                   help="Pilot trajectories when var_E is unknown for 2-pass (default 2000).")
     p.add_argument("--save-every", type=int, default=None)
     p.add_argument("--ref-Lx", type=int, default=None)
     p.add_argument("--ref-Ly", type=int, default=None)
@@ -333,6 +356,10 @@ def apply_cli(cfg: dict, args: argparse.Namespace) -> dict:
         "multidonor_n_donors":     args.multidonor_n_donors,
         "multidonor_alpha":        args.multidonor_alpha,
         "multidonor_pilot_n_traj": args.multidonor_pilot_n_traj,
+        "multidonor_2pass_pass1_n_donors":   args.multidonor_2pass_pass1_n_donors,
+        "multidonor_2pass_pass1_budget_frac": args.multidonor_2pass_pass1_budget_frac,
+        "multidonor_2pass_alpha":           args.multidonor_2pass_alpha,
+        "multidonor_2pass_pilot_n_traj":    args.multidonor_2pass_pilot_n_traj,
         "save_every":     args.save_every,
         "ref_Lx":         args.ref_Lx,
         "ref_Ly":         args.ref_Ly,
@@ -351,6 +378,8 @@ def apply_cli(cfg: dict, args: argparse.Namespace) -> dict:
         cfg["reweight"] = False
     if args.multidonor:
         cfg["multidonor"] = True
+    if args.multidonor_2pass:
+        cfg["multidonor_2pass"] = True
     if args.no_vis:
         cfg["no_vis"] = True
     if args.no_dashboard:
@@ -397,6 +426,15 @@ def _fb_kwargs(cfg, log_path):
     n_donors_cfg = int(cfg.get("multidonor_n_donors", 0) or 0)
     if n_donors_cfg > 0:
         md_kwargs["n_donors"] = n_donors_cfg
+
+    md2_kwargs = {
+        "donor_overlap_alpha":   float(cfg.get("multidonor_2pass_alpha", 0.75)),
+        "pilot_n_traj":          int(cfg.get("multidonor_2pass_pilot_n_traj", 2000)),
+        "max_donors":            int(cfg.get("multidonor_2pass_max_donors", 16)),
+        "pass1_n_donors":        int(cfg.get("multidonor_2pass_pass1_n_donors", 4)),
+        "pass1_budget_frac":     float(cfg.get("multidonor_2pass_pass1_budget_frac", 0.30)),
+    }
+
     return dict(
         scan_kwargs=dict(
             n_coarse=cfg["scan_n_coarse"],
@@ -409,6 +447,8 @@ def _fb_kwargs(cfg, log_path):
         ),
         log_path=log_path,
         verbose=True,
+        multidonor_2pass=bool(cfg.get("multidonor_2pass", False)),
+        md2_kwargs=md2_kwargs,
         multidonor=bool(cfg.get("multidonor", False)),
         md_kwargs=md_kwargs,
     )

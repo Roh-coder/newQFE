@@ -64,12 +64,16 @@ _FB_CFG: dict = {
     "scan_kwargs":  {},      # passed to mc_engine.find_beta_c on fallback
     "enabled":      False,
     "verbose":      True,
-    # Multi-donor reweighting (primary path, when enabled).
+    # Two-pass multi-donor reweighting (highest priority when enabled).
+    "multidonor_2pass":  False,
+    "md2_kwargs":        {},  # passed to mc_engine.find_beta_c_multidonor_2pass
+    # Single-pass multi-donor reweighting (second priority when enabled).
     "multidonor":   False,
     "md_kwargs":    {},      # passed to mc_engine.find_beta_c_multidonor
 }
 
 _FB_STATS: dict = {
+    "multidonor_2pass_ok": 0,
     "multidonor_ok":  0,
     "reweight_ok":   0,
     "fallback_used": 0,
@@ -97,13 +101,53 @@ def _patched_reweight(exe, Lx, Ly, Tx, Ty, k1, k2, k3,
                       n_eff_floor=0.10, max_recenters=3,
                       data_dir="/tmp/k_from_cs_rw",
                       progress_cb=None, jackknife=False):
-    """Try multi-donor → single-donor reweight → 3-pass GC scan.
+    """Try 2-pass multi-donor → 1-pass multi-donor → single-donor reweight → 3-pass GC scan.
 
-    The multi-donor path is taken only when ``install_reweight_fallback``
-    was called with ``multidonor=True``.  Otherwise behaves as the
-    original single-donor reweight wrapper.
+    The 2-pass multi-donor path is taken only when ``install_reweight_fallback``
+    was called with ``multidonor_2pass=True``.
+    The 1-pass multi-donor path is taken when ``multidonor=True`` (and 2-pass
+    is not enabled or has failed).
+    Otherwise behaves as the original single-donor reweight wrapper.
     """
-    # ----- 0. Multi-donor reweighting (primary, if enabled) -----
+    # ----- -1. Two-pass multi-donor reweighting (highest priority) -----
+    if _FB_CFG.get("multidonor_2pass"):
+        try:
+            md2_kw = dict(_FB_CFG.get("md2_kwargs", {}))
+            md2_data_dir = data_dir.rstrip("/").rstrip("\\") + "_md2"
+            result = mc_engine.find_beta_c_multidonor_2pass(
+                exe, Lx, Ly, Tx, Ty, k1, k2, k3, beta_lo, beta_hi,
+                n_traj_parent=n_traj_parent, n_grid=n_grid,
+                n_eff_floor=n_eff_floor,
+                data_dir=md2_data_dir,
+                progress_cb=progress_cb, jackknife=jackknife,
+                **md2_kw,
+            )
+            with _FB_LOCK:
+                _FB_STATS["multidonor_2pass_ok"] += 1
+            _audit({
+                "status": "multidonor_2pass",
+                "geom":   [Lx, Ly, Tx, Ty],
+                "k":      [k1, k2, k3],
+                "beta":   [beta_lo, beta_hi],
+                "beta_c": float(result[0]),
+                "sigma":  float(result[1]),
+            })
+            return result
+        except Exception as exc_md2:
+            if _FB_CFG["verbose"]:
+                print(f"[prod] multidonor_2pass FAILED "
+                      f"({type(exc_md2).__name__}: {exc_md2}); "
+                      f"falling back to 1-pass multidonor/reweight…")
+            _audit({
+                "status": "multidonor_2pass_failed",
+                "geom":   [Lx, Ly, Tx, Ty],
+                "k":      [k1, k2, k3],
+                "beta":   [beta_lo, beta_hi],
+                "error":  f"{type(exc_md2).__name__}: {exc_md2}",
+            })
+            # Fall through to 1-pass multi-donor or single-donor path below.
+
+    # ----- 0. Single-pass multi-donor reweighting (secondary, if enabled) -----
     if _FB_CFG.get("multidonor"):
         try:
             md_kw = dict(_FB_CFG.get("md_kwargs", {}))
@@ -211,7 +255,9 @@ def install_reweight_fallback(scan_kwargs: dict,
                               verbose: bool = True,
                               *,
                               multidonor: bool = False,
-                              md_kwargs: Optional[dict] = None) -> None:
+                              md_kwargs: Optional[dict] = None,
+                              multidonor_2pass: bool = False,
+                              md2_kwargs: Optional[dict] = None) -> None:
     """Activate the reweight→3-pass fallback in the current process.
 
     ``scan_kwargs`` must contain the legacy ``find_beta_c`` knobs —
@@ -220,20 +266,30 @@ def install_reweight_fallback(scan_kwargs: dict,
     fallback path.  Identical defaults to the production CONFIG keys
     ``scan_n_*`` / ``n_traj_scan_*`` / ``scan_max_shifts``.
 
+    When ``multidonor_2pass=True``, the patched function tries
+    :func:`mc_engine.find_beta_c_multidonor_2pass` first (two-pass
+    interval refinement); on failure it falls through to single-pass
+    multidonor (if ``multidonor=True``), then single-donor reweight,
+    then the legacy 3-pass GC scan.
+    ``md2_kwargs`` is forwarded to ``find_beta_c_multidonor_2pass``
+    (e.g. ``pass1_n_donors``, ``pass1_budget_frac``,
+    ``donor_overlap_alpha``, ``pilot_n_traj``).
+
     When ``multidonor=True``, the patched function tries
-    :func:`mc_engine.find_beta_c_multidonor` first (tiles the bracket
-    with multiple parent histograms whose spacing is set by the
-    action-variance heuristic); on failure it falls through to the
+    :func:`mc_engine.find_beta_c_multidonor` (tiles the bracket
+    with multiple parent histograms); on failure it falls through to the
     single-donor reweight, then to the legacy 3-pass GC scan.
     ``md_kwargs`` is forwarded to ``find_beta_c_multidonor`` (e.g.
     ``var_E``, ``n_donors``, ``donor_overlap_alpha``, ``pilot_n_traj``).
     """
-    _FB_CFG["scan_kwargs"] = dict(scan_kwargs)
-    _FB_CFG["log_path"]    = str(log_path) if log_path else None
-    _FB_CFG["verbose"]     = bool(verbose)
-    _FB_CFG["enabled"]     = True
-    _FB_CFG["multidonor"]  = bool(multidonor)
-    _FB_CFG["md_kwargs"]   = dict(md_kwargs) if md_kwargs else {}
+    _FB_CFG["scan_kwargs"]      = dict(scan_kwargs)
+    _FB_CFG["log_path"]         = str(log_path) if log_path else None
+    _FB_CFG["verbose"]          = bool(verbose)
+    _FB_CFG["enabled"]          = True
+    _FB_CFG["multidonor_2pass"] = bool(multidonor_2pass)
+    _FB_CFG["md2_kwargs"]       = dict(md2_kwargs) if md2_kwargs else {}
+    _FB_CFG["multidonor"]       = bool(multidonor)
+    _FB_CFG["md_kwargs"]        = dict(md_kwargs) if md_kwargs else {}
     mc_engine.find_beta_c_reweight = _patched_reweight
 
 
@@ -265,6 +321,8 @@ def _prod_worker_init(eval_kwargs: dict, seed_state: bytes,
         scan_kwargs=fb_kwargs.get("scan_kwargs", {}),
         log_path=fb_kwargs.get("log_path"),
         verbose=fb_kwargs.get("verbose", False),
+        multidonor_2pass=fb_kwargs.get("multidonor_2pass", False),
+        md2_kwargs=fb_kwargs.get("md2_kwargs"),
         multidonor=fb_kwargs.get("multidonor", False),
         md_kwargs=fb_kwargs.get("md_kwargs"),
     )
