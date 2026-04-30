@@ -121,7 +121,9 @@ class Evaluator:
         ref_Lx, ref_Ly, ref_Tx, ref_Ty = self.ref_geom
 
         t0 = time.time()
-        label = f"eval{eid:04d}_r1_{r1:.4f}_r2_{r2:.4f}"
+        # Keep label short to stay under Windows MAX_PATH (260 chars).
+        # The full r1/r2 values are recorded in eval_log.jsonl.
+        label = f"ev{eid:04d}"
         scratch = os.path.join(self._mc_root, label)
         os.makedirs(scratch, exist_ok=True)
 

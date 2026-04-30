@@ -362,7 +362,7 @@ def _prod_worker_eval(point_with_id) -> dict:
     d = asdict(res)
 
     # Load the test correlator from the prod MC output before wiping scratch.
-    label   = f"eval{eid:04d}_r1_{r1:.4f}_r2_{r2:.4f}"
+    label   = f"ev{eid:04d}"  # must match evaluator.py
     scratch = os.path.join(_W_EVAL._mc_root, label)
     try:
         prod_dir = os.path.join(scratch, "prod")

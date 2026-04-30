@@ -37,6 +37,9 @@ fss_aniso_betac.py          ← per-anisotropy FSS validation of β_c finder
 stress_aniso_betac.py       ← β_c finder stress test across anisotropic couplings
 stress_twisted.py           ← end-to-end workflow stress test on twisted tori
 stress_workflow.py          ← end-to-end workflow stress test (untwisted, vs L)
+strategy_test.py            ← compares 4 CMA-ES strategies on the 4-5-6 problem
+ref_size_test.py            ← grid + CMA scan over multiple reference lattice sizes
+paraboloid_interp_test.py   ← analytic conceptual test of LinearND interp residuals
 ```
 
 ---
@@ -98,6 +101,8 @@ flag (dashed names: `cma_popsize` → `--cma-popsize`):
 | `--save-every N` | `save_every` | Render PNG every N evals |
 | `--ref-Lx`, `--ref-Ly`, `--test-Lx`, `--test-Ly` | … | Lattice sizes |
 | `--x0 R1 R2` | `x0` | Optimizer starting point |
+| `--r-lower R1 R2` | `r_lower` | Lower bound on `(r1, r2)`; out-of-bounds CMA-ES offspring receive a death penalty (see §8) |
+| `--r-upper R1 R2` | `r_upper` | Upper bound on `(r1, r2)`; same semantics |
 | `--no-reweight` | `reweight=False` | Force the legacy 3-pass scan |
 | `--no-vis` | `no_vis=True` | Skip PNG rendering (fastest) |
 | `--no-dashboard` | `dashboard=False` | Skip the rich terminal dashboard |
@@ -365,7 +370,183 @@ far-from-isotropic optimum.
 
 ---
 
-## 8. Troubleshooting
+## 8. Cross-geometry pitfalls — the 4-5-6 triangle case study
+
+When the *test* and *reference* lattices have different shapes — the
+canonical example being a 16×16 untwisted equilateral test compared
+against a (13, 16, −3, 3) twisted reference whose three boundary
+cycles are in 4 : 5 : 6 ratio — naive CMA-ES runs from a generic
+starting point (e.g. `--x0 3 3 --cma-sigma0 0.5`) drift toward a
+spurious low-cost region near `(r1 ≈ 1, r2 ≈ 0, β_c ≈ 0.42)` and
+never reach the analytic optimum at `(r1, r2, β_c) ≈ (5.07, 7.74, 0.063)`.
+
+This section documents the diagnostics performed on run `j002317_p40196`
+and the resulting fixes.  The same mechanisms apply to *any*
+cross-geometry run where the three reference boundary cycles differ
+significantly in length.
+
+### 8.1 Three independent failure modes
+
+1. **Initial CMA-ES Gaussian too narrow.**  With `cma_sigma0 = 0.5` and
+   `x0 = (3, 3)`, the 3σ exploration ellipse covers only
+   `r ∈ [1.5, 4.5]²` — the true optimum at `(5.07, 7.74)` is ~4.7 σ
+   away and is never sampled.
+
+2. **Spurious cost minimum at `r2 → 0`.**  When `r2` collapses, the
+   lattice becomes effectively one-dimensional; the χ(β) scanner
+   latches onto a finite-size pseudo-peak ~6 % below the true T_c
+   (`crit_lhs(β) = 0.853` instead of 1.0).  The reported cost at
+   `(r1 ≈ 0.88, r2 ≈ 0.06)` is ~0.0009 — beating every legitimate
+   eval, despite SNR of only 5.6 (vs ≥ 10 for genuine evals).
+   This is a noise-driven artifact, not a true minimum.
+
+3. **Cost surface is dominated by the shortest reference cycle.**
+   For the (13, 16, −3, 3) reference, the three boundary cycles
+   have lengths `v ≈ 14.73`, `u ≈ 17.69`, `w ≈ 11.79`.  The
+   per-direction cost contributions at the *true* optimum are
+   `Cv ≈ 0.0006`, `Cu ≈ 0.0022`, `Cw ≈ 0.0058` — `Cw` is 9.6× larger
+   than `Cv` and dominates the total.  Combined with the L⁴-mean
+   aggregation in `cost.py`, the optimizer is effectively minimising
+   `Cw` alone, and any `(r1, r2)` configuration that makes `Cw` look
+   small wins regardless of how it does on `Cv`/`Cu`.
+
+### 8.2 Diagnosis of the cost-surface failure
+
+Three independent tests confirmed that the small reference is the
+primary issue:
+
+* **`strategy_test.py`** (S1–S4).  Four CMA-ES configurations were
+  run with 36 evals each at 5 000 production trajectories.  Even the
+  strategy that *did* sample near the true basin (S2: `x0=(3,4)`,
+  `σ0=3`, no bounds) recorded a *higher* cost there (0.00402 at
+  `(4.82, 6.01)`) than in the middle region (0.00283 at
+  `(2.42, 2.61)`).  The cost surface itself, as evaluated, has its
+  minimum in the wrong place.
+
+* **`ref_size_test.py`** (5×5 grid in `r ∈ [1, 9]²`, sizes 1× and 2×).
+  Doubling the reference lattice from (13, 16, −3, 3) to
+  (26, 32, −6, 6) — same 4 : 5 : 6 ratio, sides doubled — drops the
+  per-direction `Cw` contamination at the near-true grid point
+  `(5, 7)` from 0.00169 to **0.00054** (3× cleaner), inverts the
+  `Cw / Cv` mean ratio from 10.5× to 0.25×, but does **not** by
+  itself move the grid argmin away from the corner — the L⁴ mean
+  and the 5 000-traj MC noise floor still dominate the surface.
+
+* **`paraboloid_interp_test.py`** (analytic).  On the smooth target
+  `f(x, y) = x² + y²` over the unit disk, comparing a 10 × 10 test
+  grid against an `N_ref × N_ref` rotated reference grid:
+
+  | N_ref | h = 2R/N | RMS_lin | RMS_lin / h² | RMS_cubic |
+  |-------|----------|---------|--------------|-----------|
+  |   5   | 0.40     | 8.9 e-2 | 0.55         | 1.6 e-2   |
+  |  10   | 0.20     | 1.8 e-2 | 0.44         | 3.9 e-3   |
+  |  20   | 0.10     | 4.1 e-3 | 0.41         | 6.0 e-4   |
+  |  50   | 0.040    | 5.8 e-4 | 0.36         | 6.1 e-5   |
+  | 100   | 0.020    | 1.2 e-4 | 0.30         | 9.9 e-6   |
+  | 200   | 0.010    | 3.3 e-5 | 0.33         | 2.4 e-6   |
+
+  `LinearNDInterpolator` residuals scale cleanly as `O(h²)` and
+  `CloughTocher2DInterpolator` is ~10× better at every density.
+  For the actual 4-5-6 reference, the shortest cycle has only
+  ~12 lattice spacings, equivalent to `h ≈ 0.17` in the unit-disk
+  normalisation, giving a predicted interpolation noise floor of
+  `≈ 0.013` — comparable to or larger than the 1 e-3 signal at the
+  true optimum.
+
+  The same script also showed that **interpolating both reference
+  and test** (the current `cost.py` behaviour) produces a *higher*
+  L² value at the true minimum than at slightly perturbed points —
+  a textbook spurious-minimum signature caused by correlated test
+  interpolation error being worst at the actual data positions.
+  Restricting interpolation to the reference and using the test
+  values *exactly at the test lattice sites* eliminated this artifact
+  entirely on the toy model.
+
+### 8.3 Implemented fixes
+
+* **Death-penalty hard bounds in `run_cmaes`**
+  (`optimizer.py:run_cmaes`).  New keyword arguments
+  `lower_bounds` / `upper_bounds` skip the MC for any candidate
+  outside the box and assign a fixed penalty of 10.0.  Out-of-bounds
+  offspring still participate in the covariance update so the mean
+  is pushed away from the wall on subsequent generations.  Wired
+  through `run.py` as `r_lower` / `r_upper` in CONFIG and
+  `--r-lower R1 R2` / `--r-upper R1 R2` on the CLI.
+
+* **Updated `4_5_6` preset.**  The shipped preset now uses
+  `x0 = (3, 4)`, `cma_sigma0 = 3.0`, and
+  `r_lower = (0.5, 0.5)` to combine all three cures by default.
+
+### 8.4 Recommended workflow for cross-geometry runs
+
+For any 4-5-6-style cross-geometry problem we now recommend a
+**two-stage** run:
+
+```bash
+# Stage A — coarse exploration (~5 min): find the right basin
+python run.py --preset 4_5_6 \
+    --x0 3 4 --cma-sigma0 3.0 \
+    --r-lower 0.5 0.5 --r-upper 12 12 \
+    --n-traj-prod 5000 --max-evals 50 --run-name 456_stageA
+
+# Stage B — refine in the winning basin (~30 min): tight convergence
+# (replace 5.1 7.8 with the (r1, r2) Stage A reports as best)
+python run.py --preset 4_5_6 \
+    --x0 5.1 7.8 --cma-sigma0 0.7 \
+    --r-lower 0.5 0.5 --r-upper 12 12 \
+    --n-traj-prod 20000 --max-evals 40 --run-name 456_stageB
+```
+
+Stage A finds the basin reliably; Stage B converges with statistics
+adequate to distinguish neighbouring `(r1, r2)` evaluations.
+
+### 8.5 Open issues and next steps
+
+The bounds + large σ₀ + two-stage workflow reliably keeps the
+optimizer **out** of the spurious `r2 → 0` basin, but a dense grid
+scan with the small reference still places the cost minimum in the
+wrong corner.  The cost function itself needs improvement.  Three
+fixes are slated based on the diagnostics above:
+
+1. **Larger reference lattice.**  Doubling the reference linear
+   size cleanly reduces the dominant `Cw` per-direction signal at
+   the true optimum by ~3× (verified via `ref_size_test.py`).  The
+   one-time MC cost is amortised across all subsequent runs against
+   that reference.
+
+2. **Test-native sampling in `cost.py`.**  Use the test correlator
+   *exactly at the test lattice sites* along each boundary
+   direction and only interpolate the reference correlator.  The
+   paraboloid test demonstrated that this single change removes the
+   spurious-minimum-at-truth artifact on smooth targets.  Side
+   benefit: σ_cost becomes statistically honest (currently it is
+   under-estimated by ~5× because 400 oversampled points are treated
+   as independent).
+
+3. **Restricted integration window** `t ∈ [0, 0.4]` in the
+   per-direction L² integrals.  Avoids periodic-image contamination
+   that arises whenever the sampled point is more than half a cycle
+   length from the origin in the *short* reference direction.
+
+4. **Cubic (Clough–Tocher) interpolation for the reference.**
+   `CloughTocher2DInterpolator` gives ~10× lower interpolation
+   residuals than `LinearNDInterpolator` at the same reference
+   density — almost free upgrade once the reference is dense enough
+   for cubic interpolation to be well-conditioned.
+
+5. **Plain mean (`P = 1`) instead of L⁴ for direction aggregation.**
+   The L⁴ mean amplifies any single direction's noise; on the
+   small 4-5-6 reference it makes the optimizer essentially blind
+   to `Cv` and `Cu`.  Plain-mean aggregation lets the smaller-cycle
+   directions actually contribute to the cost.
+
+These should be implemented as flag-controlled options on
+`l2_cost(...)` so existing runs are reproducible while the new
+behaviour can be A/B tested on cached MC data without re-running.
+
+---
+
+## 9. Troubleshooting
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
@@ -377,7 +558,7 @@ far-from-isotropic optimum.
 
 ---
 
-## 9. Programmatic use
+## 10. Programmatic use
 
 `run_optimizer(cfg) → summary_dict` in `run.py` is the library entry
 point.  Build a CONFIG dict in your own script, optionally run a
@@ -397,7 +578,7 @@ for sigma0 in (0.05, 0.10, 0.20):
 
 ---
 
-## 10. Provenance
+## 11. Provenance
 
 The C++ simulator and the bulk of the Python pipeline (`mc_engine.py`,
 `evaluator.py`, `optimizer.py`, `reweight.py`, `visualization.py`,
@@ -434,6 +615,26 @@ The C++ simulator and the bulk of the Python pipeline (`mc_engine.py`,
 - `stress_twisted.py` — same harness as `stress_workflow.py` on
   twisted-equilateral tori (Lx, Ly, Tx, Ty) = (L, L+T, T, T) where
   the three cycle lengths are equal; ground truth still (1,1).
+- `strategy_test.py` — comparative harness running four different
+  CMA-ES strategies (baseline, large σ, large σ + bounds,
+  closer-start + bounds) on the 4-5-6 cross-geometry problem.
+  Used to demonstrate the failure modes documented in §8.
+- `ref_size_test.py` — sweeps reference lattice size (1×, 2×, 3×
+  the 4-5-6 base geometry) and runs both a uniform `(r1, r2)` grid
+  evaluation *and* a CMA-ES optimisation against each reference.
+  Used to quantify how much of the false minimum is caused by
+  reference-side discretisation.
+- `paraboloid_interp_test.py` — analytic conceptual test isolating
+  the geometric contribution of `LinearNDInterpolator` /
+  `CloughTocher2DInterpolator` residuals on the smooth target
+  `f(x, y) = x² + y²` over the unit disk, with the reference
+  rotated by 30° relative to the test grid.  Confirms the expected
+  `O(h²)` scaling and motivates the cost-function changes proposed
+  in §8.5.
+- Hard bounds in `optimizer.run_cmaes` — new `lower_bounds` /
+  `upper_bounds` keyword arguments implementing a death penalty
+  for out-of-bounds CMA-ES offspring.  Wired through `run.py`
+  CONFIG (`r_lower`, `r_upper`) and CLI (`--r-lower`, `--r-upper`).
 
 Bug fixes that land in the upstream copies should be `cp`-mirrored back
 into this directory (the upstream `parallel.py`, `evaluator.py`, etc.

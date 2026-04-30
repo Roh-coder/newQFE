@@ -214,8 +214,24 @@ def run_nelder_mead(evaluator, x0=(1.0, 1.0), *,
 #     B, D      : eigendecomposition C = B diag(D)^2 B.T         (n,n), (n,)
 
 
-def _cma_default_params(n: int, popsize: int):
-    """Standard CMA-ES strategy parameters (Hansen 2016, Table 1)."""
+def _cma_default_params(n: int, popsize: int, *,
+                        dsigma: float | None = None,
+                        csigma: float | None = None):
+    """Standard CMA-ES strategy parameters (Hansen 2016, Table 1).
+
+    Optional overrides
+    ------------------
+    dsigma : float | None
+        Override the CSA step-size damping coefficient ``d_sigma``.
+        The formula default (≈1.48 for n=2, popsize=6) is conservative;
+        reducing it (e.g. to 0.5–1.0) lets σ grow/shrink faster, making
+        the search more fluid on noisy landscapes or far starts.  Values
+        below 0.2 risk oscillation.
+    csigma : float | None
+        Override the cumulation length ``c_sigma`` for the step-size path.
+        Larger values (up to ~0.9) make step-size adaptation faster but
+        noisier.  Rarely needs tuning; prefer dsigma for fluidity.
+    """
     import math as _math
     lam = int(popsize)
     mu = lam // 2
@@ -227,8 +243,14 @@ def _cma_default_params(n: int, popsize: int):
     mu_eff  = 1.0 / np.sum(weights ** 2)        # variance-effective mu
 
     # Adaptation rates
-    c_sigma = (mu_eff + 2.0) / (n + mu_eff + 5.0)
-    d_sigma = 1.0 + 2.0 * max(0.0, _math.sqrt((mu_eff - 1.0) / (n + 1.0)) - 1.0) + c_sigma
+    cs = (mu_eff + 2.0) / (n + mu_eff + 5.0)
+    if csigma is not None:
+        cs = float(np.clip(csigma, 1e-3, 1.0 - 1e-3))
+    c_sigma = cs
+    ds = 1.0 + 2.0 * max(0.0, _math.sqrt((mu_eff - 1.0) / (n + 1.0)) - 1.0) + c_sigma
+    if dsigma is not None:
+        ds = float(max(dsigma, 0.1))
+    d_sigma = ds
     c_c     = (4.0 + mu_eff / n) / (n + 4.0 + 2.0 * mu_eff / n)
     c_1     = 2.0 / ((n + 1.3) ** 2 + mu_eff)
     c_mu    = min(1.0 - c_1,
@@ -247,10 +269,12 @@ def _cma_default_params(n: int, popsize: int):
 def run_cmaes(evaluator, x0=(1.0, 1.0), *,
               max_evals=40, max_gens=0, sigma0=0.1,
               popsize=6, tolx=0.005, tolfun=1e-6,
+              dsigma=None, csigma=None,
               snr_floor=0.0,
               indist_stop_snr=0.0,
               snr_target=0.0, snr_max_traj_factor=4,
-              seed=None, pool=None):
+              seed=None, pool=None,
+              lower_bounds=None, upper_bounds=None):
     """Covariance Matrix Adaptation Evolution Strategy (hand-coded).
 
     Drop-in replacement for ``run_nelder_mead`` with the same evaluator
@@ -272,6 +296,21 @@ def run_cmaes(evaluator, x0=(1.0, 1.0), *,
     ``max_evals``
         Hard cap on the total number of evaluator calls.  Always honoured.
 
+    Step-size fluidity parameters
+    -----------------------------
+    ``dsigma`` : float | None
+        Override the CSA damping coefficient ``d_sigma``.  Default (None)
+        uses the Hansen formula (≈1.48 for n=2, popsize=6), which is
+        conservative.  Reducing to e.g. ``0.5`` allows σ to grow/shrink
+        ~3× faster per generation — useful when the initial σ is small
+        relative to the distance to the optimum or when MC noise flattens
+        the cost surface.  Values below 0.2 risk oscillation.
+    ``csigma`` : float | None
+        Override the cumulation momentum ``c_sigma`` for the step-size
+        path.  Larger values (up to ≈0.9) make step-size adaptation faster
+        but noisier.  Usually prefer ``dsigma``; keep ``csigma=None``
+        unless you know what you're doing.
+
     Why CMA-ES on noisy / flat cost surfaces:
       • adapts a full n×n covariance + global step size σ each generation,
         so the search direction follows the descent ridge,
@@ -290,6 +329,21 @@ def run_cmaes(evaluator, x0=(1.0, 1.0), *,
     history: list = []
     _n_traj_prod_base = int(evaluator.n_traj_prod)
     _n_traj_max = _n_traj_prod_base * max(1, int(snr_max_traj_factor))
+
+    # Bounds: death-penalty — offspring outside [lower_bounds, upper_bounds]
+    # receive a large fixed cost and are excluded from history.  They are
+    # still included in the ranked offspring list so the CMA covariance
+    # update deprioritises the out-of-bounds direction naturally.
+    _BOUND_PENALTY = 10.0
+    _lb = np.array(lower_bounds, dtype=float) if lower_bounds is not None else None
+    _ub = np.array(upper_bounds, dtype=float) if upper_bounds is not None else None
+
+    def _oob(x):
+        if _lb is not None and np.any(x < _lb):
+            return True
+        if _ub is not None and np.any(x > _ub):
+            return True
+        return False
 
     rng = np.random.default_rng(seed)
 
@@ -341,7 +395,7 @@ def run_cmaes(evaluator, x0=(1.0, 1.0), *,
     p_sigma = np.zeros(n)
     p_c     = np.zeros(n)
 
-    p = _cma_default_params(n, popsize)
+    p = _cma_default_params(n, popsize, dsigma=dsigma, csigma=csigma)
     lam     = p["lam"];  mu      = p["mu"]
     weights = p["weights"]
     mu_eff  = p["mu_eff"]
@@ -390,13 +444,21 @@ def run_cmaes(evaluator, x0=(1.0, 1.0), *,
                 for k in range(lam):
                     if len(history) >= max_evals:
                         break
-                    fs.append(_eval(xs[k]))
+                    if _oob(xs[k]):
+                        fs.append(_BOUND_PENALTY)
+                    else:
+                        fs.append(_eval(xs[k]))
             else:
                 # Cap the batch at the remaining eval budget.
                 budget = max(0, max_evals - len(history))
+                n_batch = min(lam, budget)
+                # OOB offspring receive a penalty and are NOT submitted to
+                # workers; their ys rows still participate in selection so
+                # the covariance update pushes the mean away from the wall.
+                valid_mask = [not _oob(xs[k]) for k in range(n_batch)]
                 batch = [(float(xs[k][0]), float(xs[k][1]))
-                         for k in range(min(lam, budget))]
-                if not batch:
+                         for k in range(n_batch) if valid_mask[k]]
+                if not batch and not any(not v for v in valid_mask):
                     break
                 if hasattr(evaluator, "current_simplex"):
                     evaluator.current_simplex = None
@@ -404,8 +466,13 @@ def run_cmaes(evaluator, x0=(1.0, 1.0), *,
                 # them through the same housekeeping that the serial
                 # _eval does — adaptive stats, SNR boost, stop checks.
                 eid_base = len(history) + 1
-                results = pool.map_generation(batch, eid_base)
-                for res_dict in results:
+                results = pool.map_generation(batch, eid_base) if batch else []
+                ri = iter(results)
+                for k in range(n_batch):
+                    if not valid_mask[k]:
+                        fs.append(_BOUND_PENALTY)
+                        continue
+                    res_dict = next(ri)
                     res = _ResultProxy(res_dict)
                     history.append(res)
                     fs.append(res.cost)

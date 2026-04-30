@@ -90,6 +90,8 @@ CONFIG = {
     "cma_max_gens":  0,
     "cma_tolx":      0.005,
     "cma_tolfun":    1e-6,
+    "cma_dsigma":    None,   # None = Hansen formula (~1.48); try 0.5 for faster exploration
+    "cma_csigma":    None,   # None = Hansen formula; rarely needs tuning
     "cma_seed":      None,
 
     # --- Adaptive statistics ----------------------------------------------
@@ -97,6 +99,13 @@ CONFIG = {
     "snr_max_traj_factor":  4,
     "snr_floor":            0.0,
     "indist_stop_snr":      1.0,
+
+    # --- CMA-ES hard bounds (death-penalty) --------------------------------
+    # Offspring outside [r_lower, r_upper] receive a fixed penalty cost and
+    # are NOT forwarded to MC; use to exclude known degenerate regions.
+    # None = unbounded (default).
+    "r_lower":  None,
+    "r_upper":  None,
 
     # --- Speedup S4: Ferrenberg–Swendsen β reweighting --------------------
     # In production this directory ALWAYS uses reweight=True; on failure
@@ -272,6 +281,14 @@ def build_argparser() -> argparse.ArgumentParser:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description=__doc__.split("\n\n", 1)[0],
     )
+    p.add_argument("--preset", type=str, default=None,
+                   choices=["smoke", "4_5_6", "equil_large"],
+                   help="""
+Built-in run preset (applied before any other CLI overrides):\n
+  smoke       Equilateral 12×12, 20 evals  — quick sanity check (~2 min)\n
+  4_5_6       4-5-6 triangle cross-geometry, 150 evals (production).\n
+              Analytic target: r1≈5.0652  r2≈7.7429  β_c≈0.0628\n
+  equil_large Equilateral 24×24, 40 evals\n""")
     p.add_argument("--config", type=str, default=None,
                    help="Optional JSON file whose keys are merged on top of CONFIG.")
     p.add_argument("--results-dir", type=str, default=None)
@@ -284,6 +301,14 @@ def build_argparser() -> argparse.ArgumentParser:
     p.add_argument("--cma-max-gens", type=int, default=None,
                    help="Stop after this many CMA-ES generations (0=unlimited).")
     p.add_argument("--cma-sigma0", type=float, default=None)
+    p.add_argument("--cma-dsigma", type=float, default=None,
+                   help="CMA-ES CSA damping d_sigma override.  "
+                        "Default (None) uses the Hansen formula (~1.48 for n=2). "
+                        "Try 0.5 to let σ grow/shrink ~3× faster when the "
+                        "search is far from the optimum or costs are noisy.")
+    p.add_argument("--cma-csigma", type=float, default=None,
+                   help="CMA-ES step-size path momentum c_sigma override. "
+                        "Rarely needed; prefer --cma-dsigma for fluidity.")
     p.add_argument("--n-traj-prod", type=int, default=None)
     p.add_argument("--reweight-n-traj", type=int, default=None)
     p.add_argument("--multidonor", action="store_true",
@@ -310,10 +335,26 @@ def build_argparser() -> argparse.ArgumentParser:
     p.add_argument("--save-every", type=int, default=None)
     p.add_argument("--ref-Lx", type=int, default=None)
     p.add_argument("--ref-Ly", type=int, default=None)
+    p.add_argument("--ref-Tx", type=int, default=None,
+                   help="Twist in x for the reference lattice.")
+    p.add_argument("--ref-Ty", type=int, default=None,
+                   help="Twist in y for the reference lattice.")
     p.add_argument("--test-Lx", type=int, default=None)
     p.add_argument("--test-Ly", type=int, default=None)
+    p.add_argument("--test-Tx", type=int, default=None,
+                   help="Twist in x for the test lattice.")
+    p.add_argument("--test-Ty", type=int, default=None,
+                   help="Twist in y for the test lattice.")
     p.add_argument("--x0", type=float, nargs=2, default=None,
                    metavar=("R1", "R2"))
+    p.add_argument("--r-lower", type=float, nargs=2, default=None,
+                   metavar=("LB_R1", "LB_R2"),
+                   help="Lower bounds on (r1, r2). Offspring below these "
+                        "values receive a death-penalty cost and are excluded "
+                        "from MC. Example: --r-lower 0.5 0.5")
+    p.add_argument("--r-upper", type=float, nargs=2, default=None,
+                   metavar=("UB_R1", "UB_R2"),
+                   help="Upper bounds on (r1, r2).")
     p.add_argument("--no-reweight", action="store_true",
                    help="Force the legacy 3-pass GC scan on every eval.")
     p.add_argument("--indist-stop-snr", type=float, default=None,
@@ -332,9 +373,40 @@ def build_argparser() -> argparse.ArgumentParser:
     return p
 
 
+# Built-in presets — applied as the first layer before --config and flags.
+_PRESETS: dict[str, dict] = {
+    "smoke": {
+        "ref_Lx": 12, "ref_Ly": 12, "ref_Tx": 0, "ref_Ty": 0,
+        "test_Lx": 12, "test_Ly": 12, "test_Tx": 0, "test_Ty": 0,
+        "x0": (1.0, 1.0), "cma_sigma0": 0.10, "max_evals": 20,
+        "n_traj_prod": 10_000, "reweight_n_traj": 20_000,
+        "dashboard": False,
+    },
+    "4_5_6": {
+        "ref_Lx": 13, "ref_Ly": 16, "ref_Tx": -3, "ref_Ty": 3,
+        "test_Lx": 13, "test_Ly": 16, "test_Tx": 0, "test_Ty": 0,
+        "x0": (3.0, 4.0), "cma_sigma0": 3.0, "max_evals": 150,
+        "n_traj_prod": 20_000, "reweight_n_traj": 40_000,
+        "multidonor_2pass": True, "n_workers": 2,
+        "save_frames": True, "dashboard": False,
+        # Prevent drift into the r2≈0 false minimum (see strategy_test.py).
+        "r_lower": (0.5, 0.5),
+    },
+    "equil_large": {
+        "ref_Lx": 24, "ref_Ly": 24, "ref_Tx": 0, "ref_Ty": 0,
+        "test_Lx": 24, "test_Ly": 24, "test_Tx": 0, "test_Ty": 0,
+        "x0": (1.0, 1.0), "cma_sigma0": 0.10, "max_evals": 40,
+        "n_traj_prod": 20_000, "reweight_n_traj": 40_000,
+        "dashboard": False,
+    },
+}
+
+
 def apply_cli(cfg: dict, args: argparse.Namespace) -> dict:
     """Overlay CLI overrides on top of CONFIG (after optional --config JSON)."""
     cfg = dict(cfg)
+    if args.preset:
+        cfg.update(_PRESETS[args.preset])
     if args.config:
         with open(args.config) as f:
             patch = json.load(f)
@@ -351,6 +423,8 @@ def apply_cli(cfg: dict, args: argparse.Namespace) -> dict:
         "cma_popsize":    args.cma_popsize,
         "cma_max_gens":   args.cma_max_gens,
         "cma_sigma0":     args.cma_sigma0,
+        "cma_dsigma":     args.cma_dsigma,
+        "cma_csigma":     args.cma_csigma,
         "n_traj_prod":    args.n_traj_prod,
         "reweight_n_traj": args.reweight_n_traj,
         "multidonor_n_donors":     args.multidonor_n_donors,
@@ -363,8 +437,12 @@ def apply_cli(cfg: dict, args: argparse.Namespace) -> dict:
         "save_every":     args.save_every,
         "ref_Lx":         args.ref_Lx,
         "ref_Ly":         args.ref_Ly,
+        "ref_Tx":         args.ref_Tx,
+        "ref_Ty":         args.ref_Ty,
         "test_Lx":        args.test_Lx,
         "test_Ly":        args.test_Ly,
+        "test_Tx":        args.test_Tx,
+        "test_Ty":        args.test_Ty,
         "live_poll_ms":   args.live_poll_ms,
         "indist_stop_snr": args.indist_stop_snr,
     }
@@ -374,6 +452,10 @@ def apply_cli(cfg: dict, args: argparse.Namespace) -> dict:
 
     if args.x0 is not None:
         cfg["x0"] = tuple(args.x0)
+    if args.r_lower is not None:
+        cfg["r_lower"] = tuple(args.r_lower)
+    if args.r_upper is not None:
+        cfg["r_upper"] = tuple(args.r_upper)
     if args.no_reweight:
         cfg["reweight"] = False
     if args.multidonor:
@@ -551,12 +633,16 @@ def run_optimizer(cfg: dict) -> dict:
             max_gens=cfg.get("cma_max_gens", 0),
             sigma0=cfg["cma_sigma0"], popsize=cfg["cma_popsize"],
             tolx=cfg["cma_tolx"], tolfun=cfg["cma_tolfun"],
+            dsigma=cfg.get("cma_dsigma"),
+            csigma=cfg.get("cma_csigma"),
             snr_floor=cfg["snr_floor"],
             indist_stop_snr=cfg["indist_stop_snr"],
             snr_target=cfg["snr_target"],
             snr_max_traj_factor=cfg["snr_max_traj_factor"],
             seed=cfg.get("cma_seed"),
             pool=_PoolForwarder(pool, opt_plot, dash, ev_shim=ev),
+            lower_bounds=cfg.get("r_lower"),
+            upper_bounds=cfg.get("r_upper"),
         )
         runner = lambda: run_cmaes(ev, **run_kwargs)
     else:
@@ -573,11 +659,15 @@ def run_optimizer(cfg: dict) -> dict:
                 max_gens=cfg.get("cma_max_gens", 0),
                 sigma0=cfg["cma_sigma0"], popsize=cfg["cma_popsize"],
                 tolx=cfg["cma_tolx"], tolfun=cfg["cma_tolfun"],
+                dsigma=cfg.get("cma_dsigma"),
+                csigma=cfg.get("cma_csigma"),
                 snr_floor=cfg["snr_floor"],
                 indist_stop_snr=cfg["indist_stop_snr"],
                 snr_target=cfg["snr_target"],
                 snr_max_traj_factor=cfg["snr_max_traj_factor"],
                 seed=cfg.get("cma_seed"),
+                lower_bounds=cfg.get("r_lower"),
+                upper_bounds=cfg.get("r_upper"),
             )
         elif optimizer_name == "nelder_mead":
             runner = lambda: run_nelder_mead(
