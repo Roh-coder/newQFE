@@ -1,0 +1,64 @@
+{
+  "tag": "prod_test_native",
+  "sizes": [
+    8,
+    10,
+    12
+  ],
+  "twist_frac": 0.25,
+  "r_min": 0.5,
+  "r_max": 2.0,
+  "r_step": 0.5,
+  "n_traj_prod": 40000,
+  "n_traj_scan_coarse": 4000,
+  "n_traj_scan_fine": 8000,
+  "beta_seed": [
+    0.05,
+    0.4
+  ],
+  "wall_s": 654.2,
+  "n_total": 96,
+  "n_ok_this_run": 96,
+  "n_skip_this_run": 0,
+  "n_err_this_run": 0,
+  "test_geoms": {
+    "8": [
+      8,
+      8,
+      0,
+      0
+    ],
+    "10": [
+      10,
+      10,
+      0,
+      0
+    ],
+    "12": [
+      12,
+      12,
+      0,
+      0
+    ]
+  },
+  "ref_geoms": {
+    "8": [
+      8,
+      8,
+      2,
+      2
+    ],
+    "10": [
+      10,
+      10,
+      2,
+      2
+    ],
+    "12": [
+      12,
+      12,
+      3,
+      3
+    ]
+  }
+}

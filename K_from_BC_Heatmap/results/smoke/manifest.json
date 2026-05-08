@@ -1,0 +1,51 @@
+{
+  "tag": "smoke",
+  "sizes": [
+    6,
+    8
+  ],
+  "twist_frac": 0.25,
+  "r_min": 0.5,
+  "r_max": 1.5,
+  "r_step": 0.5,
+  "n_traj_prod": 800,
+  "n_traj_scan_coarse": 400,
+  "n_traj_scan_fine": 600,
+  "beta_seed": [
+    0.05,
+    0.4
+  ],
+  "wall_s": 35.4,
+  "n_total": 36,
+  "n_ok_this_run": 36,
+  "n_skip_this_run": 0,
+  "n_err_this_run": 0,
+  "test_geoms": {
+    "6": [
+      6,
+      6,
+      0,
+      0
+    ],
+    "8": [
+      8,
+      8,
+      0,
+      0
+    ]
+  },
+  "ref_geoms": {
+    "6": [
+      6,
+      6,
+      2,
+      2
+    ],
+    "8": [
+      8,
+      8,
+      2,
+      2
+    ]
+  }
+}

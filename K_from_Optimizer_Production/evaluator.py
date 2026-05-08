@@ -59,7 +59,8 @@ class Evaluator:
                  betac_cache=None,
                  reweight=False, reweight_n_traj=40000,
                  reweight_n_grid=201, reweight_n_eff_floor=0.10,
-                 reweight_max_recenters=3):
+                 reweight_max_recenters=3,
+                 cost_mode="l4mean_both_interp", cost_power=2):
         self.exe = exe
         self.ref_data = ref_data
         self.ref_geom = tuple(ref_geom)
@@ -91,6 +92,8 @@ class Evaluator:
         self.reweight_n_grid = int(reweight_n_grid)
         self.reweight_n_eff_floor = float(reweight_n_eff_floor)
         self.reweight_max_recenters = int(reweight_max_recenters)
+        self.cost_mode = str(cost_mode)
+        self.cost_power = int(cost_power)
 
         os.makedirs(output_dir, exist_ok=True)
         self.log_path = os.path.join(output_dir, "eval_log.jsonl")
@@ -243,6 +246,8 @@ class Evaluator:
             self.ref_data, test_data,
             Lx, Ly, Tx, Ty,
             ref_Lx, ref_Ly, ref_Tx, ref_Ty,
+            cost_mode=self.cost_mode,
+            cost_power=self.cost_power,
         )
         snr_val = cost_module.snr(c_val, sig)
         status = cost_module.snr_status(c_val, sig)

@@ -40,6 +40,24 @@ stress_workflow.py          ← end-to-end workflow stress test (untwisted, vs L
 strategy_test.py            ← compares 4 CMA-ES strategies on the 4-5-6 problem
 ref_size_test.py            ← grid + CMA scan over multiple reference lattice sizes
 paraboloid_interp_test.py   ← analytic conceptual test of LinearND interp residuals
+cft_torus.py                ← analytic Ising CFT torus correlator (Jacobi theta)
+cost_zoo.py                 ← five candidate cost variants (relative, log,
+                               arclength, effmass, pmean4) — see §8.6
+modular_data.py             ← three-direction τ-aligned profile builder + costs
+                               + noise injection (see §8.7)
+modular_testbed.py          ← noise-free / noise-controlled τ-grid CMA-ES
+                               testbed driver (see §8.7)
+precompute_456_fss.py       ← runs MC for 4-5-6 FSS families: ref α=1,2,3 and
+                               test L=8,16,24,32 → results/_fss_456/
+precompute_456_fss_extend.py← extends the FSS dataset: ref α=4, test L=48,64
+                               (adds dof for free-ω continuum extrapolation)
+plot_fss_correlator_456.py  ← 3-panel FSS correlator convergence plot for 4-5-6
+plot_fss_correlator_111.py  ← same for 1-1-1 (equilateral) ladder geometry
+plot_fss_continuum_limit_456.py
+                            ← empirical free-ω FSS fit G=G∞+a·L^(-ω), separate
+                               fits for twisted-ref and untwisted-test families;
+                               3-row figure (FSS bands, ω values, G∞ comparison)
+                               → results/_fss_456/fss_continuum_limit_456.png
 ```
 
 ---
@@ -543,6 +561,344 @@ fixes are slated based on the diagnostics above:
 These should be implemented as flag-controlled options on
 `l2_cost(...)` so existing runs are reproducible while the new
 behaviour can be A/B tested on cached MC data without re-running.
+
+---
+
+## 8.6 Cost-function zoo (2026-05-01)
+
+`cost_zoo_test.py` is a standalone driver that runs nine candidate
+cost functions plus a replicate-baseline post-processing step on the
+cached `_betac_stability_test/` triple (10 replicates each at
+`(k1,k2,k3) = (1,1,1)·k_c`, `(2,1,1)·k_c`, `(5,1,1)·k_c`, all
+`L = 12` equilateral so the cost only sees physics differences).
+
+The discrimination metric is the **Z-score**
+
+$$Z \;=\; \frac{\mu_{\text{mismatched}} - \mu_{\text{matched}}}{\sigma_{\text{matched}}}$$
+
+a higher `|Z|` means the optimizer can see the true `(r1, r2)`
+mismatch above MC noise.
+
+Crucially, the test loops over **three reference choices** (eq, a2,
+a5).  An honest distance-like cost gives roughly symmetric `|Z|`
+across all three; a cost that only fires when the reference is
+isotropic (`ref = eq`) is exposed as an anisotropy probe rather than
+a true distance.
+
+### 8.6.1 Headline results
+
+`|Z|` ranges across all 6 ref/mismatch combinations:
+
+| candidate            | best `|Z|` | worst `|Z|` | verdict                                    |
+|----------------------|-----------:|------------:|--------------------------------------------|
+| **affine_fit**       |        158 |        12.6 | ★ winner — robust across all 3 ref choices |
+| chi2_native          |         43 |        0.06 | ~2–3× boost over native, same MC cost      |
+| native (baseline)    |         31 |        0.04 | reference                                  |
+| cycle_loop           |         31 |        0.04 | tracks native (rescaled same signal)       |
+| spectral             |         25 |        0.02 | rescaled native (perfect log-log corr.)    |
+| angular_iso          |         25 |        0.10 | only fires at `ref=eq` → isotropy probe    |
+| moment_r2            |        6.8 |       −0.40 | sign-flips, unreliable                     |
+| eff_xi               |        5.2 |        0.20 | weak signal everywhere                     |
+| **cycle_var**        |    220 000 |        1.6  | pure isotropy probe — fake winner          |
+| baseline_subtract    |         29 |       −0.07 | does not fix r2 mismatch                   |
+
+Two ideas are **N/A** from cached data: jackknife (needs per-config
+block dumps) and off-diagonal covariance (needs per-config full
+all-to-all matrix).  Both would require re-running the simulator
+with extra output hooks.
+
+Output artefacts: `results/_cost_compare/{zoo_summary.json,
+zoo_compare.png, zoo_distributions.png}`.
+
+### 8.6.2 `affine_fit` — detailed explanation
+
+For each ref/test pair, take the intersection of `(m, n)` keys present
+in both all-to-all dicts and stack into vectors `G_r`, `G_t`.  Solve
+the 2-parameter linear least-squares problem
+
+$$(a^\*, b^\*) \;=\; \arg\min_{a,b}\;\bigl\| a\,G_t + b\,\mathbf{1} - G_r \bigr\|_2^2$$
+
+(one `np.linalg.lstsq` call on `A = [G_t, 1]` against `G_r`) and
+report the residual mean-square as the cost:
+
+$$C_{\text{affine}} \;=\; \frac{1}{N}\,\bigl\| a^\*\,G_t + b^\*\,\mathbf{1} - G_r \bigr\|_2^2.$$
+
+The cost is **invariant under the two transformations that don't
+carry information about `(r1, r2)`**:
+
+1. **Multiplicative rescaling** (slope `a`).  Two MC replicates at
+   identical couplings can disagree on the overall amplitude of
+   `G(m, n)` because of: `β_c` jitter (a 10⁻³ shift in the GC-fit
+   critical β rescales `G` by an O(1) factor at finite `L`),
+   finite-volume normalisation differences, and reweighting-overlap
+   wobble.  All of these live entirely in `a` and leave the *shape*
+   of `G(m, n)` untouched.
+2. **Additive offset** (intercept `b`).  The connected correlator
+   should asymptote to zero, but at finite `L` each replicate has a
+   residual `⟨m⟩²` subtraction error that varies replicate-to-
+   replicate.  This is a constant offset in `G` and is absorbed by
+   `b`.
+
+By projecting both nuisance directions out **before** measuring
+residual, the matched-pair distribution shrinks dramatically (matched
+std drops from `1.4e-2` for native to `9.4e-6` for affine_fit — a
+~1500× MC-noise suppression), while genuine geometric mismatch
+(which is a *shape* difference, not a scale difference) survives.
+That is why `|Z|` jumps by 1–2 orders of magnitude across **all six**
+mismatch tests.
+
+Caveats: it discards absolute amplitude (use `chi2_native` if you
+want amplitude in the cost); it needs ≥ 4 shared `(m, n)` keys
+(trivial for same-geometry runs); cross-geometry runs need overlapping
+integer lattice points (rare failure case).
+
+### 8.6.3 `cycle_var` — what it is and why it's a fake winner
+
+For each replicate, sum `G_conn(m, n)` along the integer lattice
+points on each of the three torus boundary period vectors
+`(Lx, Ty)`, `(Tx, -Ly)`, `(-Lx-Tx, Ly-Ty)`:
+
+$$\Phi_d \;=\; \sum_{(m,n)\,\in\,\text{cycle }d} G_{\text{conn}}(m,n),
+   \qquad d \in \{v, u, w\}.$$
+
+Then take the **sample variance over the three scalars**
+`{Φ_v, Φ_u, Φ_w}`: large when the cycle integrals disagree
+(anisotropic correlator), zero when they agree (perfectly isotropic).
+The pair cost is the squared difference of this single number
+between ref and test:
+
+$$C_{\text{cycle\_var}} \;=\; \bigl( \operatorname{Var}\{\Phi_d^{\text{test}}\} - \operatorname{Var}\{\Phi_d^{\text{ref}}\} \bigr)^2.$$
+
+This is a **single-sample, reference-free statistic** — each
+replicate has its own anisotropy number; the cost only compares the
+two numbers.  When `ref = eq` (true isotropy), the ref variance is
+≈ 0 and any anisotropic test sticks out enormously (`|Z| ~ 10⁴–10⁵`).
+When `ref = a2` (already anisotropic), both variances are macroscopic
+and their difference is small — `|Z|` collapses to 1.6.  In production
+the reference is almost never perfectly isotropic, so `cycle_var`
+mostly measures *distance-to-isotropic-point*, not *distance to
+the actual reference*.  Useless for navigating `(r1, r2)` space
+toward an anisotropic target.
+
+This is the canonical failure mode the 3-reference test was designed
+to expose: any future cost-function candidate must be tested against
+an anisotropic reference, not just the equilateral one.
+
+### 8.6.4 Promotions to `cost.py`
+
+1. **`cost_mode='affine_fit'`** — promoted (2026-05-02).  Wired into
+   the `l2_cost(...)` dispatcher with an optional `affine_kwargs`
+   argument:
+   * `affine_kwargs={'mode': 'all_to_all'}` — intersects the
+     `(m, n)` keys present in both ref and test (same-geometry case).
+   * `affine_kwargs={'mode': 'test_native'}` — samples `G_t` on the
+     integer test-boundary lattice sites and looks up `G_r` via
+     `tile_interp` (cross-geometry; this is the **default** so the
+     dispatcher "just works" for problems like the 4-5-6 triangle).
+
+   Returns the same 4-tuple `(cost, σ_cost, per_dir, per_dir_σ)` as
+   the other modes; per-direction wedges are angular bins (v, u, w)
+   for diagnostic parity with `test_native`.
+
+2. **`cost_mode='chi2_native'`** — *still pending*.  Drop-in upgrade
+   of `test_native` at zero extra MC cost (divides each residual by
+   `sqrt(σ_t² + σ_r²)`); ~2–3× boost across the board.
+
+### 8.6.5 CMA-ES validation: `affine_fit` vs `test_native` (2026-05-02)
+
+`cost_mode_test.py` extended with a third run (mode `C`,
+`cost_mode='affine_fit'`) so the workflow-level CMA-ES comparison can
+include the new dispatcher branch.  A single-seed run on the 4-5-6
+problem (`--modes B C --max-evals 30 --n-workers 6 --seed 42`,
+ref=(13,16,−3,3), test=(16,16,0,0), x0=(5.0, 6.0), σ0=2.0,
+popsize=6, n_traj=10 000) gave:
+
+| mode             | best (r1, r2)   | best cost   | β_c    | dist→true | first<1.0 |
+|------------------|-----------------|-------------|--------|-----------|-----------|
+| B `test_native`  | (3.136, 2.387)  | 2.020 × 10⁻³ | 0.121  | 5.69      | >budget   |
+| C `affine_fit`   | (3.441, 3.135)  | 2.018 × 10⁻³ | 0.104  | 4.89      | >budget   |
+
+**Both runs failed to converge** within budget — both stalled in a
+`(r1, r2) ≈ (3, 3)` corner, never approaching the true
+`(5.07, 7.74)`, with essentially identical `best_cost`.
+
+The cost-landscape diagnostic, however, *does* show the expected
+`affine_fit` advantage:
+
+| metric                                | B (test_native) | C (affine_fit) |
+|---------------------------------------|-----------------|----------------|
+| dynamic range (max / min over 30 evals) | 2.31×          | 2.40×          |
+| mean SNR (cost / σ)                   | 20.8            | 21.0           |
+| dist of closest-to-true eval          | 1.05            | 1.34           |
+| (cost at closest eval) / (global min) | **1.59×**       | **1.43×**      |
+
+At the eval that landed nearest to the true solution, `affine_fit`
+rates it as only 1.43× the run's cost minimum, vs `test_native`'s
+1.59× — i.e. `affine_fit` is more honest about the true region,
+matching the zoo-test prediction.  But on this geometry the cost
+surface itself is nearly degenerate (a flat valley of ~2.0 × 10⁻³
+spanning very different `(r1, r2)`), and neither cost can break the
+symmetry at this budget.
+
+**Take-aways:**
+
+1. The zoo-test-level discrimination win (|Z| = 12–158 for
+   `affine_fit` vs 0.04–30 for `test_native` on noise tests) **does
+   not automatically translate** to a CMA-ES convergence advantage
+   at production budgets when the cost surface is intrinsically flat.
+2. Single-seed 30-eval comparisons are insufficient — the cost
+   surface dominates over the cost choice at this scale.
+3. To actually validate the affine_fit advantage end-to-end, need
+   one of: (a) multi-seed sweep, (b) larger budget
+   (`--max-evals 80` or `popsize 12`), or (c) a sharper start
+   `x0=(5.0, 7.5)` with `σ0=0.8`.
+
+Artifacts:
+* [`results/cost_mode_test/B/result.json`](results/cost_mode_test/B/result.json)
+* [`results/cost_mode_test/C/result.json`](results/cost_mode_test/C/result.json)
+* [`results/cost_mode_test/analysis_BC_seed42.md`](results/cost_mode_test/analysis_BC_seed42.md)
+
+---
+
+## 8.7 Modular-plane testbed (2026-05-01)
+
+A noise-free, fully analytic CMA-ES + cost-discrimination harness that
+isolates the **cost surface** from the optimizer and from MC noise.
+Builds on `cft_torus.ising_torus_F` (Jacobi-theta Ising spin-spin
+two-point function) so the "truth" is a closed-form expression and
+correlator data can be generated at arbitrary modular parameter τ
+without running any C++ simulation.
+
+### 8.7.1 Why this testbed
+
+The 4-5-6 real-MC convergence test (§8.5) showed CMA-ES drifting
+*away* from truth.  The 1-D s-scan and 2-D τ-scan
+([`results/_native_triage/zoo_ising_tau_grid.png`](results/_native_triage/zoo_ising_tau_grid.png))
+revealed the production cost (`_l2_cost_test_native`) and four of the
+five [`cost_zoo`](cost_zoo.py) variants place their minimum at the
+boundary of any τ-window, never at truth.  Diagnosis: the lattice
+boundary-path / `gcd`-stride sampling makes the per-direction cost
+depend on the **test geometry's** stride pattern rather than the
+underlying CFT, so the cost minimum is decoupled from the true τ.
+
+### 8.7.2 Three-direction τ-aligned profiles
+
+[`modular_data.py`](modular_data.py) replaces lattice boundary paths
+with **three torus geodesics aligned with the modular parameter**:
+
+| label   | direction in z-plane | physical meaning      |
+|---------|----------------------|-----------------------|
+| `re`    | along `ω₁` axis      | the **Re τ** cycle    |
+| `im`    | perpendicular axis (`i`) | the **Im τ** cycle    |
+| `diag`  | along `ω₂ − ω₁`      | the **Im τ − Re τ** cycle (after one twist) |
+
+For each τ on the modular grid we evaluate `ising_torus_F` along each
+direction at integer physical distances `s = 1, 2, …, K_min` (with
+`K_min` bounded by the shortest half-period).  The result is three
+short vectors `G[s]` per cell, all referred to the **same** physical
+units (lattice spacing 1).  No `gcd` strides, no boundary-path tuples,
+no `t = k/N` reparameterization.
+
+Five cost modes operate on these profiles
+([`modular_data.threedir_cost`](modular_data.py)):
+
+| mode        | per-direction kernel                                   |
+|-------------|--------------------------------------------------------|
+| `l2`        | `mean( (G_t − G_r)² )`                                  |
+| `relative`  | `mean( ((G_t − G_r) / G_r)² )`                          |
+| `log`       | `mean( (log G_t − log G_r)² )`                          |
+| `effmass`   | `mean( (m_eff_t − m_eff_r)² )` , `m_eff_k = −log(G_{k+1}/G_k)` |
+| `pmean4`    | `( mean_d C_d⁴ )^(1/4)` over directions of `l2` per-dir |
+
+### 8.7.3 Closed-loop CMA-ES navigation
+
+[`modular_testbed.py`](modular_testbed.py) implements the closed loop:
+
+1. Pre-compute three-direction profiles on an `n × n` grid in
+   `(Re τ, Im τ)` and pickle to
+   [`results/_native_triage/modular_cache_n*_K*.pkl`](results/_native_triage/).
+2. Pick `τ_truth` (default = `τ` of the production reference geometry,
+   `(13, 16, −3, 3)` → `τ_truth ≈ −0.901 + 0.794 i`) and `τ_start`
+   (default = `τ` of the test geometry, `(16, 16, 0, 0)` → `τ_start ≈
+   −0.500 + 0.866 i`).
+3. For each cost mode, run a minimal 2-D `(μ/μ_w, λ)`-CMA-ES
+   (inline in [`modular_testbed.cmaes`](modular_testbed.py)) in the
+   continuous `(Re τ, Im τ)` plane; each evaluation snaps to the
+   nearest grid cell and computes `threedir_cost` against
+   `ref_profile` at `τ_truth`.
+4. Optional `--noise σ` injects multiplicative Gaussian on every
+   profile entry with a deterministic seed per
+   `(mode, seed-base, cell, call_idx)` so the cost is reproducible
+   while reflecting realistic MC scatter (re-sampled per call).
+
+```bash
+# noise-free
+python modular_testbed.py --n 21 --K-max 8 --seeds 3 --max-evals 120
+
+# 5% relative noise per profile entry
+python modular_testbed.py --n 21 --K-max 8 --seeds 5 --noise 0.05
+```
+
+Outputs:
+[`results/_native_triage/modular_testbed_<tag>.{json,png}`](results/_native_triage/) —
+2 × 3 grid of cost heatmaps with `truth`/`start`/`grid min` markers
+and per-seed CMA-ES trajectories overlaid.
+
+### 8.7.4 Headline results (smoke n=11, K_max=6, seeds=2-3)
+
+**Noise-free:**
+
+| mode       | success | mean dist → truth | best dist | rank |
+|------------|--------:|------------------:|----------:|-----:|
+| `l2`       |    100% |             0.037 |     0.023 |  ★ 1 |
+| `relative` |     50% |             0.084 |     0.023 |    2 |
+| `log`      |     50% |             0.084 |     0.023 |    3 |
+| `effmass`  |     50% |             0.468 |     0.092 |    4 |
+| `pmean4`   |      0% |             0.155 |     0.120 |    5 |
+
+`l2` on three-direction profiles **finds the truth in every seed**.
+This is the opposite of the lattice-boundary-path version (§8.6 and
+§8.5), where every cost candidate placed its global minimum at the
+edge of the τ-window.  The fix is the *sampling reformulation*, not
+the cost kernel.
+
+**With 5% multiplicative noise per entry** (3 seeds, max 80 evals):
+all modes lose convergence (`success = 0%`, `mean dist ≈ 0.4`).  The
+basin width shrinks below the noise floor at this `K_max=6` /
+`n=11` setting; raising `K_max` and / or averaging multiple noise
+realizations per call (a "fewer-but-cleaner-evals" budget split) is
+the obvious next step.
+
+### 8.7.5 Roadmap
+
+1. **Production sweep**: re-run §8.7.4 at `n=21, K_max=8, seeds=10`
+   to get statistically meaningful success rates per cost mode at
+   noise levels `σ ∈ {0, 0.005, 0.01, 0.02, 0.05, 0.10}`.
+2. **Frozen-noise mode**: add a `--noise-frozen` flag that perturbs
+   each cell *once* (seed = cell index) so the cost surface has a
+   fixed roughness rather than re-sampled noise per call; this
+   isolates "static landscape roughness" from "stochastic eval
+   noise."
+3. **Block-averaged eval**: add `--noise-blocks K` that averages
+   `K` noise samples per call (effective σ → σ/√K), letting us
+   trade evals for noise reduction inside the CMA-ES loop.
+4. **Port back to lattice cost**: once a cost mode is validated on
+   the modular testbed, wire its three-direction kernel into
+   [`cost.py`](cost.py) by replacing the `boundary_paths()` /
+   `_direction_lattice_steps()` machinery with τ-aligned sampling
+   on the actual MC data dict (using bilinear interpolation of
+   `_tile_interp` at the three direction unit vectors).
+5. **Multi-truth survey**: instead of fixing `τ_truth` to the
+   `(13, 16, −3, 3)` reference, pick 6–10 representative truths
+   spanning the modular fundamental domain and rank costs by
+   *aggregate* success.  This guards against cost modes that only
+   work near one corner of `(Re τ, Im τ)`.
+
+Artifacts:
+* [`modular_data.py`](modular_data.py) — three-direction profile builder + costs + noise
+* [`modular_testbed.py`](modular_testbed.py) — cache builder + CMA-ES navigation driver
+* [`results/_native_triage/modular_testbed_noise0.png`](results/_native_triage/modular_testbed_noise0.png) — noise-free 5-panel landscape + trajectories
+* [`results/_native_triage/modular_testbed_noise0p05.png`](results/_native_triage/modular_testbed_noise0p05.png) — 5% noise version
 
 ---
 

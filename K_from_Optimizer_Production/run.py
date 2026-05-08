@@ -81,6 +81,22 @@ CONFIG = {
     "scan_max_shifts":          4,
     "scan_jackknife":          True,
 
+    # --- Cost function ----------------------------------------------------
+    # cost_mode:
+    #   "l4mean_both_interp" (default, legacy):
+    #       both ref & test correlators are interpolated, sampled on a
+    #       uniform t-grid, per-direction L² aggregated with L⁴ power-mean.
+    #   "test_native":
+    #       only the reference is interpolated; the test correlator is
+    #       read directly at the test lattice sites along each boundary
+    #       direction (no interpolation).  Per-direction cost is the mean
+    #       of residuals raised to ``cost_power`` (2 = squared, 4 = quart);
+    #       directions are aggregated as a plain mean.
+    # cost_power:
+    #   2 or 4.  Only used when cost_mode == "test_native".
+    "cost_mode":   "l4mean_both_interp",
+    "cost_power":  2,
+
     # --- Optimizer (cmaes recommended for production) ---------------------
     "optimizer":     "cmaes",
     "x0":            (1.0, 1.0),
@@ -368,6 +384,16 @@ Built-in run preset (applied before any other CLI overrides):\n
     p.add_argument("--save-frames", action="store_true",
                    help="Archive every rolling PNG into <run>/frames_history/.")
     p.add_argument("--live-poll-ms", type=int, default=None)
+    p.add_argument("--cost-mode", type=str, default=None,
+                   choices=["l4mean_both_interp", "test_native"],
+                   help="Cost function. 'l4mean_both_interp' (default) "
+                        "interpolates both ref and test correlators and "
+                        "aggregates with an L⁴ power-mean. 'test_native' "
+                        "interpolates ONLY the reference and reads the test "
+                        "correlator at native test lattice sites; per-direction "
+                        "residuals are raised to --cost-power and averaged.")
+    p.add_argument("--cost-power", type=int, default=None, choices=[2, 4],
+                   help="Residual exponent for cost_mode=test_native (2 or 4).")
     p.add_argument("--print-config", action="store_true",
                    help="Print the resolved CONFIG and exit.")
     return p
@@ -445,6 +471,8 @@ def apply_cli(cfg: dict, args: argparse.Namespace) -> dict:
         "test_Ty":        args.test_Ty,
         "live_poll_ms":   args.live_poll_ms,
         "indist_stop_snr": args.indist_stop_snr,
+        "cost_mode":      args.cost_mode,
+        "cost_power":     args.cost_power,
     }
     for k, v in mapping.items():
         if v is not None:
@@ -496,6 +524,8 @@ def _make_evaluator_kwargs(cfg, ref_data, ref_geom, test_geom, nm_dir):
         reweight_n_grid=cfg["reweight_n_grid"],
         reweight_n_eff_floor=cfg["reweight_n_eff_floor"],
         reweight_max_recenters=cfg["reweight_max_recenters"],
+        cost_mode=cfg.get("cost_mode", "l4mean_both_interp"),
+        cost_power=cfg.get("cost_power", 2),
     )
 
 
@@ -595,6 +625,8 @@ def run_optimizer(cfg: dict) -> dict:
             save_every=cfg["save_every"],
             ref_Lx=ref_geom[0], ref_Ly=ref_geom[1],
             ref_Tx=ref_geom[2], ref_Ty=ref_geom[3],
+            cost_mode=cfg.get("cost_mode", "l4mean_both_interp"),
+            cost_power=cfg.get("cost_power", 2),
         )
     dash = None
     if use_dash:

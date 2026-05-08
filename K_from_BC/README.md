@@ -159,6 +159,37 @@ You can choose a custom filename:
 bash K_from_BC/package_results.sh my_results.tar.gz
 ```
 
+## Continuum cost-landscape workflow (twisted vs untwisted)
+
+A new self-contained, plug-and-play workflow lives in:
+
+- `K_from_BC_Heatmap/`
+
+It generates cost landscapes over the `(r1, r2)` plane that compare an
+**untwisted** square torus against a **twisted** parallelogram torus at
+each grid point, and **extrapolates each landscape value to the
+continuum (L → ∞)** from multiple lattice sizes.  It vendors its own
+copies of the simulator binary, `mc_engine.py`, and `cost.py`, so it can
+be edited and shipped independently of this folder.
+
+Quick start:
+
+```bash
+# 1–2 minute end-to-end smoke test
+bash K_from_BC_Heatmap/run_smoke.sh
+
+# Production
+python3 K_from_BC_Heatmap/precompute_grid.py \
+  --tag prod --sizes 12 16 24 --twist-frac 0.25 \
+  --r-min 0.5 --r-max 3.0 --r-step 0.25 \
+  --n-traj 50000 --n-workers 8
+python3 K_from_BC_Heatmap/compute_landscape.py --tag prod --cost-mode huber_log
+python3 K_from_BC_Heatmap/plot_landscape.py    --tag prod --cost-mode huber_log
+```
+
+See `K_from_BC_Heatmap/README.md` for the full CLI reference, output
+schema, sizing guidance, and sanity checks.
+
 ## 3d twisted-parallelogram extension
 
 A new workspace for the boundary-coupling version of the appended-third-dimension

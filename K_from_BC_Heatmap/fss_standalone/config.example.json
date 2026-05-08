@@ -1,0 +1,52 @@
+{
+  "tag": "demo",
+
+  "_comment_couplings": "Bond-coupling ratios passed to the simulator. The MC sets k1=r1, k2=r2, k3=k3 (always 1.0 in the standard normalisation).",
+  "couplings": {
+    "r1": 1.0,
+    "r2": 1.0,
+    "k3": 1.0
+  },
+
+  "_comment_lattices": "List of lattices to simulate. Each entry MUST give an integer L (used only as a label / 1-L axis position) plus the four-tuple geometry [Lx, Ly, Tx, Ty] for both the 'test' and 'ref' families. Use whatever family names you like; both are simulated identically.",
+  "lattices": [
+    {"L": 4,  "test": [4,  4,  0, 0], "ref": [4,  4,  1, 1]},
+    {"L": 8,  "test": [8,  8,  0, 0], "ref": [8,  8,  2, 2]},
+    {"L": 12, "test": [12, 12, 0, 0], "ref": [12, 12, 3, 3]},
+    {"L": 16, "test": [16, 16, 0, 0], "ref": [16, 16, 4, 4]},
+    {"L": 24, "test": [24, 24, 0, 0], "ref": [24, 24, 6, 6]},
+    {"L": 32, "test": [32, 32, 0, 0], "ref": [32, 32, 8, 8]}
+  ],
+
+  "_comment_mc": "Production MC settings (run at beta = beta_c for each lattice).",
+  "mc": {
+    "n_traj": 20000,
+    "n_skip": 20,
+    "n_therm": 2000
+  },
+
+  "_comment_beta_c_finder": "Three-pass Gram-Charlier susceptibility-peak scan. beta_lo / beta_hi bracket the search; n_coarse points in pass 0, n_refine{,2,3} in passes 1/2/3. n_traj_coarse is used in pass 0 only, n_traj_fine in passes 1-3. max_shifts is the bracket-translation budget when the GC peak hits an edge.",
+  "beta_c_finder": {
+    "beta_lo": 0.05,
+    "beta_hi": 0.40,
+    "n_coarse": 11,
+    "n_refine": 5,
+    "n_refine2": 5,
+    "n_refine3": 5,
+    "n_traj_coarse": 2000,
+    "n_traj_fine": 4000,
+    "max_shifts": 4,
+    "jackknife": false
+  },
+
+  "execution": {
+    "n_workers": 4,
+    "exe": null
+  },
+
+  "_comment_plots": "Both plots show G_conn(t_k) vs 1/L. 'eighths' draws the full t_k = k/8 (k=1..7) panel grid with linear / quadratic / power-A continuum fits per t_k. 'midpoints' shows only the t = 1/2 sample per cycle, data only.",
+  "plots": {
+    "eighths": true,
+    "midpoints": true
+  }
+}

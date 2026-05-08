@@ -91,7 +91,8 @@ def display_inline(png_path: str, *, replace: bool = True) -> None:  # noqa: D40
     return
 
 from mc_engine import _gram_charlier  # re-use the exact fit formula
-from cost import boundary_paths, _tile_interp, _triangular_xy
+from cost import (boundary_paths, _tile_interp, _triangular_xy,
+                  _direction_lattice_steps, _lookup_test_value)
 
 
 # ---------------------------------------------------------------------------
@@ -221,10 +222,16 @@ class OptimizerPlotter:
                  ref_data: dict, Lx: int, Ly: int, Tx: int, Ty: int,
                  n_copies: int = 1, save_every: int = 5,
                  ref_Lx: Optional[int] = None, ref_Ly: Optional[int] = None,
-                 ref_Tx: Optional[int] = None, ref_Ty: Optional[int] = None):
+                 ref_Tx: Optional[int] = None, ref_Ty: Optional[int] = None,
+                 cost_mode: str = "l4mean_both_interp",
+                 cost_power: int = 2):
         self.output_dir = output_dir
         self.method = method
         self.ref_data = ref_data
+        # Cost-function descriptor (shown on every PNG so it's obvious
+        # which residual/aggregation rule produced the displayed costs).
+        self.cost_mode = str(cost_mode)
+        self.cost_power = int(cost_power)
         # Test geometry (used for sampling the test correlator).
         self.Lx = Lx
         self.Ly = Ly
@@ -447,6 +454,9 @@ class OptimizerPlotter:
         ref_data_snap = self.ref_data
         Lx, Ly, Tx, Ty = self.Lx, self.Ly, self.Tx, self.Ty
         ref_geom = (self.ref_Lx, self.ref_Ly, self.ref_Tx, self.ref_Ty)
+        test_geom = (self.Lx, self.Ly, self.Tx, self.Ty)
+        cost_mode = self.cost_mode
+        cost_power = self.cost_power
         n_copies = self.n_copies
         test_data_snap = test_data
         sigma_cost_snap = sigma_cost
@@ -591,8 +601,24 @@ class OptimizerPlotter:
                         ecolor="C0", elinewidth=0.7, capsize=2, label="cost ±σ")
             ax.plot(idx, np.minimum.accumulate(c), "-", color="crimson", lw=1.5,
                     label="running best")
+            # Human-readable label for the cost function in use.
+            if cost_mode == "test_native":
+                _cost_lbl = (
+                    f"L^{cost_power} test-native"
+                    f" (ref interp; test sampled at lattice sites; mean over dirs)"
+                )
+                _cost_short = f"L^{cost_power} test-native cost"
+            elif cost_mode == "l4mean_both_interp":
+                _cost_lbl = (
+                    "L⁴-mean both-interp"
+                    " (ref+test interpolated; per-dir L²; aggregated as p=4 power-mean)"
+                )
+                _cost_short = "L⁴-mean cost"
+            else:
+                _cost_lbl = cost_mode
+                _cost_short = f"{cost_mode} cost"
             ax.set_yscale("log"); ax.set_xlabel("evaluation #")
-            ax.set_ylabel("L² cost"); ax.set_title("Cost history")
+            ax.set_ylabel(_cost_short); ax.set_title(f"Cost history — {_cost_lbl}", fontsize=9)
             ax.legend(loc="best", fontsize=8); ax.grid(alpha=0.25, which="both")
 
             # ---- Panel 3: beta_c history --------------------------------
@@ -605,15 +631,22 @@ class OptimizerPlotter:
             ax = axes[1, 1]
             _render_curve_collapse(ax, test_data_snap, sigma_cost_snap,
                                    ref_data_snap, Lx, Ly, Tx, Ty, n_copies,
-                                   ref_geom=ref_geom)
+                                   ref_geom=ref_geom,
+                                   cost_mode=cost_mode)
 
             # ---- Panel 5: β_c scan (latest pass) -----------------------
             _render_betac_scan_panel(ax_scan, scan_snap)
 
+            _ref_str  = (f"ref (Lx,Ly,Tx,Ty)="
+                         f"({ref_geom[0]},{ref_geom[1]},{ref_geom[2]},{ref_geom[3]})")
+            _test_str = (f"test (Lx,Ly,Tx,Ty)="
+                         f"({test_geom[0]},{test_geom[1]},{test_geom[2]},{test_geom[3]})")
             fig.suptitle(
                 f"{method}  |  current best: cost={c[best_i]:.4g}, "
                 f"r₁={r1[best_i]:.4f}, r₂={r2[best_i]:.4f}, "
-                f"β_c={bc[best_i]:.5f}", fontsize=11)
+                f"β_c={bc[best_i]:.5f}\n"
+                f"{_test_str}    {_ref_str}    cost: {_cost_lbl}",
+                fontsize=10)
             fig.text(0.99, 0.99, f"step {step_snap}",
                      ha="right", va="top", fontsize=9, color="gray",
                      transform=fig.transFigure)
@@ -629,7 +662,8 @@ class OptimizerPlotter:
                                self.ref_data, self.Lx, self.Ly,
                                self.Tx, self.Ty, self.n_copies,
                                ref_geom=(self.ref_Lx, self.ref_Ly,
-                                         self.ref_Tx, self.ref_Ty))
+                                         self.ref_Tx, self.ref_Ty),
+                               cost_mode=self.cost_mode)
 
 
 def _render_betac_scan_panel(ax, scan_snap):
@@ -679,7 +713,7 @@ def _render_betac_scan_panel(ax, scan_snap):
 
 def _render_curve_collapse(ax, test_data, sigma_cost,
                            ref_data, Lx, Ly, Tx, Ty, n_copies,
-                           ref_geom=None):
+                           ref_geom=None, cost_mode="l4mean_both_interp"):
         """Plot the boundary residuals  G_test(t) − G_ref(t)  along the
         three torus boundary directions.
 
@@ -689,6 +723,12 @@ def _render_curve_collapse(ax, test_data, sigma_cost,
         required when ref_geom != test_geom (e.g. ref 26×32 twisted vs
         test 24×24 untwisted).  The curve is closed by appending the
         t=0 sample at t=1 since the parameterisation is periodic.
+
+        When ``cost_mode == "test_native"`` the test correlator is NOT
+        interpolated: residuals are shown as scatter markers at the
+        actual integer lattice sites along each test boundary direction
+        (matching cost._l2_cost_test_native).  The reference remains
+        interpolated at the matching fractional t.
         """
         if test_data is None:
             ax.text(0.5, 0.5, "(no test data this step)",
@@ -714,25 +754,87 @@ def _render_curve_collapse(ax, test_data, sigma_cost,
             g_ref = _tile_interp(ref_data, rLx, rLy,
                                  rTx, rTy, "conn",
                                  copies=n_copies)
-            g_test = _tile_interp(test_data, Lx, Ly,
-                                  Tx, Ty, "conn",
-                                  copies=n_copies)
         except Exception as exc:
-            ax.text(0.5, 0.5, f"(interp build error: {exc})",
+            ax.text(0.5, 0.5, f"(ref interp build error: {exc})",
                     ha="center", va="center", transform=ax.transAxes,
                     color="red")
             ax.set_axis_off()
             return
 
+        # In test_native mode the test correlator is read directly at
+        # lattice sites (no interpolation).  Otherwise build a tiled
+        # interpolant matching the legacy cost path.
+        native = (cost_mode == "test_native")
+        g_test = None
+        if not native:
+            try:
+                g_test = _tile_interp(test_data, Lx, Ly,
+                                      Tx, Ty, "conn",
+                                      copies=n_copies)
+            except Exception as exc:
+                ax.text(0.5, 0.5, f"(test interp build error: {exc})",
+                        ha="center", va="center", transform=ax.transAxes,
+                        color="red")
+                ax.set_axis_off()
+                return
+
         names = ["v", "u", "w"]
+        ax.axhline(0.0, color="black", lw=0.9, ls="--", alpha=0.5,
+                   label="zero (perfect match)")
+
+        if native:
+            # ---- Native test-lattice sampling ------------------------------
+            ax.set_title("Boundary residuals — native test-lattice sites")
+            for name, (rdm, rdn), (tdm, tdn) in zip(names, ref_dirs, test_dirs):
+                ks, ms, ns = _direction_lattice_steps(tdm, tdn)
+                if len(ks) < 2:
+                    continue
+                G_test_list, e_test_list, t_list = [], [], []
+                N = len(ks)
+                for k, mk, nk in zip(ks, ms, ns):
+                    entry = _lookup_test_value(test_data, mk, nk,
+                                               Lx, Ly, Tx, Ty, copies=n_copies)
+                    if entry is None:
+                        continue
+                    G_test_list.append(entry["conn"])
+                    e_test_list.append(entry.get("conn_err", 0.0))
+                    t_list.append(k / N)
+                if len(G_test_list) < 2:
+                    continue
+                t_arr = np.asarray(t_list, dtype=float)
+                G_test = np.asarray(G_test_list, dtype=float)
+                e_test = np.abs(np.asarray(e_test_list, dtype=float))
+                rxs, rys = _triangular_xy(t_arr * rdm, t_arr * rdn)
+                try:
+                    G_ref = np.asarray(
+                        g_ref(np.column_stack([rxs, rys])), float)
+                except Exception:
+                    continue
+                diff = G_test - G_ref
+                # Close the loop visually with a faint guide line through
+                # the lattice samples (sorted by t, including t=1 ≡ t=0).
+                order = np.argsort(t_arr)
+                t_sorted = np.concatenate([t_arr[order], [1.0]])
+                d_sorted = np.concatenate([diff[order], diff[order][:1]])
+                ax.plot(t_sorted, d_sorted, "-", color=colors[name],
+                        lw=0.8, alpha=0.45, zorder=1)
+                ax.errorbar(t_arr, diff, yerr=e_test, fmt="o",
+                            ms=5, mfc=colors[name], mec="black", mew=0.4,
+                            ecolor=colors[name], elinewidth=0.8, capsize=2,
+                            label=f"Δ{name}  (N={N})", zorder=2)
+            ax.set_xlabel("path parameter  t = k/N (k = test-lattice step)")
+            ax.set_ylabel("G_test − G_ref  (test sampled at lattice sites)")
+            ax.legend(loc="best", fontsize=7, ncol=2)
+            ax.grid(alpha=0.25)
+            return
+
+        # ---- Legacy interpolated path (cost_mode = l4mean_both_interp) ----
         n_samples = 64
         # Periodic sampling: t ∈ [0, 1) avoids the LinearNDInterpolator
         # convex-hull spike at t=1 (see cost.py).  We close the loop for
         # plotting by appending the t=0 value at t=1.
         t = np.linspace(0.0, 1.0, n_samples, endpoint=False)
         t_plot = np.concatenate([t, [1.0]])
-        ax.axhline(0.0, color="black", lw=0.9, ls="--", alpha=0.5,
-                   label="zero (perfect match)")
         for name, (rdm, rdn), (tdm, tdn) in zip(names, ref_dirs, test_dirs):
             try:
                 rxs, rys = _triangular_xy(t * rdm, t * rdn)
@@ -763,7 +865,7 @@ def _render_curve_collapse(ax, test_data, sigma_cost,
 
         ax.set_xlabel("path parameter  t")
         ax.set_ylabel("G_test − G_ref")
-        ax.set_title("Boundary residuals (0 = perfect match)")
+        ax.set_title("Boundary residuals — both interpolated")
         ax.legend(loc="best", fontsize=7, ncol=2)
         ax.grid(alpha=0.25)
 
