@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-05-20 19:39:43",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_campaign_more_large_sizes.json",
+  "run_tag": "raw_manifold_fss_integer_multiples_20260520",
+  "benchmark_id": "geometry_111",
+  "description": "Equilateral control geometry at exact criticality.",
+  "target_geometry": [
+    12,
+    12,
+    0,
+    0
+  ],
+  "methods": {
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_integer_multiples_20260520/geometry_111/untwisted/manifest_geometry_111_untwisted.json",
+    "twisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_integer_multiples_20260520/geometry_111/twisted/manifest_geometry_111_twisted.json"
+  }
+}

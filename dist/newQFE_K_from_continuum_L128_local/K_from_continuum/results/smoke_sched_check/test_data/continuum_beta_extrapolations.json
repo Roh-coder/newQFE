@@ -1,0 +1,151 @@
+{
+  "created_at": "2026-05-20 02:29:26",
+  "config_path": "/workspaces/newQFE/dist/newQFE_K_from_continuum_L128_local/K_from_continuum/configs/smoke_tests.json",
+  "run_tag": "smoke_sched_check",
+  "mode": "free_power_continuum",
+  "points": [
+    {
+      "r1": 1.0,
+      "r2": 1.0,
+      "continuum_beta": 0.009998134848855268,
+      "continuum_beta_sigma": null,
+      "jobs": [
+        {
+          "status": "ok",
+          "L": 8,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/dist/newQFE_K_from_continuum_L128_local/K_from_continuum/results/smoke_sched_check/test_data/grid/L8/test_L8_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/dist/newQFE_K_from_continuum_L128_local/K_from_continuum/results/smoke_sched_check/test_data/grid/L8/test_L8_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.009998134848855268,
+          "finite_size_beta_c": 0.009998134848855266,
+          "wall_seconds": 0.6385524272918701,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 6,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/dist/newQFE_K_from_continuum_L128_local/K_from_continuum/results/smoke_sched_check/test_data/grid/L6/test_L6_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/dist/newQFE_K_from_continuum_L128_local/K_from_continuum/results/smoke_sched_check/test_data/grid/L6/test_L6_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.009998134848855268,
+          "finite_size_beta_c": 0.009998134848855266,
+          "wall_seconds": 0.38092851638793945,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 4,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/dist/newQFE_K_from_continuum_L128_local/K_from_continuum/results/smoke_sched_check/test_data/grid/L4/test_L4_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/dist/newQFE_K_from_continuum_L128_local/K_from_continuum/results/smoke_sched_check/test_data/grid/L4/test_L4_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.009998134848855268,
+          "finite_size_beta_c": 0.009998134848855266,
+          "wall_seconds": 0.21026349067687988,
+          "message": "completed with shared continuum beta"
+        }
+      ],
+      "production_jobs": [
+        {
+          "status": "ok",
+          "L": 8,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/dist/newQFE_K_from_continuum_L128_local/K_from_continuum/results/smoke_sched_check/test_data/grid/L8/test_L8_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/dist/newQFE_K_from_continuum_L128_local/K_from_continuum/results/smoke_sched_check/test_data/grid/L8/test_L8_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.009998134848855268,
+          "finite_size_beta_c": 0.009998134848855266,
+          "wall_seconds": 0.6385524272918701,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 6,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/dist/newQFE_K_from_continuum_L128_local/K_from_continuum/results/smoke_sched_check/test_data/grid/L6/test_L6_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/dist/newQFE_K_from_continuum_L128_local/K_from_continuum/results/smoke_sched_check/test_data/grid/L6/test_L6_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.009998134848855268,
+          "finite_size_beta_c": 0.009998134848855266,
+          "wall_seconds": 0.38092851638793945,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 4,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/dist/newQFE_K_from_continuum_L128_local/K_from_continuum/results/smoke_sched_check/test_data/grid/L4/test_L4_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/dist/newQFE_K_from_continuum_L128_local/K_from_continuum/results/smoke_sched_check/test_data/grid/L4/test_L4_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.009998134848855268,
+          "finite_size_beta_c": 0.009998134848855266,
+          "wall_seconds": 0.21026349067687988,
+          "message": "completed with shared continuum beta"
+        }
+      ],
+      "beta_extrapolation": {
+        "method": "free_power_continuum",
+        "ansatz": "beta_c(L) = beta_c(infinity) + a * L^(-p)",
+        "weighted": false,
+        "parameters": {
+          "beta_c": 0.009998134848855268,
+          "amplitude": -6.938893903907228e-18,
+          "exponent": 1.0,
+          "exponent_initial": 1.0,
+          "exponent_min": 0.05,
+          "exponent_max": 3.0
+        },
+        "L_values": [
+          4,
+          6,
+          8
+        ],
+        "beta_values": [
+          0.009998134848855266,
+          0.009998134848855266,
+          0.009998134848855266
+        ],
+        "sigma_values": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "beta_fit_values": [
+          0.009998134848855266,
+          0.009998134848855266,
+          0.009998134848855266
+        ],
+        "residual_values": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "beta_c_continuum": 0.009998134848855268,
+        "beta_c_continuum_sigma": null,
+        "rms_residual": 0.0,
+        "n_points": 3,
+        "lmin": 4,
+        "lmax": 8
+      },
+      "finite_beta_rows": [
+        {
+          "L": 4,
+          "beta_c": 0.009998134848855266,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 6,
+          "beta_c": 0.009998134848855266,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 8,
+          "beta_c": 0.009998134848855266,
+          "beta_c_sigma": 0.0
+        }
+      ]
+    }
+  ]
+}

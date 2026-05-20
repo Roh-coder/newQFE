@@ -1,0 +1,91 @@
+{
+  "created_at": "2026-05-15 01:08:03",
+  "config_path": "/tmp/tmp.sRoC4zjMu6",
+  "run_tag": "smoke_compare_free_power_continuum_20260515",
+  "run_root": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515",
+  "reference_data_dir": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/reference_data",
+  "test_data_dir": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/test_data",
+  "comparison_analysis_data_dir": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/comparison_analysis_data",
+  "reference_data_file": "/workspaces/newQFE/K_from_large_referece/results/smoke_ref_20260512/reference_data/reference_all_to_all.dat",
+  "reference_metadata_file": "/workspaces/newQFE/K_from_large_referece/results/smoke_ref_20260512/reference_data/reference_all_to_all.meta.json",
+  "tests_manifest": "/workspaces/newQFE/K_from_large_referece/results/smoke_tests_free_power_continuum_20260515/test_data/manifest_tests.json",
+  "sizes": [
+    4,
+    6,
+    8
+  ],
+  "k_values": [
+    1,
+    2,
+    3
+  ],
+  "k_denominator": 4,
+  "weighted": false,
+  "power_fit": {
+    "model": "A + B*(1/L)^C",
+    "c_min": 0.05,
+    "c_max": 3.0,
+    "c_initial": 1.0
+  },
+  "fss_plots": {
+    "enabled": true,
+    "dpi": 150,
+    "max_points": null,
+    "saved_points": 1
+  },
+  "outputs": {
+    "reference_channels_scored": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/reference_data/reference_channels_scored.dat",
+    "raw_test_channels_scored": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/test_data/raw_test_channels_scored.dat",
+    "continuum_test_channels": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/comparison_analysis_data/continuum_test_channels.dat",
+    "channel_comparison": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/comparison_analysis_data/channel_comparison.dat",
+    "score_map": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/comparison_analysis_data/score_map.dat",
+    "score_minimum": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/comparison_analysis_data/score_minimum.dat",
+    "fss_plot_data": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/comparison_analysis_data/fss_plot_data.dat",
+    "fss_plot_index": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/comparison_analysis_data/fss_plot_index.dat",
+    "fss_plot_dir": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/comparison_analysis_data/fss_plots",
+    "score_heatmap": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/comparison_analysis_data/score_heatmap.png",
+    "zscore_heatmap": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/comparison_analysis_data/zscore_heatmap.png",
+    "score_zscore_heatmaps": "/workspaces/newQFE/K_from_large_referece/results/smoke_compare_free_power_continuum_20260515/comparison_analysis_data/score_zscore_heatmaps.png"
+  },
+  "summary": {
+    "n_points": 1,
+    "n_finite_scores": 1,
+    "best": {
+      "r1": 1.0,
+      "r2": 1.0,
+      "score": 0.6145685800627991,
+      "z_rms": 1.3310300559838881
+    }
+  },
+  "config": {
+    "run": {
+      "tag": "smoke_compare_free_power_continuum_20260515"
+    },
+    "paths": {
+      "results_root": "results"
+    },
+    "input": {
+      "reference_data_file": "results/smoke_ref_20260512/reference_data/reference_all_to_all.dat",
+      "tests_manifest": "results/smoke_tests_free_power_continuum_20260515/test_data/manifest_tests.json"
+    },
+    "analysis": {
+      "k_values": [
+        1,
+        2,
+        3
+      ],
+      "k_denominator": 4,
+      "weighted": false,
+      "power_fit": {
+        "c_min": 0.05,
+        "c_max": 3.0,
+        "c_initial": 1.0
+      },
+      "fss_plots": {
+        "enabled": true,
+        "dpi": 150,
+        "max_points": null
+      }
+    }
+  }
+}

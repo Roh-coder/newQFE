@@ -1,0 +1,85 @@
+{
+  "created_at": "2026-05-13 02:30:02",
+  "config_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/configs/smoke_reference.json",
+  "run_tag": "smoke_ref_output_recover_test_20260513",
+  "run_root": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/smoke_ref_output_recover_test_20260513",
+  "reference_data_dir": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/smoke_ref_output_recover_test_20260513/reference_data",
+  "reference_data_file": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/smoke_ref_output_recover_test_20260513/reference_data/reference_all_to_all.dat",
+  "reference_metadata_file": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/smoke_ref_output_recover_test_20260513/reference_data/reference_all_to_all.meta.json",
+  "reference_channels": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/smoke_ref_output_recover_test_20260513/reference_data/reference_channels.dat",
+  "k_values": [
+    1,
+    2,
+    3
+  ],
+  "k_denominator": 4,
+  "reference_summary": {
+    "Lx": 8,
+    "Ly": 8,
+    "Tx": 0,
+    "Ty": 0,
+    "k1": 1.0,
+    "k2": 1.0,
+    "k3": 1.0,
+    "r1": 1.0,
+    "r2": 1.0,
+    "beta_c": 0.009998134848855266,
+    "beta_c_sigma": 0.0,
+    "chi_peak": 0.0,
+    "wall_seconds": 0.5853676795959473
+  },
+  "config": {
+    "run": {
+      "tag": "smoke_ref_output_recover_test_20260513"
+    },
+    "paths": {
+      "results_root": "results",
+      "resume": false
+    },
+    "execution": {
+      "exe": null,
+      "auto_build": true,
+      "force_rebuild": false,
+      "build_command": [
+        "make"
+      ],
+      "build_timeout_s": 600
+    },
+    "reference_lattice": {
+      "Lx": 8,
+      "Ly": 8,
+      "Tx": 0,
+      "Ty": 0
+    },
+    "reference_couplings": {
+      "k3": 1.0,
+      "k1_over_k3": 1.0,
+      "k2_over_k3": 1.0
+    },
+    "beta_finder": {
+      "beta_lo": 0.05,
+      "beta_hi": 0.4,
+      "n_coarse": 5,
+      "n_refine": 2,
+      "n_refine2": 2,
+      "n_refine3": 2,
+      "n_traj_coarse": 8,
+      "n_traj_fine": 12,
+      "max_shifts": 2,
+      "jackknife": false
+    },
+    "mc": {
+      "n_traj": 30,
+      "n_skip": 5,
+      "n_therm": 20
+    },
+    "analysis_points": {
+      "k_values": [
+        1,
+        2,
+        3
+      ],
+      "k_denominator": 4
+    }
+  }
+}

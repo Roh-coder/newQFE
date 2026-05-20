@@ -1,0 +1,221 @@
+{
+  "created_at": "2026-05-15 01:32:08",
+  "config_path": "/workspaces/newQFE/K_from_large_referece/configs/tests_context_128_free_power_more_sizes_20260515.json",
+  "run_tag": "ctx128_tests_fp_moreL_20260515",
+  "mode": "free_power_continuum",
+  "points": [
+    {
+      "r1": 1.0,
+      "r2": 1.0,
+      "jobs": [
+        {
+          "status": "ok",
+          "L": 8,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L8/test_L8_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L8/test_L8_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2755892468961106,
+          "finite_size_beta_c": 0.23887061926544612,
+          "wall_seconds": 1.7632262706756592,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 12,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L12/test_L12_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L12/test_L12_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2755892468961106,
+          "finite_size_beta_c": 0.2488060941127655,
+          "wall_seconds": 2.949082136154175,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 16,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L16/test_L16_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L16/test_L16_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2755892468961106,
+          "finite_size_beta_c": 0.2566555423237397,
+          "wall_seconds": 4.7660064697265625,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 24,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L24/test_L24_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L24/test_L24_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2755892468961106,
+          "finite_size_beta_c": 0.26389843943007685,
+          "wall_seconds": 10.306679487228394,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 32,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L32/test_L32_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L32/test_L32_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2755892468961106,
+          "finite_size_beta_c": 0.2642238063421118,
+          "wall_seconds": 18.262678146362305,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 40,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L40/test_L40_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L40/test_L40_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2755892468961106,
+          "finite_size_beta_c": 0.26578469912085273,
+          "wall_seconds": 32.20615267753601,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 48,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L48/test_L48_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L48/test_L48_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2755892468961106,
+          "finite_size_beta_c": 0.26750524219901767,
+          "wall_seconds": 50.80109238624573,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 56,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L56/test_L56_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_large_referece/results/ctx128_tests_fp_moreL_20260515/test_data/grid/L56/test_L56_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2755892468961106,
+          "finite_size_beta_c": 0.2709105116125054,
+          "wall_seconds": 75.64454960823059,
+          "message": "completed with shared continuum beta"
+        }
+      ],
+      "beta_extrapolation": {
+        "method": "free_power_continuum",
+        "ansatz": "beta_c(L) = beta_c(infinity) + a * L^(-p)",
+        "weighted": false,
+        "parameters": {
+          "beta_c": 0.2755892468961106,
+          "amplitude": -0.24790982688993268,
+          "exponent": 0.9146529591516812,
+          "exponent_initial": 1.0,
+          "exponent_min": 0.05,
+          "exponent_max": 3.0
+        },
+        "L_values": [
+          8,
+          12,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "beta_values": [
+          0.23887061926544612,
+          0.2488060941127655,
+          0.2566555423237397,
+          0.26389843943007685,
+          0.2642238063421118,
+          0.26578469912085273,
+          0.26750524219901767,
+          0.2709105116125054
+        ],
+        "sigma_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "beta_fit_values": [
+          0.23858259345112987,
+          0.2500494510174347,
+          0.2559582733967127,
+          0.26204111407670483,
+          0.2651755757137915,
+          0.26709812979490855,
+          0.2684023490930035,
+          0.2693474678628068
+        ],
+        "residual_values": [
+          0.00028802581431625063,
+          -0.0012433569046692017,
+          0.0006972689270270394,
+          0.001857325353372019,
+          -0.0009517693716797337,
+          -0.0013134306740558155,
+          -0.0008971068939858107,
+          0.0015630437496986227
+        ],
+        "beta_c_continuum": 0.2755892468961106,
+        "beta_c_continuum_sigma": 0.003837059993873917,
+        "rms_residual": 0.0011960146478045429,
+        "n_points": 8,
+        "lmin": 8,
+        "lmax": 56
+      },
+      "finite_beta_rows": [
+        {
+          "L": 8,
+          "beta_c": 0.23887061926544612,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 12,
+          "beta_c": 0.2488060941127655,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 16,
+          "beta_c": 0.2566555423237397,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 24,
+          "beta_c": 0.26389843943007685,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 32,
+          "beta_c": 0.2642238063421118,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 40,
+          "beta_c": 0.26578469912085273,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 48,
+          "beta_c": 0.26750524219901767,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 56,
+          "beta_c": 0.2709105116125054,
+          "beta_c_sigma": 0.0
+        }
+      ]
+    }
+  ]
+}

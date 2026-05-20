@@ -1,0 +1,48 @@
+{
+  "run": {
+    "tag": "smoke_ref_20260512"
+  },
+  "paths": {
+    "results_root": "results",
+    "resume": false
+  },
+  "execution": {
+    "exe": null,
+    "auto_build": true,
+    "force_rebuild": false,
+    "build_command": ["make"],
+    "build_timeout_s": 600
+  },
+  "reference_lattice": {
+    "Lx": 8,
+    "Ly": 8,
+    "Tx": 0,
+    "Ty": 0
+  },
+  "reference_couplings": {
+    "k3": 1.0,
+    "k1_over_k3": 1.0,
+    "k2_over_k3": 1.0
+  },
+  "beta_finder": {
+    "beta_lo": 0.05,
+    "beta_hi": 0.4,
+    "n_coarse": 5,
+    "n_refine": 2,
+    "n_refine2": 2,
+    "n_refine3": 2,
+    "n_traj_coarse": 8,
+    "n_traj_fine": 12,
+    "max_shifts": 2,
+    "jackknife": false
+  },
+  "mc": {
+    "n_traj": 30,
+    "n_skip": 5,
+    "n_therm": 20
+  },
+  "analysis_points": {
+    "k_values": [1, 2, 3],
+    "k_denominator": 4
+  }
+}

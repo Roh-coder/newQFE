@@ -1,0 +1,66 @@
+{
+  "tag": "boundary_opt_prod_phase1",
+  "reference_mode": "continuum",
+  "test_sizes": [
+    8,
+    16,
+    24,
+    32,
+    40
+  ],
+  "ref_sizes": [
+    8,
+    16,
+    24,
+    32,
+    40
+  ],
+  "ref_large": [
+    96,
+    96,
+    24,
+    24
+  ],
+  "ref_geom_map": {
+    "8": [
+      8,
+      8,
+      2,
+      2
+    ],
+    "16": [
+      16,
+      16,
+      4,
+      4
+    ],
+    "24": [
+      24,
+      24,
+      6,
+      6
+    ],
+    "32": [
+      32,
+      32,
+      8,
+      8
+    ],
+    "40": [
+      40,
+      40,
+      10,
+      10
+    ]
+  },
+  "r_min": 0.6,
+  "r_max": 1.4,
+  "r_step": 0.2,
+  "n_traj": 20000,
+  "n_traj_coarse": 3000,
+  "n_traj_fine": 6000,
+  "weighted": false,
+  "ref_fixed_r1": 1.0,
+  "ref_fixed_r2": 1.0,
+  "dat_dir": "/workspaces/newQFE/K_from_BC_Heatmap/results/boundary_opt_prod_phase1/dat"
+}

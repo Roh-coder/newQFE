@@ -1,0 +1,27 @@
+{
+  "run": {
+    "tag": "production_compare_highstats_20260512"
+  },
+  "paths": {
+    "results_root": "results"
+  },
+  "input": {
+    "reference_data_file": "results/production_ref_highstats_20260512/reference_data/reference_all_to_all.dat",
+    "tests_manifest": "results/production_tests_highstats_20260512/test_data/manifest_tests.json"
+  },
+  "analysis": {
+    "k_values": [1, 2, 3, 4, 5, 6, 7],
+    "k_denominator": 8,
+    "weighted": false,
+    "power_fit": {
+      "c_min": 0.05,
+      "c_max": 3.5,
+      "c_initial": 1.0
+    },
+    "fss_plots": {
+      "enabled": true,
+      "dpi": 150,
+      "max_points": null
+    }
+  }
+}

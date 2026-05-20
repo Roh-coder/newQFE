@@ -1,0 +1,28 @@
+{
+  "run": {
+    "tag": "smoke_score_run"
+  },
+  "paths": {
+    "results_root": "results"
+  },
+  "input": {
+    "reference_manifest": "results/smoke_reference_run/reference_data/manifest_reference.json",
+    "tests_manifest": "results/smoke_tests_run/test_data/manifest_tests.json"
+  },
+  "analysis": {
+    "k_values": [1, 2, 3],
+    "k_denominator": 4,
+    "weighted": false,
+    "power_fit": {
+      "c_min": 0.05,
+      "c_max": 3.0,
+      "c_initial": 1.0,
+      "min_sizes_for_free_C": 3
+    },
+    "fss_plots": {
+      "enabled": true,
+      "dpi": 150,
+      "max_points": null
+    }
+  }
+}

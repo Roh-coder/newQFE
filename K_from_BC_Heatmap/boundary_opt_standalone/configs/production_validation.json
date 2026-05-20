@@ -1,0 +1,68 @@
+{
+  "run": {
+    "tag": "production_validation"
+  },
+  "execution": {
+    "n_workers": 2
+  },
+  "grid": {
+    "r_min": 0.8,
+    "r_max": 1.2,
+    "r_step": 0.2,
+    "k3": 1.0
+  },
+  "test_family": {
+    "sizes": [4, 6, 8],
+    "geom_defaults": {
+      "Lx_mult": 1.0,
+      "Ly_mult": 1.0,
+      "Tx_frac": 0.0,
+      "Ty_frac": 0.0
+    }
+  },
+  "reference_family": {
+    "mode": "continuum",
+    "sizes": [4, 6, 8],
+    "geom_defaults": {
+      "Lx_mult": 1.0,
+      "Ly_mult": 1.0,
+      "Tx_frac": 0.25,
+      "Ty_frac": 0.25
+    },
+    "fixed_r1": 1.0,
+    "fixed_r2": 1.0
+  },
+  "mc": {
+    "n_traj": 250,
+    "n_skip": 10,
+    "n_therm": 300
+  },
+  "beta_c_finder": {
+    "beta_lo": 0.05,
+    "beta_hi": 0.40,
+    "n_coarse": 11,
+    "n_refine": 5,
+    "n_refine2": 5,
+    "n_refine3": 5,
+    "n_traj_coarse": 30,
+    "n_traj_fine": 60,
+    "max_shifts": 4,
+    "jackknife": false
+  },
+  "analysis": {
+    "k_values": [1, 2, 3, 4, 5, 6, 7],
+    "k_denominator": 8,
+    "weighted": false,
+    "fit_mode": "quadratic"
+  },
+  "monitor": {
+    "show_live_monitor": true,
+    "show_final_plots": true,
+    "refresh_every_jobs": 1,
+    "refresh_every_seconds": 0.5,
+    "save_monitor_snapshot": true,
+    "dashboard_size": [14, 10],
+    "final_size": [13.0, 5.8],
+    "dpi": 150
+  }
+}

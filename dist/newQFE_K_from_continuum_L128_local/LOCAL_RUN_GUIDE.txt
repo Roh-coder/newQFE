@@ -1,0 +1,120 @@
+Local L128 Continuum Run Bundle
+================================
+
+This bundle is a self-contained copy of the K_from_continuum workflow for the
+L = 16..128 reference family and the 7x7 test grid used for the large
+reference-vs-test comparison.
+
+What is included
+----------------
+- Spyder entry point:    run_from_spyder.py
+- Reference run config: K_from_continuum/configs/local_L128_reference.json
+- Test run config:      K_from_continuum/configs/local_L128_tests.json
+- Score run config:     K_from_continuum/configs/local_L128_score.json
+- One-step wrappers:
+  - setup_local_env.sh
+  - run_reference_L128.sh
+  - run_tests_L128.sh
+  - run_score_L128.sh
+  - run_all_L128.sh
+  - make_large_comparison_plots.sh
+
+Prerequisites
+-------------
+You need these tools on the local machine:
+- bash
+- python3
+- a C++ compiler: g++, c++, or cl
+
+Notes:
+- For the Spyder launcher, make is optional. If make is missing, the launcher
+  will compile the simulator directly with g++, c++, or cl.
+- On Windows, cl usually means the Microsoft C++ Build Tools are installed and
+  available on PATH.
+- The shell wrappers still expect bash and make, so on Windows the recommended
+  entry point is run_from_spyder.py.
+
+Spyder quick start
+------------------
+1. Unzip this folder.
+2. Open run_from_spyder.py in Spyder.
+3. At the top of the file, set:
+  MODE = "all"
+   or choose one of:
+  "reference", "tests", "score", "plots", "all"
+4. Press Run.
+
+The launcher uses Spyder's current Python interpreter, installs the Python
+requirements into that interpreter when AUTO_INSTALL_PYTHON_DEPS = True, builds
+the simulator with make, and then runs the selected workflow step(s).
+
+Terminal quick start
+--------------------
+If you prefer the terminal wrappers instead of Spyder, run:
+  bash run_all_L128.sh
+
+One-command run
+---------------
+For Spyder, set MODE = "all" in run_from_spyder.py and press Run.
+
+For a terminal run, use:
+  bash run_all_L128.sh
+
+Resume behavior
+---------------
+The configs ship with "resume": true, so re-running the same wrapper will pick
+up where it left off instead of restarting from zero.
+
+Main output locations
+---------------------
+Reference outputs:
+  K_from_continuum/results/local_iso111_ref4x_qtr_reference_L128/reference_data/
+
+Test outputs:
+  K_from_continuum/results/local_iso111_ref4x_qtr_tests_L128_grid7x7/test_data/
+
+Score and comparison outputs:
+  K_from_continuum/results/local_iso111_ref4x_qtr_score_L128_grid7x7/comparison_analysis_data/
+
+Large comparison plots
+----------------------
+From Spyder, regenerate the large comparison plots by setting:
+  MODE = "plots"
+and running run_from_spyder.py again.
+
+From a terminal, you can also run:
+  bash make_large_comparison_plots.sh
+
+That regenerates the score step and writes the main plots here:
+  K_from_continuum/results/local_iso111_ref4x_qtr_score_L128_grid7x7/comparison_analysis_data/score_heatmap.png
+  K_from_continuum/results/local_iso111_ref4x_qtr_score_L128_grid7x7/comparison_analysis_data/zscore_heatmap.png
+  K_from_continuum/results/local_iso111_ref4x_qtr_score_L128_grid7x7/comparison_analysis_data/score_zscore_heatmaps.png
+  K_from_continuum/results/local_iso111_ref4x_qtr_score_L128_grid7x7/comparison_analysis_data/fss_plots/
+
+If you want Spyder to pop open the three main heatmaps after scoring, set:
+  SHOW_COMPARISON_PLOTS = True
+in run_from_spyder.py before running MODE = "score", MODE = "plots", or
+MODE = "all".
+
+What the plots mean
+-------------------
+- score_heatmap.png: scalar score over the full 7x7 coupling grid
+- zscore_heatmap.png: RMS z-score over the same grid
+- score_zscore_heatmaps.png: both heatmaps side by side
+- fss_plots/: per-point finite-size scaling plots comparing test and reference
+  channels plus their continuum fits
+
+Runtime note
+------------
+At the settings shipped here, the large 7x7 test sweep to L = 128 is roughly a
+12 to 18 hour job on 2 workers, with about 15 hours as a reasonable central
+estimate. The score/plot step is much smaller than the Monte Carlo generation.
+
+Tuning parallelism
+------------------
+To use more or fewer workers, edit:
+  K_from_continuum/configs/local_L128_tests.json
+and change:
+  execution.n_workers
+
+The default is 2.

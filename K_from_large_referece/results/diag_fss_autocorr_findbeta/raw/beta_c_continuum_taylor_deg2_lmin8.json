@@ -1,0 +1,56 @@
+{
+  "ansatz": "beta_pc(L) = sum_n c_n * (1/L)^n with c_0 = beta_c_continuum",
+  "beta_c_continuum": 0.277710204886644,
+  "beta_c_continuum_sigma": 0.0030486170728884284,
+  "coefficients_descending_powers": [
+    0.014817478949614408,
+    -0.38802739443175027,
+    0.277710204886644
+  ],
+  "degree": 2,
+  "delta_vs_exact": 0.003057132719616551,
+  "exact_triangular_ising_beta_c": 0.27465307216702745,
+  "lmax": 56.0,
+  "lmin": 8.0,
+  "n_points": 7,
+  "rms_residual": 0.0016426721392179652,
+  "summary_file": "/workspaces/newQFE/K_from_large_referece/results/diag_fss_autocorr_findbeta/raw/summary.dat",
+  "weighted": false,
+  "window_scan": [
+    {
+      "beta_c_continuum": 0.277710204886644,
+      "beta_c_continuum_sigma": 0.0030486170728884284,
+      "lmin": 8.0,
+      "n_points": 7,
+      "rms_residual": 0.0016426721392179652
+    },
+    {
+      "beta_c_continuum": 0.2697851684688654,
+      "beta_c_continuum_sigma": 0.005466319481685332,
+      "lmin": 16.0,
+      "n_points": 6,
+      "rms_residual": 0.0012883234521066055
+    },
+    {
+      "beta_c_continuum": 0.25239696006907847,
+      "beta_c_continuum_sigma": 0.0040387043927114594,
+      "lmin": 24.0,
+      "n_points": 5,
+      "rms_residual": 0.0003944449244018423
+    },
+    {
+      "beta_c_continuum": 0.26389942254086013,
+      "beta_c_continuum_sigma": 0.004351675889941339,
+      "lmin": 32.0,
+      "n_points": 4,
+      "rms_residual": 0.00014286593461436907
+    },
+    {
+      "beta_c_continuum": 0.2760909999999998,
+      "beta_c_continuum_sigma": null,
+      "lmin": 40.0,
+      "n_points": 3,
+      "rms_residual": 9.614813431917819e-17
+    }
+  ]
+}

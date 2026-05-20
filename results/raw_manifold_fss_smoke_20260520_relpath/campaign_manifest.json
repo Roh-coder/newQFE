@@ -1,0 +1,9 @@
+{
+  "created_at": "2026-05-20 04:01:18",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_campaign.json",
+  "run_tag": "raw_manifold_fss_smoke_20260520_relpath",
+  "run_root": "/workspaces/newQFE/results/raw_manifold_fss_smoke_20260520_relpath",
+  "benchmark_manifests": [
+    "/workspaces/newQFE/results/raw_manifold_fss_smoke_20260520_relpath/manifest_geometry_111.json"
+  ]
+}

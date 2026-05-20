@@ -1,0 +1,9 @@
+{
+  "created_at": "2026-05-20 20:33:38",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_campaign_more_large_sizes_high_stats.json",
+  "run_tag": "raw_manifold_fss_integer_multiples_high_stats_20260520",
+  "run_root": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_integer_multiples_high_stats_20260520",
+  "benchmark_manifests": [
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_integer_multiples_high_stats_20260520/manifest_geometry_456.json"
+  ]
+}

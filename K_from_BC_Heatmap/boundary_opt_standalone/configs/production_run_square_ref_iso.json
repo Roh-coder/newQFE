@@ -1,0 +1,65 @@
+{
+  "run": {
+    "tag": "production_run_square_ref_iso_20260512"
+  },
+  "execution": {
+    "n_workers": 4
+  },
+  "grid": {
+    "r_min": 0.6,
+    "r_max": 1.4,
+    "r_step": 0.2,
+    "k3": 1.0
+  },
+  "test_family": {
+    "sizes": [8, 16, 24, 32, 40],
+    "geom_map": {
+      "8": [8, 8, 0, 0],
+      "16": [16, 16, 0, 0],
+      "24": [24, 24, 0, 0],
+      "32": [32, 32, 0, 0],
+      "40": [40, 40, 0, 0]
+    }
+  },
+  "reference_family": {
+    "mode": "continuum",
+    "sizes": [16, 32, 48, 64, 80],
+    "geom_map": {
+      "16": [16, 16, 0, 0],
+      "32": [32, 32, 0, 0],
+      "48": [48, 48, 0, 0],
+      "64": [64, 64, 0, 0],
+      "80": [80, 80, 0, 0]
+    },
+    "fixed_r1": 1.0,
+    "fixed_r2": 1.0
+  },
+  "mc": {
+    "n_traj": 500,
+    "n_skip": 10,
+    "n_therm": 500
+  },
+  "beta_c_finder": {
+    "beta_lo": 0.05,
+    "beta_hi": 0.40,
+    "n_coarse": 11,
+    "n_refine": 5,
+    "n_refine2": 5,
+    "n_refine3": 5,
+    "n_traj_coarse": 60,
+    "n_traj_fine": 120,
+    "max_shifts": 4,
+    "jackknife": false
+  },
+  "analysis": {
+    "k_values": [1, 2, 3, 4, 5, 6, 7],
+    "k_denominator": 8,
+    "weighted": false,
+    "fit_mode": "quadratic"
+  },
+  "monitor": {
+    "show_live_monitor": false,
+    "show_final_plots": false,
+    "save_monitor_snapshot": false
+  }
+}

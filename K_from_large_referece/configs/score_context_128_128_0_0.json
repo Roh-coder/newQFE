@@ -1,0 +1,27 @@
+{
+  "run": {
+    "tag": "context_score_128_128_0_0_20260513_fixed"
+  },
+  "paths": {
+    "results_root": "results"
+  },
+  "input": {
+    "reference_data_file": "context/score_128_128_0_0/ref_128_128_0_0/reference_data/reference_all_to_all.dat",
+    "tests_manifest": "context/score_128_128_0_0/patched/manifest_tests.json"
+  },
+  "analysis": {
+    "k_values": [1, 2, 3, 4, 5, 6, 7],
+    "k_denominator": 8,
+    "weighted": false,
+    "power_fit": {
+      "c_min": 0.05,
+      "c_max": 3.5,
+      "c_initial": 1.0
+    },
+    "fss_plots": {
+      "enabled": true,
+      "dpi": 150,
+      "max_points": null
+    }
+  }
+}

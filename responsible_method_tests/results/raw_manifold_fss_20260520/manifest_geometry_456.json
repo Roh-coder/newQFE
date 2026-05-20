@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-05-20 04:03:38",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_campaign.json",
+  "run_tag": "raw_manifold_fss_20260520",
+  "benchmark_id": "geometry_456",
+  "description": "4-5-6 benchmark: twisted isotropic cell vs untwisted anisotropic couplings.",
+  "target_geometry": [
+    13,
+    16,
+    -3,
+    3
+  ],
+  "methods": {
+    "twisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_20260520/geometry_456/twisted/manifest_geometry_456_twisted.json",
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_20260520/geometry_456/untwisted/manifest_geometry_456_untwisted.json"
+  }
+}

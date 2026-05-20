@@ -1,0 +1,101 @@
+{
+  "run": {
+    "tag": "raw_manifold_fss_integer_multiples_20260520"
+  },
+  "paths": {
+    "results_root": "results",
+    "resume": true
+  },
+  "execution": {
+    "n_workers": 1,
+    "exe": null,
+    "auto_build": true,
+    "force_rebuild": false,
+    "build_command": ["make"],
+    "build_timeout_s": 600
+  },
+  "mc": {
+    "n_traj": 2000,
+    "n_skip": 10,
+    "n_therm": 1500
+  },
+  "fss": {
+    "fit_method": "taylor2",
+    "c_min": 0.05,
+    "c_max": 3.5,
+    "c_initial": 1.0,
+    "min_sizes_for_free_C": 8
+  },
+  "benchmarks": [
+    {
+      "id": "geometry_111",
+      "description": "Equilateral control geometry at exact criticality.",
+      "modular_target_geometry": [12, 12, 0, 0],
+      "twisted": {
+        "sizes": [12, 24, 36, 48, 72, 96, 120, 144],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [12, 24, 36, 48, 72, 96, 120, 144],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      }
+    },
+    {
+      "id": "geometry_456",
+      "description": "4-5-6 benchmark: twisted isotropic cell vs untwisted anisotropic couplings.",
+      "modular_target_geometry": [13, 16, -3, 3],
+      "twisted": {
+        "base_geometry": [13, 16, -3, 3],
+        "scales": [1, 2, 3, 4, 5, 6],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [16, 32, 48, 64, 80, 96],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "embedding_cycles": [0, 2],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 5.065231170850374,
+          "k2_over_k3": 7.742930488974055
+        },
+        "beta": 0.062828607070227,
+        "critical_source": "exact 4-5-6 anisotropic triangular critical point"
+      }
+    }
+  ]
+}

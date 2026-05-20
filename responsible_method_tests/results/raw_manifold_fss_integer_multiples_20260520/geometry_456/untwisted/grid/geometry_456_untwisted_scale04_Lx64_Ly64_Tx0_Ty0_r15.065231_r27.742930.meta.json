@@ -1,0 +1,31 @@
+{
+  "label": "geometry_456_untwisted_scale04",
+  "created_at": "2026-05-20 17:06:05",
+  "benchmark_id": "geometry_456",
+  "method": "untwisted",
+  "scale": 4,
+  "family_size": 64,
+  "L": 64,
+  "Lx": 64,
+  "Ly": 64,
+  "Tx": 0,
+  "Ty": 0,
+  "k1": 5.065231170850374,
+  "k2": 7.742930488974055,
+  "k3": 1.0,
+  "r1": 5.065231170850374,
+  "r2": 7.742930488974055,
+  "beta_c": 0.062828607070227,
+  "beta_c_sigma": 0.0,
+  "production_beta": 0.062828607070227,
+  "production_beta_source": "exact_critical",
+  "critical_source": "exact 4-5-6 anisotropic triangular critical point",
+  "production_wall_seconds": 7.657532453536987,
+  "mc": {
+    "n_traj": 2000,
+    "n_skip": 10,
+    "n_therm": 1500
+  },
+  "all_to_all_file": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_integer_multiples_20260520/geometry_456/untwisted/grid/geometry_456_untwisted_scale04_Lx64_Ly64_Tx0_Ty0_r15.065231_r27.742930.dat",
+  "source_all_to_all_file": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_integer_multiples_20260520/_mc_scratch/geometry_456/untwisted/geometry_456_untwisted_scale04/prod/64x64_t0x0_k5065_7743_1000_500/two_point_all_to_all.dat"
+}

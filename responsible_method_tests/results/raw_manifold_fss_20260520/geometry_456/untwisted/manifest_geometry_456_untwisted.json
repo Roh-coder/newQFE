@@ -1,0 +1,72 @@
+{
+  "created_at": "2026-05-20 04:03:38",
+  "benchmark_id": "geometry_456",
+  "benchmark_description": "4-5-6 benchmark: twisted isotropic cell vs untwisted anisotropic couplings.",
+  "method": "untwisted",
+  "target_geometry": [
+    13,
+    16,
+    -3,
+    3
+  ],
+  "target_tau": {
+    "real": 0.9009216589861752,
+    "imag": 0.7941891951755913
+  },
+  "critical_source": "exact 4-5-6 anisotropic triangular critical point",
+  "beta": 0.062828607070227,
+  "couplings": {
+    "k3": 1.0,
+    "r1": 5.065231170850374,
+    "r2": 7.742930488974055,
+    "k1": 5.065231170850374,
+    "k2": 7.742930488974055
+  },
+  "resume": true,
+  "payloads": [
+    {
+      "scale": 1,
+      "family_size": 16,
+      "lattice": [
+        16,
+        16,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_20260520/geometry_456/untwisted/grid/geometry_456_untwisted_scale01_Lx16_Ly16_Tx0_Ty0_r15.065231_r27.742930.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_20260520/geometry_456/untwisted/grid/geometry_456_untwisted_scale01_Lx16_Ly16_Tx0_Ty0_r15.065231_r27.742930.meta.json"
+    },
+    {
+      "scale": 2,
+      "family_size": 32,
+      "lattice": [
+        32,
+        32,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_20260520/geometry_456/untwisted/grid/geometry_456_untwisted_scale02_Lx32_Ly32_Tx0_Ty0_r15.065231_r27.742930.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_20260520/geometry_456/untwisted/grid/geometry_456_untwisted_scale02_Lx32_Ly32_Tx0_Ty0_r15.065231_r27.742930.meta.json"
+    },
+    {
+      "scale": 4,
+      "family_size": 64,
+      "lattice": [
+        64,
+        64,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_20260520/geometry_456/untwisted/grid/geometry_456_untwisted_scale04_Lx64_Ly64_Tx0_Ty0_r15.065231_r27.742930.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_20260520/geometry_456/untwisted/grid/geometry_456_untwisted_scale04_Lx64_Ly64_Tx0_Ty0_r15.065231_r27.742930.meta.json"
+    }
+  ],
+  "smallest_point_count": 256,
+  "comparable_point_count": 255,
+  "smallest_lattice_points": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_20260520/geometry_456/untwisted/smallest_lattice_points.dat",
+  "pointwise_raw": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_20260520/geometry_456/untwisted/pointwise_raw.dat",
+  "pointwise_continuum": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_20260520/geometry_456/untwisted/pointwise_continuum.dat",
+  "modular_raw": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_20260520/geometry_456/untwisted/modular_raw.dat",
+  "modular_aligned": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_20260520/geometry_456/untwisted/modular_aligned.dat",
+  "modular_alignment": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_20260520/geometry_456/untwisted/modular_alignment.json"
+}

@@ -1,0 +1,179 @@
+{
+  "config": {
+    "run": {
+      "tag": "smoke_continuum_resume_check"
+    },
+    "paths": {
+      "results_dir": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/results",
+      "resume": true,
+      "progress_log_name": "progress_log.jsonl"
+    },
+    "execution": {
+      "exe": null,
+      "auto_build": true,
+      "force_rebuild": false,
+      "build_command": [
+        "make"
+      ],
+      "build_timeout_s": 600,
+      "n_workers": 2
+    },
+    "grid": {
+      "r_min": 0.9,
+      "r_max": 1.1,
+      "r_step": 0.2,
+      "r1_values": null,
+      "r2_values": null,
+      "k3": 1.0
+    },
+    "test_family": {
+      "sizes": [
+        4,
+        6,
+        8
+      ],
+      "geom_defaults": {
+        "Lx_mult": 1.0,
+        "Ly_mult": 1.0,
+        "Tx_frac": 0.0,
+        "Ty_frac": 0.0
+      },
+      "geom_map": null
+    },
+    "reference_family": {
+      "mode": "continuum",
+      "sizes": [
+        4,
+        6,
+        8
+      ],
+      "geom_defaults": {
+        "Lx_mult": 1.0,
+        "Ly_mult": 1.0,
+        "Tx_frac": 0.25,
+        "Ty_frac": 0.25
+      },
+      "geom_map": null,
+      "large_geom": [
+        12,
+        12,
+        3,
+        3
+      ],
+      "fixed_r1": 1.0,
+      "fixed_r2": 1.0
+    },
+    "mc": {
+      "n_traj": 120,
+      "n_skip": 10,
+      "n_therm": 200
+    },
+    "beta_c_finder": {
+      "beta_lo": 0.05,
+      "beta_hi": 0.4,
+      "n_coarse": 9,
+      "n_refine": 4,
+      "n_refine2": 4,
+      "n_refine3": 4,
+      "n_traj_coarse": 20,
+      "n_traj_fine": 40,
+      "max_shifts": 3,
+      "jackknife": false
+    },
+    "analysis": {
+      "k_values": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "k_denominator": 8,
+      "weighted": false,
+      "fit_mode": "quadratic"
+    },
+    "monitor": {
+      "show_live_monitor": false,
+      "show_final_plots": false,
+      "refresh_every_jobs": 1,
+      "refresh_every_seconds": 0.5,
+      "save_monitor_snapshot": true,
+      "dashboard_size": [
+        14,
+        10
+      ],
+      "final_size": [
+        13.0,
+        5.8
+      ],
+      "dpi": 150
+    }
+  },
+  "derived": {
+    "r1_values": [
+      0.9,
+      1.1
+    ],
+    "r2_values": [
+      0.9,
+      1.1
+    ],
+    "test_geom_map": {
+      "4": [
+        4,
+        4,
+        0,
+        0
+      ],
+      "6": [
+        6,
+        6,
+        0,
+        0
+      ],
+      "8": [
+        8,
+        8,
+        0,
+        0
+      ]
+    },
+    "ref_geom_map": {
+      "4": [
+        4,
+        4,
+        1,
+        1
+      ],
+      "6": [
+        6,
+        6,
+        2,
+        2
+      ],
+      "8": [
+        8,
+        8,
+        2,
+        2
+      ]
+    },
+    "exe": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/bin/ising_tri_twisted_parallelogram"
+  },
+  "summary": {
+    "jobs_total": 15,
+    "jobs_ok": 0,
+    "jobs_skip": 15,
+    "jobs_err": 0,
+    "analysis_total": 4,
+    "analysis_done": 4,
+    "best": {
+      "r1_min": 0.9,
+      "r2_min": 0.9,
+      "score_min": 31.136457762911526
+    },
+    "wall_s": 1.966
+  }
+}

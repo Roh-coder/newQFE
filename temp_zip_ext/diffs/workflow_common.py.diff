@@ -1,0 +1,18 @@
+--- temp_zip_ext/newQFE_K_from_continuum_L128_local/K_from_continuum/workflow_common.py	2026-05-18 19:00:59.000000000 +0000
++++ K_from_continuum/workflow_common.py	2026-05-15 04:31:03.647676415 +0000
+@@ -822,7 +822,6 @@
+     beta_cfg: dict[str, Any],
+     scratch_root: str,
+     label: str,
+-    n_workers: int = 1,
+ ) -> dict[str, Any]:
+     Lx, Ly, Tx, Ty = lattice
+     k1 = couplings["k1"]
+@@ -852,7 +851,6 @@
+         data_dir=os.path.join(scratch, "scan"),
+         max_shifts=int(beta_cfg.get("max_shifts", 4)),
+         jackknife=bool(beta_cfg.get("jackknife", False)),
+-        n_workers=max(1, int(n_workers)),
+     )
+     return {
+         "label": label,

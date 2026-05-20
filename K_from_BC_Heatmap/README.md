@@ -152,31 +152,8 @@ python3 run.py --stages compute plot --tag prod --cost-modes spectral
 | `--tag`         | `default`   | sweep tag (must match precompute)                 |
 | `--cost-mode`   | `huber_log` | one of the modes in `cost.py`                     |
 | `--cost-power`  | `2`         | residual exponent for `test_native`               |
-| `--fit`         | `linear`    | `linear` (a + b/L), `quadratic` (+ c/L²), `exponential` (a + b·exp(−L/ξ)), or `all` (all three in one pass) |
-| `--out-name`    | derived     | basename for `.npz` / `.json` (default for `all`: `cost_<mode>_all_fits`) |
-
-### `plot_fit_comparison.py`
-
-Compares the three continuum-extrapolation methods side-by-side.  Requires
-a `.npz` produced with `--fit all`.
-
-```bash
-python3 compute_landscape.py --tag prod --cost-mode huber_log --fit all
-python3 plot_fit_comparison.py --tag prod --cost-mode huber_log
-```
-
-Outputs (under `results/<tag>/plots/`):
-
-| file | contents |
-|------|----------|
-| `fit_comparison_<mode>.png` | Row per fit type (linear / quadratic / exponential) showing `cost_inf` and `σ_inf` heatmaps, plus a summary row with the std and range of `cost_inf` across the three methods |
-| `fit_comparison_<mode>_diff.png` | Pairwise difference maps (symmetric colour scale) so systematic shifts between methods are immediately visible |
-
-| flag          | default              | meaning                                              |
-|---------------|----------------------|------------------------------------------------------|
-| `--tag`       | `smoke`              | sweep tag (must match the compute run)               |
-| `--cost-mode` | `huber_log`          | which `_all_fits.npz` to load                        |
-| `--in-name`   | derived              | override the full npz basename                       |
+| `--fit`         | `linear`    | `linear` (a + b/L) or `quadratic` (+ c/L²)        |
+| `--out-name`    | derived     | basename for `.npz` / `.json`                     |
 
 ### `plot_landscape.py`
 
@@ -213,10 +190,8 @@ Resumability means you can stop / restart safely.
 
 `run_smoke.sh` runs the entire pipeline at tiny sizes (`L ∈ {6, 8}`,
 `r ∈ {0.5, 1.0, 1.5}`, `n_traj = 800`, ~35 s of MC on 2 workers) and
-exercises both `huber_log` and `test_native` cost modes.  For each mode
-it runs both the standard (`--fit linear`) and the all-fits comparison
-(`--fit all` + `plot_fit_comparison.py`).  All output PNGs land under
-`results/smoke/plots/`.
+exercises both `huber_log` and `test_native` cost modes.  The five
+output PNGs land under `results/smoke/plots/`.
 
 ## Related work in this repo
 

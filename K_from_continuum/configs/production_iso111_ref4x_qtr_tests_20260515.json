@@ -1,0 +1,55 @@
+{
+  "run": {
+    "tag": "production_iso111_qtr_tests_L128_grid7x7_20260515"
+  },
+  "paths": {
+    "results_root": "results",
+    "resume": true
+  },
+  "execution": {
+    "n_workers": 2,
+    "exe": null,
+    "auto_build": true,
+    "force_rebuild": false,
+    "build_command": ["make"],
+    "build_timeout_s": 600
+  },
+  "test_family": {
+    "sizes": [16, 32, 48, 64, 80, 96, 112, 128],
+    "geometry_defaults": {
+      "Lx_mult": 1.0,
+      "Ly_mult": 1.0,
+      "Tx_frac": 0.0,
+      "Ty_frac": 0.0
+    }
+  },
+  "couplings": {
+    "k3": 1.0,
+    "k1_over_k3_values": [0.95, 0.9666666667, 0.9833333333, 1.0, 1.0166666667, 1.0333333333, 1.05],
+    "k2_over_k3_values": [0.95, 0.9666666667, 0.9833333333, 1.0, 1.0166666667, 1.0333333333, 1.05]
+  },
+  "beta_strategy": {
+    "mode": "taylor2_continuum",
+    "weighted": false,
+    "exponent_initial": 1.0,
+    "exponent_min": 0.05,
+    "exponent_max": 3.0
+  },
+  "beta_finder": {
+    "beta_lo": 0.05,
+    "beta_hi": 0.40,
+    "n_coarse": 11,
+    "n_refine": 5,
+    "n_refine2": 5,
+    "n_refine3": 5,
+    "n_traj_coarse": 200,
+    "n_traj_fine": 400,
+    "max_shifts": 4,
+    "jackknife": false
+  },
+  "mc": {
+    "n_traj": 2000,
+    "n_skip": 10,
+    "n_therm": 1500
+  }
+}

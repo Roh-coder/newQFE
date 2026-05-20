@@ -1,0 +1,102 @@
+{
+  "created_at": "2026-05-13 14:47:41",
+  "config_path": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\configs\\score_example.json",
+  "run_tag": "score_128_128_0_0",
+  "run_root": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0",
+  "reference_data_dir": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\reference_data",
+  "test_data_dir": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\test_data",
+  "comparison_analysis_data_dir": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\comparison_analysis_data",
+  "reference_data_file": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\ref_128_128_0_0\\reference_data\\reference_all_to_all.dat",
+  "reference_metadata_file": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\ref_128_128_0_0\\reference_data\\reference_all_to_all.meta.json",
+  "tests_manifest": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\test_0.5_1.5\\test_data\\manifest_tests.json",
+  "sizes": [
+    8,
+    16,
+    24,
+    32,
+    40,
+    56
+  ],
+  "k_values": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "k_denominator": 8,
+  "weighted": false,
+  "power_fit": {
+    "model": "A + B*(1/L)^C",
+    "c_min": 0.05,
+    "c_max": 4.0,
+    "c_initial": 1.0
+  },
+  "fss_plots": {
+    "enabled": true,
+    "dpi": 150,
+    "max_points": null,
+    "saved_points": 121
+  },
+  "outputs": {
+    "reference_channels_scored": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\reference_data\\reference_channels_scored.dat",
+    "raw_test_channels_scored": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\test_data\\raw_test_channels_scored.dat",
+    "continuum_test_channels": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\comparison_analysis_data\\continuum_test_channels.dat",
+    "channel_comparison": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\comparison_analysis_data\\channel_comparison.dat",
+    "score_map": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\comparison_analysis_data\\score_map.dat",
+    "score_minimum": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\comparison_analysis_data\\score_minimum.dat",
+    "fss_plot_data": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\comparison_analysis_data\\fss_plot_data.dat",
+    "fss_plot_index": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\comparison_analysis_data\\fss_plot_index.dat",
+    "fss_plot_dir": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\comparison_analysis_data\\fss_plots",
+    "score_heatmap": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\comparison_analysis_data\\score_heatmap.png",
+    "zscore_heatmap": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\comparison_analysis_data\\zscore_heatmap.png",
+    "score_zscore_heatmaps": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\score_128_128_0_0\\comparison_analysis_data\\score_zscore_heatmaps.png"
+  },
+  "summary": {
+    "n_points": 121,
+    "n_finite_scores": 121,
+    "best": {
+      "r1": 1.1,
+      "r2": 1.5,
+      "score": 0.010009028231383235,
+      "z_rms": 1.6587628542689539
+    }
+  },
+  "config": {
+    "run": {
+      "tag": "score_128_128_0_0"
+    },
+    "paths": {
+      "results_root": "results"
+    },
+    "input": {
+      "reference_data_file": "results/ref_128_128_0_0/reference_data/reference_all_to_all.dat",
+      "tests_manifest": "results/test_0.5_1.5/test_data/manifest_tests.json"
+    },
+    "analysis": {
+      "k_values": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "k_denominator": 8,
+      "weighted": false,
+      "power_fit": {
+        "c_min": 0.05,
+        "c_max": 4.0,
+        "c_initial": 1.0
+      },
+      "fss_plots": {
+        "enabled": true,
+        "dpi": 150,
+        "max_points": null
+      }
+    }
+  }
+}

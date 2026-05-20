@@ -5,8 +5,9 @@ run_boundary_continuum_opt.py
 Continuum-calibrated boundary-correlator optimization over (r1, r2).
 
 Workflow:
-1) Precompute MC payloads for test and reference geometries on size ladders.
-2) Sample boundary correlators at t_k = k/8 (k=0..7), cycles c=0,1,2.
+1) Precompute MC payloads for test geometries on the (r1, r2) grid, and for
+    reference geometries as fixed isotropic baselines.
+2) Sample boundary correlators at t_k = k/8 (k=1..7), cycles c=0,1,2.
 3) Extrapolate each channel to L->infinity with quadratic fit in 1/L.
 4) Build score S(r1,r2) = sum_{c,k} w(c,k) * [G_test_inf - G_ref_inf]^2.
 5) Write reusable .dat files for raw channels, continuum channels, and score map.
@@ -14,6 +15,8 @@ Workflow:
 Notes:
 - Internally this reuses cached pickle payloads from precompute_grid._run_one.
 - All analysis outputs are written to well-formatted .dat files.
+- Reference methodology: fixed lattice geometry with isotropic couplings
+    (k1=k2=k3), computed once per reference level and reused across (r1, r2).
 """
 from __future__ import annotations
 
@@ -145,6 +148,9 @@ def _build_jobs(args, out_root, exe, rs, ref_geom_map):
                          args.beta_seed[0], args.beta_seed[1],
                          scratch, out_pkl))
 
+    ref_r1 = float(args.ref_fixed_r1)
+    ref_r2 = float(args.ref_fixed_r2)
+
     if args.reference_mode == "continuum":
         for L in args.ref_sizes:
             if L not in ref_geom_map:
@@ -152,24 +158,22 @@ def _build_jobs(args, out_root, exe, rs, ref_geom_map):
             Lx, Ly, Tx, Ty = ref_geom_map[L]
             grid_dir = os.path.join(out_root, "grid", f"L{L}", "ref")
             os.makedirs(grid_dir, exist_ok=True)
-            for r1, r2 in points:
-                out_pkl = _point_path(grid_dir, r1, r2)
-                label = f"ref_L{L}_r1{r1:.3f}_r2{r2:.3f}"
-                jobs.append((exe, label, Lx, Ly, Tx, Ty, r1, r2,
-                             args.n_traj, args.n_traj_coarse, args.n_traj_fine,
-                             args.beta_seed[0], args.beta_seed[1],
-                             scratch, out_pkl))
+            out_pkl = _point_path(grid_dir, ref_r1, ref_r2)
+            label = f"ref_L{L}_fixed_r1{ref_r1:.3f}_r2{ref_r2:.3f}"
+            jobs.append((exe, label, Lx, Ly, Tx, Ty, ref_r1, ref_r2,
+                         args.n_traj, args.n_traj_coarse, args.n_traj_fine,
+                         args.beta_seed[0], args.beta_seed[1],
+                         scratch, out_pkl))
     else:
         Lx, Ly, Tx, Ty = args.ref_large
         grid_dir = os.path.join(out_root, "grid", "Lref_large", "ref")
         os.makedirs(grid_dir, exist_ok=True)
-        for r1, r2 in points:
-            out_pkl = _point_path(grid_dir, r1, r2)
-            label = f"ref_large_r1{r1:.3f}_r2{r2:.3f}"
-            jobs.append((exe, label, Lx, Ly, Tx, Ty, r1, r2,
-                         args.n_traj, args.n_traj_coarse, args.n_traj_fine,
-                         args.beta_seed[0], args.beta_seed[1],
-                         scratch, out_pkl))
+        out_pkl = _point_path(grid_dir, ref_r1, ref_r2)
+        label = f"ref_large_fixed_r1{ref_r1:.3f}_r2{ref_r2:.3f}"
+        jobs.append((exe, label, Lx, Ly, Tx, Ty, ref_r1, ref_r2,
+                     args.n_traj, args.n_traj_coarse, args.n_traj_fine,
+                     args.beta_seed[0], args.beta_seed[1],
+                     scratch, out_pkl))
 
     return jobs, points
 
@@ -216,6 +220,38 @@ def _score_heatmap_plot(rs, score_grid, out_png, title):
     plt.close(fig)
 
 
+def _score_and_zscore_heatmap_plot(rs, score_grid, zscore_grid, out_png, title):
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13.0, 5.8), sharex=True, sharey=True)
+
+    im1 = ax1.imshow(score_grid, origin="lower", aspect="auto",
+                     extent=[rs.min(), rs.max(), rs.min(), rs.max()])
+    cb1 = fig.colorbar(im1, ax=ax1)
+    cb1.set_label("score S(r1,r2)")
+    if np.any(np.isfinite(score_grid)):
+        j, i = np.unravel_index(np.nanargmin(score_grid), score_grid.shape)
+        ax1.plot(rs[i], rs[j], marker="*", markersize=12,
+                 markerfacecolor="white", markeredgecolor="k")
+    ax1.set_title("Score Heatmap")
+    ax1.set_xlabel("r1")
+    ax1.set_ylabel("r2")
+
+    im2 = ax2.imshow(zscore_grid, origin="lower", aspect="auto",
+                     extent=[rs.min(), rs.max(), rs.min(), rs.max()])
+    cb2 = fig.colorbar(im2, ax=ax2)
+    cb2.set_label("RMS z-score")
+    if np.any(np.isfinite(zscore_grid)):
+        jz, iz = np.unravel_index(np.nanargmin(zscore_grid), zscore_grid.shape)
+        ax2.plot(rs[iz], rs[jz], marker="*", markersize=12,
+                 markerfacecolor="white", markeredgecolor="k")
+    ax2.set_title("Test-vs-Reference RMS z-score")
+    ax2.set_xlabel("r1")
+
+    fig.suptitle(title)
+    fig.tight_layout()
+    fig.savefig(out_png, dpi=150)
+    plt.close(fig)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--tag", type=str, default="boundary_opt")
@@ -239,6 +275,11 @@ def main():
     ap.add_argument("--n-traj-fine", type=int, default=4000)
     ap.add_argument("--beta-seed", type=float, nargs=2, default=[0.05, 0.40])
     ap.add_argument("--n-workers", type=int, default=4)
+
+    ap.add_argument("--ref-fixed-r1", type=float, default=1.0,
+                    help="Fixed isotropic r1 used for reference payload generation")
+    ap.add_argument("--ref-fixed-r2", type=float, default=1.0,
+                    help="Fixed isotropic r2 used for reference payload generation")
 
     ap.add_argument("--weighted", action="store_true",
                     help="Use inverse-variance weighting in score sum")
@@ -266,15 +307,18 @@ def main():
         print("[fatal] precompute errors encountered; aborting analysis")
         return 2
 
-    t_fracs = np.arange(8, dtype=float) / 8.0
+    k_values = np.arange(1, 8, dtype=int)
+    t_fracs = k_values.astype(float) / 8.0
 
     raw_test_rows = []
     raw_ref_rows = []
     cont_test_rows = []
     cont_ref_rows = []
     score_rows = []
+    zscore_rows = []
 
     score_grid = np.full((len(rs), len(rs)), np.nan)
+    zscore_grid = np.full((len(rs), len(rs)), np.nan)
 
     # Build quick lookup from r-value to index in the mesh.
     r_index = {round(float(v), 12): i for i, v in enumerate(rs)}
@@ -291,17 +335,22 @@ def main():
             G, sG = _sample_boundary_from_payload(payload, t_fracs)
             test_by_L[L] = (payload, G, sG)
             for c in range(3):
-                for k, t in enumerate(t_fracs):
+                for ik, k in enumerate(k_values):
+                    t = float(t_fracs[ik])
                     raw_test_rows.append([
                         r1, r2, L, payload["Lx"], payload["Ly"], payload["Tx"], payload["Ty"],
-                        payload["beta_c"], c, k, t, G[c, k], sG[c, k]
+                        payload["beta_c"], c, int(k), t, G[c, ik], sG[c, ik]
                     ])
 
         # -------- collect reference channels --------
         ref_by_L = {}
         if args.reference_mode == "continuum":
             for L in args.ref_sizes:
-                pkl = _point_path(os.path.join(out_root, "grid", f"L{L}", "ref"), r1, r2)
+                pkl = _point_path(
+                    os.path.join(out_root, "grid", f"L{L}", "ref"),
+                    float(args.ref_fixed_r1),
+                    float(args.ref_fixed_r2),
+                )
                 if not os.path.exists(pkl):
                     continue
                 with open(pkl, "rb") as f:
@@ -309,23 +358,29 @@ def main():
                 G, sG = _sample_boundary_from_payload(payload, t_fracs)
                 ref_by_L[L] = (payload, G, sG)
                 for c in range(3):
-                    for k, t in enumerate(t_fracs):
+                    for ik, k in enumerate(k_values):
+                        t = float(t_fracs[ik])
                         raw_ref_rows.append([
                             r1, r2, L, payload["Lx"], payload["Ly"], payload["Tx"], payload["Ty"],
-                            payload["beta_c"], c, k, t, G[c, k], sG[c, k]
+                            payload["beta_c"], c, int(k), t, G[c, ik], sG[c, ik]
                         ])
         else:
-            pkl = _point_path(os.path.join(out_root, "grid", "Lref_large", "ref"), r1, r2)
+            pkl = _point_path(
+                os.path.join(out_root, "grid", "Lref_large", "ref"),
+                float(args.ref_fixed_r1),
+                float(args.ref_fixed_r2),
+            )
             if os.path.exists(pkl):
                 with open(pkl, "rb") as f:
                     payload = pickle.load(f)
                 G, sG = _sample_boundary_from_payload(payload, t_fracs)
                 ref_by_L["large"] = (payload, G, sG)
                 for c in range(3):
-                    for k, t in enumerate(t_fracs):
+                    for ik, k in enumerate(k_values):
+                        t = float(t_fracs[ik])
                         raw_ref_rows.append([
                             r1, r2, -1, payload["Lx"], payload["Ly"], payload["Tx"], payload["Ty"],
-                            payload["beta_c"], c, k, t, G[c, k], sG[c, k]
+                            payload["beta_c"], c, int(k), t, G[c, ik], sG[c, ik]
                         ])
 
         # -------- continuum channels --------
@@ -335,39 +390,42 @@ def main():
         sGr_inf = np.full_like(Gt_inf, np.nan)
 
         for c in range(3):
-            for k, t in enumerate(t_fracs):
+            for ik, k in enumerate(k_values):
+                t = float(t_fracs[ik])
                 # test fit
                 Lt = sorted(test_by_L)
-                yt = np.array([test_by_L[L][1][c, k] for L in Lt], dtype=float)
-                st = np.array([test_by_L[L][2][c, k] for L in Lt], dtype=float)
+                yt = np.array([test_by_L[L][1][c, ik] for L in Lt], dtype=float)
+                st = np.array([test_by_L[L][2][c, ik] for L in Lt], dtype=float)
                 at, sat, bt, ct, nt = _fit_quad_in_invL(np.array(Lt, dtype=float), yt, st)
-                Gt_inf[c, k], sGt_inf[c, k] = at, sat
-                cont_test_rows.append([r1, r2, c, k, t, at, sat, bt, ct, nt])
+                Gt_inf[c, ik], sGt_inf[c, ik] = at, sat
+                cont_test_rows.append([r1, r2, c, int(k), t, at, sat, bt, ct, nt])
 
                 # reference fit or large-L pass-through
                 if args.reference_mode == "continuum":
                     Lr = sorted(ref_by_L)
-                    yr = np.array([ref_by_L[L][1][c, k] for L in Lr], dtype=float)
-                    sr = np.array([ref_by_L[L][2][c, k] for L in Lr], dtype=float)
+                    yr = np.array([ref_by_L[L][1][c, ik] for L in Lr], dtype=float)
+                    sr = np.array([ref_by_L[L][2][c, ik] for L in Lr], dtype=float)
                     ar, sar, br, cr, nr = _fit_quad_in_invL(np.array(Lr, dtype=float), yr, sr)
-                    Gr_inf[c, k], sGr_inf[c, k] = ar, sar
-                    cont_ref_rows.append([r1, r2, c, k, t, ar, sar, br, cr, nr])
+                    Gr_inf[c, ik], sGr_inf[c, ik] = ar, sar
+                    cont_ref_rows.append([r1, r2, c, int(k), t, ar, sar, br, cr, nr])
                 else:
                     if "large" in ref_by_L:
-                        ar = float(ref_by_L["large"][1][c, k])
-                        sar = float(ref_by_L["large"][2][c, k])
+                        ar = float(ref_by_L["large"][1][c, ik])
+                        sar = float(ref_by_L["large"][2][c, ik])
                     else:
                         ar, sar = np.nan, np.nan
-                    Gr_inf[c, k], sGr_inf[c, k] = ar, sar
-                    cont_ref_rows.append([r1, r2, c, k, t, ar, sar, 0.0, 0.0, 1])
+                    Gr_inf[c, ik], sGr_inf[c, ik] = ar, sar
+                    cont_ref_rows.append([r1, r2, c, int(k), t, ar, sar, 0.0, 0.0, 1])
 
         # -------- score --------
         score = 0.0
         n_used = 0
+        z2_sum = 0.0
+        n_z = 0
         for c in range(3):
-            for k in range(len(t_fracs)):
-                gt, st = Gt_inf[c, k], sGt_inf[c, k]
-                gr, sr = Gr_inf[c, k], sGr_inf[c, k]
+            for ik in range(len(t_fracs)):
+                gt, st = Gt_inf[c, ik], sGt_inf[c, ik]
+                gr, sr = Gr_inf[c, ik], sGr_inf[c, ik]
                 if not (np.isfinite(gt) and np.isfinite(gr)):
                     continue
                 diff = gt - gr
@@ -379,13 +437,24 @@ def main():
                 score += w * diff * diff
                 n_used += 1
 
+                if np.isfinite(st) and np.isfinite(sr):
+                    var = st * st + sr * sr
+                    if var > 0:
+                        z = diff / np.sqrt(var)
+                        z2_sum += z * z
+                        n_z += 1
+
         if n_used == 0:
             score = np.nan
         score_rows.append([r1, r2, score, n_used])
 
+        z_rms = np.sqrt(z2_sum / n_z) if n_z > 0 else np.nan
+        zscore_rows.append([r1, r2, z_rms, n_z])
+
         i = r_index[round(float(r1), 12)]
         j = r_index[round(float(r2), 12)]
         score_grid[j, i] = score
+        zscore_grid[j, i] = z_rms
 
     # -------- write dat outputs --------
     hdr = [
@@ -395,7 +464,7 @@ def main():
         f"test_sizes={args.test_sizes}",
         f"ref_sizes={args.ref_sizes if args.reference_mode=='continuum' else 'large_only'}",
         f"r_grid=[{args.r_min},{args.r_max}] step={args.r_step}",
-        "channels: cycle c=0,1,2 and t_k=k/8 with k=0..7",
+        "channels: cycle c=0,1,2 and t_k=k/8 with k=1..7",
     ]
 
     _write_dat(
@@ -433,6 +502,13 @@ def main():
         score_rows,
     )
 
+    _write_dat(
+        os.path.join(dat_dir, "zscore_map.dat"),
+        hdr,
+        ["r1", "r2", "zscore_rms", "n_channels_used"],
+        zscore_rows,
+    )
+
     if np.any(np.isfinite(score_grid)):
         jj, ii = np.unravel_index(np.nanargmin(score_grid), score_grid.shape)
         r1_min, r2_min = rs[ii], rs[jj]
@@ -448,6 +524,13 @@ def main():
             score_grid,
             os.path.join(out_root, "score_heatmap.png"),
             f"Boundary continuum score map  (tag={args.tag})",
+        )
+        _score_and_zscore_heatmap_plot(
+            rs,
+            score_grid,
+            zscore_grid,
+            os.path.join(out_root, "score_and_zscore_heatmaps.png"),
+            f"Boundary continuum diagnostics  (tag={args.tag})",
         )
         print(f"[done] min score at r1={r1_min:.4f}, r2={r2_min:.4f}, S={s_min:.6g}")
     else:
@@ -467,6 +550,8 @@ def main():
         "n_traj_coarse": args.n_traj_coarse,
         "n_traj_fine": args.n_traj_fine,
         "weighted": args.weighted,
+        "ref_fixed_r1": float(args.ref_fixed_r1),
+        "ref_fixed_r2": float(args.ref_fixed_r2),
         "dat_dir": dat_dir,
     }
     with open(os.path.join(out_root, "manifest_boundary_opt.json"), "w", encoding="utf-8") as f:

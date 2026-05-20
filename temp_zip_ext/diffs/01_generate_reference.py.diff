@@ -1,0 +1,69 @@
+--- temp_zip_ext/newQFE_K_from_continuum_L128_local/K_from_continuum/01_generate_reference.py	2026-05-18 19:00:59.000000000 +0000
++++ K_from_continuum/01_generate_reference.py	2026-05-15 03:29:37.868938296 +0000
+@@ -267,6 +267,8 @@
+     workers = int(cfg["execution"]["n_workers"])
+     if workers < 1:
+         raise ValueError("execution.n_workers must be >= 1")
++    if workers != 1:
++        log("Step 1 currently runs serially for one reference point; execution.n_workers > 1 is ignored")
+ 
+     analysis_cfg = cfg["analysis"]
+     k_values = [int(v) for v in analysis_cfg["k_values"]]
+@@ -294,7 +296,6 @@
+     size_jobs: list[dict[str, Any]] = []
+     finite_by_L: dict[int, dict[str, Any]] = {}
+     existing_metadata: dict[int, dict[str, Any]] = {}
+-    pending_beta_jobs: list[dict[str, Any]] = []
+     for L in sizes:
+         lattice = tuple(geometry_map[int(L)])
+         out_dir = os.path.join(grid_root, f"L{int(L)}")
+@@ -323,33 +324,14 @@
+                 continue
+             except Exception:
+                 pass
+-
+-        pending_beta_jobs.append(
+-            {
+-                "L": int(L),
+-                "lattice": lattice,
+-                "label": label,
+-            }
+-        )
+-
+-    scheduled_size_jobs = sorted(size_jobs, key=lambda job: int(job["L"]), reverse=True)
+-    pending_beta_jobs.sort(key=lambda job: int(job["L"]), reverse=True)
+-
+-    if pending_beta_jobs:
+-        log(
+-            f"Running {len(pending_beta_jobs)} reference beta searches from large to small "
+-            f"with workers_per_lattice={workers}"
++        finite_by_L[int(L)] = find_beta_for_lattice(
++            exe=exe,
++            lattice=lattice,
++            couplings=couplings,
++            beta_cfg=cfg["beta_finder"],
++            scratch_root=scratch_root,
++            label=label,
+         )
+-        for beta_job in pending_beta_jobs:
+-            finite_by_L[int(beta_job["L"])] = find_beta_for_lattice(
+-                exe=exe,
+-                lattice=tuple(beta_job["lattice"]),
+-                couplings=couplings,
+-                beta_cfg=cfg["beta_finder"],
+-                scratch_root=scratch_root,
+-                label=str(beta_job["label"]),
+-                n_workers=workers,
+-            )
+ 
+     beta_fit = fit_beta_continuum_free_power(
+         sizes,
+@@ -364,7 +346,7 @@
+     continuum_beta_sigma = beta_fit.get("beta_c_continuum_sigma")
+ 
+     job_results: list[dict[str, Any]] = []
+-    for size_job in scheduled_size_jobs:
++    for size_job in size_jobs:
+         L = int(size_job["L"])
+         data_path = size_job["data_path"]
+         metadata_path = metadata_path_for_data(data_path)

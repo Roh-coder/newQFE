@@ -1,0 +1,93 @@
+{
+  "created_at": "2026-05-13 13:24:20",
+  "config_path": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\configs\\reference_128_128_0_0.json",
+  "run_tag": "ref_128_128_0_0",
+  "run_root": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\ref_128_128_0_0",
+  "reference_data_dir": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\ref_128_128_0_0\\reference_data",
+  "reference_data_file": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\ref_128_128_0_0\\reference_data\\reference_all_to_all.dat",
+  "reference_metadata_file": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\ref_128_128_0_0\\reference_data\\reference_all_to_all.meta.json",
+  "reference_channels": "c:\\users\\rohan\\onedrive\\documents\\grad\\research\\brower group\\projects\\s2xr\\k_from_bc\\tests\\large_reference_workflow\\results\\ref_128_128_0_0\\reference_data\\reference_channels.dat",
+  "k_values": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "k_denominator": 8,
+  "reference_summary": {
+    "Lx": 128,
+    "Ly": 128,
+    "Tx": 0,
+    "Ty": 0,
+    "k1": 1.0,
+    "k2": 1.0,
+    "k3": 1.0,
+    "r1": 1.0,
+    "r2": 1.0,
+    "beta_c": 0.27225847726711083,
+    "beta_c_sigma": 0.0,
+    "chi_peak": 0.03427404446006,
+    "wall_seconds": 4539.703725337982
+  },
+  "config": {
+    "run": {
+      "tag": "ref_128_128_0_0"
+    },
+    "paths": {
+      "results_root": "results",
+      "resume": true
+    },
+    "execution": {
+      "exe": null,
+      "auto_build": true,
+      "force_rebuild": false,
+      "build_command": [
+        "make"
+      ],
+      "build_timeout_s": 600
+    },
+    "reference_lattice": {
+      "Lx": 128,
+      "Ly": 128,
+      "Tx": 0,
+      "Ty": 0
+    },
+    "reference_couplings": {
+      "k3": 1.0,
+      "k1_over_k3": 1.0,
+      "k2_over_k3": 1.0
+    },
+    "beta_finder": {
+      "beta_lo": 0.05,
+      "beta_hi": 0.4,
+      "n_coarse": 11,
+      "n_refine": 5,
+      "n_refine2": 5,
+      "n_refine3": 5,
+      "n_traj_coarse": 1000,
+      "n_traj_fine": 2000,
+      "max_shifts": 4,
+      "jackknife": false
+    },
+    "mc": {
+      "n_traj": 10000,
+      "n_skip": 10,
+      "n_therm": 1000
+    },
+    "analysis_points": {
+      "k_values": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "k_denominator": 8
+    }
+  }
+}

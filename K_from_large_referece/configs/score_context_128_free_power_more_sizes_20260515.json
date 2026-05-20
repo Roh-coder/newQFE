@@ -1,0 +1,28 @@
+{
+  "run": {
+    "tag": "ctx128_score_fp_moreL_20260515"
+  },
+  "paths": {
+    "results_root": "results"
+  },
+  "input": {
+    "reference_data_file": "context/score_128_128_0_0/ref_128_128_0_0/reference_data/reference_all_to_all.dat",
+    "tests_manifest": "results/ctx128_tests_fp_moreL_20260515/test_data/manifest_tests.json"
+  },
+  "analysis": {
+    "k_values": [1, 2, 3, 4, 5, 6, 7],
+    "k_denominator": 8,
+    "weighted": false,
+    "power_fit": {
+      "c_min": 0.05,
+      "c_max": 3.5,
+      "c_initial": 1.0,
+      "min_sizes_for_free_C": 8
+    },
+    "fss_plots": {
+      "enabled": true,
+      "dpi": 150,
+      "max_points": null
+    }
+  }
+}

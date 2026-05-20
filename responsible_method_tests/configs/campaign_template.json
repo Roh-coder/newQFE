@@ -1,0 +1,143 @@
+{
+  "campaign_name": "continuum_manifold_equivalence_v1",
+  "notes": "Starter spec for responsible_method_tests. Replace null manifest paths as benchmark data become available.",
+  "scores": {
+    "primary": "surface_rms_zscore",
+    "secondary": [
+      "cycle_cut_rms_zscore",
+      "shape_only_log_rms"
+    ],
+    "match_pass_zmax": 2.0,
+    "separation_pass_zmin": 3.0,
+    "preferred_separation_zmin": 5.0
+  },
+  "benchmarks": [
+    {
+      "id": "B0_equilateral_control",
+      "priority": 1,
+      "status": "ready",
+      "description": "Symmetric control case for pipeline and score debugging.",
+      "modular": {
+        "tau_label": "equilateral_control",
+        "manifold_path": null
+      },
+      "twisted": {
+        "geometry_family": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "sizes": [16, 32, 48, 64, 80],
+        "manifest_path": null
+      },
+      "untwisted_anisotropic": {
+        "r1_target": 1.0,
+        "r2_target": 1.0,
+        "sizes": [16, 32, 48, 64, 80],
+        "manifest_path": null
+      },
+      "deformations": {
+        "couplings": [
+          [0.95, 1.0],
+          [1.05, 1.0],
+          [1.0, 0.95],
+          [1.0, 1.05]
+        ],
+        "twists": [
+          {
+            "Tx_frac": 0.125,
+            "Ty_frac": 0.0
+          },
+          {
+            "Tx_frac": 0.125,
+            "Ty_frac": 0.125
+          }
+        ]
+      }
+    },
+    {
+      "id": "B1_quarter_twist",
+      "priority": 2,
+      "status": "needs_untwisted_tuning",
+      "description": "Moderately deformed torus using a quarter-twist family.",
+      "modular": {
+        "tau_label": "quarter_twist",
+        "manifold_path": null
+      },
+      "twisted": {
+        "geometry_family": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.25,
+          "Ty_frac": 0.25
+        },
+        "sizes": [16, 32, 48, 64, 80, 96],
+        "manifest_path": null
+      },
+      "untwisted_anisotropic": {
+        "r1_target": null,
+        "r2_target": null,
+        "sizes": [16, 32, 48, 64, 80, 96],
+        "manifest_path": null
+      },
+      "deformations": {
+        "couplings": "Use +-2% and +-5% around the tuned target once the target is fixed.",
+        "twists": [
+          {
+            "delta_Tx": 1,
+            "delta_Ty": 0
+          },
+          {
+            "delta_Tx": 0,
+            "delta_Ty": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "B2_456_stress",
+      "priority": 3,
+      "status": "ready",
+      "description": "Strong anisotropy stress test with known twisted geometry and approximate exact untwisted target ratios.",
+      "modular": {
+        "tau_label": "456_triangle",
+        "manifold_path": null
+      },
+      "twisted": {
+        "base_geometry": {
+          "Lx": 13,
+          "Ly": 16,
+          "Tx": -3,
+          "Ty": 3
+        },
+        "scale_factors": [1, 2, 3, 4],
+        "manifest_path": null
+      },
+      "untwisted_anisotropic": {
+        "r1_target": 5.0652,
+        "r2_target": 7.7429,
+        "sizes": [16, 24, 32, 48, 64],
+        "manifest_path": null
+      },
+      "deformations": {
+        "couplings": [
+          [4.9132, 7.7429],
+          [5.2172, 7.7429],
+          [5.0652, 7.5106],
+          [5.0652, 7.9752]
+        ],
+        "twists": [
+          {
+            "delta_Tx": 1,
+            "delta_Ty": 0
+          },
+          {
+            "delta_Tx": 0,
+            "delta_Ty": 1
+          }
+        ]
+      }
+    }
+  ]
+}

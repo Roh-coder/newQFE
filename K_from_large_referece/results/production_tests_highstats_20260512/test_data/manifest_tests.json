@@ -1,0 +1,626 @@
+{
+  "created_at": "2026-05-12 21:09:04",
+  "config_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/configs/production_tests_20260512.json",
+  "run_tag": "production_tests_highstats_20260512",
+  "run_root": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512",
+  "test_data_dir": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data",
+  "grid_root": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid",
+  "exe": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/bin/ising_tri_twisted_parallelogram",
+  "sizes": [
+    8,
+    12,
+    16,
+    24,
+    32
+  ],
+  "geometry_map": {
+    "8": [
+      8,
+      8,
+      0,
+      0
+    ],
+    "12": [
+      12,
+      12,
+      0,
+      0
+    ],
+    "16": [
+      16,
+      16,
+      0,
+      0
+    ],
+    "24": [
+      24,
+      24,
+      0,
+      0
+    ],
+    "32": [
+      32,
+      32,
+      0,
+      0
+    ]
+  },
+  "k3": 1.0,
+  "k1_over_k3_values": [
+    0.9,
+    1.0,
+    1.1
+  ],
+  "k2_over_k3_values": [
+    0.9,
+    1.0,
+    1.1
+  ],
+  "summary": {
+    "total_jobs": 45,
+    "ok": 45,
+    "skip": 0,
+    "err": 0
+  },
+  "jobs": [
+    {
+      "status": "ok",
+      "L": 8,
+      "r1": 0.9,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r10.900000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r10.900000_r20.900000.meta.json",
+      "beta_c": 0.2593655268469192,
+      "wall_seconds": 5.862111806869507,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 8,
+      "r1": 1.0,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r11.000000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r11.000000_r20.900000.meta.json",
+      "beta_c": 0.24519413026967166,
+      "wall_seconds": 5.441575288772583,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 8,
+      "r1": 1.1,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r11.100000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r11.100000_r20.900000.meta.json",
+      "beta_c": 0.2311258098548759,
+      "wall_seconds": 6.111287355422974,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 8,
+      "r1": 0.9,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r10.900000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r10.900000_r21.000000.meta.json",
+      "beta_c": 0.2509369705117054,
+      "wall_seconds": 5.220837593078613,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 8,
+      "r1": 1.0,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r11.000000_r21.000000.meta.json",
+      "beta_c": 0.2571210785746598,
+      "wall_seconds": 4.898842096328735,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 8,
+      "r1": 1.1,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r11.100000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r11.100000_r21.000000.meta.json",
+      "beta_c": 0.24156130841669837,
+      "wall_seconds": 4.817713260650635,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 8,
+      "r1": 0.9,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r10.900000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r10.900000_r21.100000.meta.json",
+      "beta_c": 0.2267939206134185,
+      "wall_seconds": 4.344591379165649,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 8,
+      "r1": 1.0,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r11.000000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r11.000000_r21.100000.meta.json",
+      "beta_c": 0.22566462022683523,
+      "wall_seconds": 4.588502883911133,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 8,
+      "r1": 1.1,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r11.100000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L8/test_L8_r11.100000_r21.100000.meta.json",
+      "beta_c": 0.21743096733941453,
+      "wall_seconds": 4.284692764282227,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 12,
+      "r1": 0.9,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r10.900000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r10.900000_r20.900000.meta.json",
+      "beta_c": 0.27625290281397374,
+      "wall_seconds": 8.623852729797363,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 12,
+      "r1": 1.0,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r11.000000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r11.000000_r20.900000.meta.json",
+      "beta_c": 0.26323974725756427,
+      "wall_seconds": 8.67091965675354,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 12,
+      "r1": 1.1,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r11.100000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r11.100000_r20.900000.meta.json",
+      "beta_c": 0.2353467554742543,
+      "wall_seconds": 8.092945098876953,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 12,
+      "r1": 0.9,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r10.900000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r10.900000_r21.000000.meta.json",
+      "beta_c": 0.25740434017128383,
+      "wall_seconds": 9.379650115966797,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 12,
+      "r1": 1.0,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r11.000000_r21.000000.meta.json",
+      "beta_c": 0.2556329670214166,
+      "wall_seconds": 10.203107833862305,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 12,
+      "r1": 1.1,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r11.100000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r11.100000_r21.000000.meta.json",
+      "beta_c": 0.2304350087721535,
+      "wall_seconds": 10.047497272491455,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 12,
+      "r1": 0.9,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r10.900000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r10.900000_r21.100000.meta.json",
+      "beta_c": 0.248199816695451,
+      "wall_seconds": 10.192752838134766,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 12,
+      "r1": 1.0,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r11.000000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r11.000000_r21.100000.meta.json",
+      "beta_c": 0.24250888326383227,
+      "wall_seconds": 9.505417585372925,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 12,
+      "r1": 1.1,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r11.100000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L12/test_L12_r11.100000_r21.100000.meta.json",
+      "beta_c": 0.23959641892655312,
+      "wall_seconds": 9.024511814117432,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 16,
+      "r1": 0.9,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r10.900000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r10.900000_r20.900000.meta.json",
+      "beta_c": 0.26868105571292633,
+      "wall_seconds": 15.758514404296875,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 16,
+      "r1": 1.0,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r11.000000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r11.000000_r20.900000.meta.json",
+      "beta_c": 0.2658389747686349,
+      "wall_seconds": 14.722169637680054,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 16,
+      "r1": 1.1,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r11.100000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r11.100000_r20.900000.meta.json",
+      "beta_c": 0.2682933901983805,
+      "wall_seconds": 17.09779715538025,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 16,
+      "r1": 0.9,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r10.900000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r10.900000_r21.000000.meta.json",
+      "beta_c": 0.26677005411972826,
+      "wall_seconds": 16.188859224319458,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 16,
+      "r1": 1.0,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r11.000000_r21.000000.meta.json",
+      "beta_c": 0.2572587435278117,
+      "wall_seconds": 16.610724687576294,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 16,
+      "r1": 1.1,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r11.100000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r11.100000_r21.000000.meta.json",
+      "beta_c": 0.24427036216299405,
+      "wall_seconds": 15.998915672302246,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 16,
+      "r1": 0.9,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r10.900000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r10.900000_r21.100000.meta.json",
+      "beta_c": 0.24264026033063926,
+      "wall_seconds": 14.207019805908203,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 16,
+      "r1": 1.0,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r11.000000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r11.000000_r21.100000.meta.json",
+      "beta_c": 0.24771480210027197,
+      "wall_seconds": 16.067453861236572,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 16,
+      "r1": 1.1,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r11.100000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L16/test_L16_r11.100000_r21.100000.meta.json",
+      "beta_c": 0.23923717405922584,
+      "wall_seconds": 14.320159435272217,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 24,
+      "r1": 0.9,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r10.900000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r10.900000_r20.900000.meta.json",
+      "beta_c": 0.28850668736052887,
+      "wall_seconds": 36.262146949768066,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 24,
+      "r1": 1.0,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r11.000000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r11.000000_r20.900000.meta.json",
+      "beta_c": 0.27196821374357727,
+      "wall_seconds": 34.29540705680847,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 24,
+      "r1": 1.1,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r11.100000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r11.100000_r20.900000.meta.json",
+      "beta_c": 0.2601680186110509,
+      "wall_seconds": 34.05305814743042,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 24,
+      "r1": 0.9,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r10.900000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r10.900000_r21.000000.meta.json",
+      "beta_c": 0.27342262065141526,
+      "wall_seconds": 37.57897210121155,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 24,
+      "r1": 1.0,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r11.000000_r21.000000.meta.json",
+      "beta_c": 0.2580070395941424,
+      "wall_seconds": 31.756008863449097,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 24,
+      "r1": 1.1,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r11.100000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r11.100000_r21.000000.meta.json",
+      "beta_c": 0.25329596797303816,
+      "wall_seconds": 34.85166001319885,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 24,
+      "r1": 0.9,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r10.900000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r10.900000_r21.100000.meta.json",
+      "beta_c": 0.26260644762645474,
+      "wall_seconds": 34.46018195152283,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 24,
+      "r1": 1.0,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r11.000000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r11.000000_r21.100000.meta.json",
+      "beta_c": 0.26108576237492137,
+      "wall_seconds": 36.242271184921265,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 24,
+      "r1": 1.1,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r11.100000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L24/test_L24_r11.100000_r21.100000.meta.json",
+      "beta_c": 0.2436965842923126,
+      "wall_seconds": 33.894213914871216,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 32,
+      "r1": 0.9,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r10.900000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r10.900000_r20.900000.meta.json",
+      "beta_c": 0.2849210425050287,
+      "wall_seconds": 55.818082094192505,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 32,
+      "r1": 1.0,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r11.000000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r11.000000_r20.900000.meta.json",
+      "beta_c": 0.270075200974454,
+      "wall_seconds": 56.46606755256653,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 32,
+      "r1": 1.1,
+      "r2": 0.9,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r11.100000_r20.900000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r11.100000_r20.900000.meta.json",
+      "beta_c": 0.27017393222120445,
+      "wall_seconds": 60.64522194862366,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 32,
+      "r1": 0.9,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r10.900000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r10.900000_r21.000000.meta.json",
+      "beta_c": 0.2711026357724757,
+      "wall_seconds": 61.315788984298706,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 32,
+      "r1": 1.0,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r11.000000_r21.000000.meta.json",
+      "beta_c": 0.2672643305852131,
+      "wall_seconds": 60.704752922058105,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 32,
+      "r1": 1.1,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r11.100000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r11.100000_r21.000000.meta.json",
+      "beta_c": 0.25900775132836185,
+      "wall_seconds": 63.3041627407074,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 32,
+      "r1": 0.9,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r10.900000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r10.900000_r21.100000.meta.json",
+      "beta_c": 0.2623975431354572,
+      "wall_seconds": 58.67828989028931,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 32,
+      "r1": 1.0,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r11.000000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r11.000000_r21.100000.meta.json",
+      "beta_c": 0.26125352403322444,
+      "wall_seconds": 50.89889883995056,
+      "message": "completed"
+    },
+    {
+      "status": "ok",
+      "L": 32,
+      "r1": 1.1,
+      "r2": 1.1,
+      "data_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r11.100000_r21.100000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_BC_Heatmap/boundary_opt_standalone/large_reference_workflow/results/production_tests_highstats_20260512/test_data/grid/L32/test_L32_r11.100000_r21.100000.meta.json",
+      "beta_c": 0.24838297669427414,
+      "wall_seconds": 32.58874273300171,
+      "message": "completed"
+    }
+  ],
+  "config": {
+    "run": {
+      "tag": "production_tests_highstats_20260512"
+    },
+    "paths": {
+      "results_root": "results",
+      "resume": false
+    },
+    "execution": {
+      "n_workers": 4,
+      "exe": null,
+      "auto_build": true,
+      "force_rebuild": false,
+      "build_command": [
+        "make"
+      ],
+      "build_timeout_s": 600
+    },
+    "test_family": {
+      "sizes": [
+        8,
+        12,
+        16,
+        24,
+        32
+      ],
+      "geometry_defaults": {
+        "Lx_mult": 1.0,
+        "Ly_mult": 1.0,
+        "Tx_frac": 0.0,
+        "Ty_frac": 0.0
+      }
+    },
+    "couplings": {
+      "k3": 1.0,
+      "k1_over_k3_values": [
+        0.9,
+        1.0,
+        1.1
+      ],
+      "k2_over_k3_values": [
+        0.9,
+        1.0,
+        1.1
+      ]
+    },
+    "beta_finder": {
+      "beta_lo": 0.05,
+      "beta_hi": 0.4,
+      "n_coarse": 11,
+      "n_refine": 5,
+      "n_refine2": 5,
+      "n_refine3": 5,
+      "n_traj_coarse": 120,
+      "n_traj_fine": 240,
+      "max_shifts": 4,
+      "jackknife": false
+    },
+    "mc": {
+      "n_traj": 1200,
+      "n_skip": 10,
+      "n_therm": 1000
+    }
+  }
+}

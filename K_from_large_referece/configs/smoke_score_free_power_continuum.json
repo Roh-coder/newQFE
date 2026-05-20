@@ -1,0 +1,27 @@
+{
+  "run": {
+    "tag": "smoke_compare_free_power_continuum_20260515"
+  },
+  "paths": {
+    "results_root": "results"
+  },
+  "input": {
+    "reference_data_file": "results/smoke_ref_20260512/reference_data/reference_all_to_all.dat",
+    "tests_manifest": "results/smoke_tests_free_power_continuum_20260515/test_data/manifest_tests.json"
+  },
+  "analysis": {
+    "k_values": [1, 2, 3],
+    "k_denominator": 4,
+    "weighted": false,
+    "power_fit": {
+      "c_min": 0.05,
+      "c_max": 3.0,
+      "c_initial": 1.0
+    },
+    "fss_plots": {
+      "enabled": true,
+      "dpi": 150,
+      "max_points": null
+    }
+  }
+}

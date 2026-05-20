@@ -1,0 +1,172 @@
+--- temp_zip_ext/newQFE_K_from_continuum_L128_local/K_from_continuum/src/ising_tri_twisted_parallelogram.cc	2026-05-18 18:50:42.000000000 +0000
++++ K_from_continuum/src/ising_tri_twisted_parallelogram.cc	2026-05-15 01:48:04.176371263 +0000
+@@ -261,7 +261,6 @@
+   std::string data_dir = "ising_tri_twisted_parallelogram";
+   std::string two_point_name = "two_point_typed.dat";
+   std::string full_two_point_name = "two_point_all_to_all.dat";
+-  int summary_only = 0;
+   // Speedup 4 (FS reweighting): when nonzero, dump one (E_per_site, |m|, m^2)
+   // line per accepted trajectory to <subdir>/traces_<seed>.dat so the Python
+   // side can reweight chi(beta) over a window without rerunning MC.
+@@ -291,11 +290,10 @@
+       {"data_dir", required_argument, 0, 'd'},
+       {"two_point_name", required_argument, 0, 'p'},
+       {"full_two_point_name", required_argument, 0, 'f'},
+-        {"summary_only", required_argument, 0, 'o'},
+       {"dump_traces", required_argument, 0, 'D'},
+       {0, 0, 0, 0}};
+ 
+-      const char* short_options = "X:Y:P:Q:Z:a:b:c:g:B:S:h:t:s:w:e:W:d:p:f:o:D:";
++  const char* short_options = "X:Y:P:Q:Z:a:b:c:g:B:S:h:t:s:w:e:W:d:p:f:D:";
+ 
+   while (true) {
+     int o = 0;
+@@ -323,7 +321,6 @@
+       case 'd': data_dir = optarg; break;
+       case 'p': two_point_name = optarg; break;
+       case 'f': full_two_point_name = optarg; break;
+-      case 'o': summary_only = atoi(optarg); break;
+       case 'D': dump_traces = atoi(optarg); break;
+       default: break;
+     }
+@@ -356,7 +353,6 @@
+   printf("data_dir: %s\n", data_dir.c_str());
+   printf("two_point_name: %s\n", two_point_name.c_str());
+   printf("full_two_point_name: %s\n", full_two_point_name.c_str());
+-  printf("summary_only: %d\n", summary_only);
+ 
+   QfeLattice lattice;
+   TwistedMap twisted_map;
+@@ -444,67 +440,65 @@
+     energy.Measure(e_mean);
+     energy_2.Measure(e_mean * e_mean);
+ 
+-    if (!summary_only) {
+-      std::vector<double> corr_sum_e1(p_e1, 0.0);
+-      std::vector<double> corr_sum_e2(p_e2, 0.0);
+-      std::vector<double> corr_sum_e2me1(p_e2me1, 0.0);
+-      std::vector<double> corr_sum_all(N_cell, 0.0);
+-
+-      for (int t0 = 0; t0 < N_t; t0++) {
+-        int t_offset = t0 * N_cell;
+-        for (int s2 = 0; s2 < N_cell; s2++) {
+-          int s = t_offset + s2;
+-          double spin_s = field.spin[s];
+-
+-          int u = s2;
+-          for (int r = 0; r < p_e1; r++) {
+-            corr_sum_e1[r] += spin_s * field.spin[t_offset + u];
+-            u = twisted_map.next_e1[u];
+-          }
+-
+-          u = s2;
+-          for (int r = 0; r < p_e2; r++) {
+-            corr_sum_e2[r] += spin_s * field.spin[t_offset + u];
+-            u = twisted_map.next_e2[u];
+-          }
+-
+-          u = s2;
+-          for (int r = 0; r < p_e2me1; r++) {
+-            corr_sum_e2me1[r] += spin_s * field.spin[t_offset + u];
+-            u = twisted_map.next_e2me1[u];
+-          }
+-
+-          int add_base = s2 * N_cell;
+-          for (int d = 0; d < N_cell; d++) {
+-            int u_all = twisted_map.add_table[add_base + d];
+-            corr_sum_all[d] += spin_s * field.spin[t_offset + u_all];
+-          }
++    std::vector<double> corr_sum_e1(p_e1, 0.0);
++    std::vector<double> corr_sum_e2(p_e2, 0.0);
++    std::vector<double> corr_sum_e2me1(p_e2me1, 0.0);
++    std::vector<double> corr_sum_all(N_cell, 0.0);
++
++    for (int t0 = 0; t0 < N_t; t0++) {
++      int t_offset = t0 * N_cell;
++      for (int s2 = 0; s2 < N_cell; s2++) {
++        int s = t_offset + s2;
++        double spin_s = field.spin[s];
++
++        int u = s2;
++        for (int r = 0; r < p_e1; r++) {
++          corr_sum_e1[r] += spin_s * field.spin[t_offset + u];
++          u = twisted_map.next_e1[u];
+         }
+-      }
+ 
+-      const double norm = double(lattice.n_sites);
+-      for (int r = 0; r < p_e1; r++) {
+-        double c = corr_sum_e1[r] / norm;
+-        corr_e1[r].Measure(c);
+-        corr_e1_samples[r].push_back(c);
+-      }
+-      for (int r = 0; r < p_e2; r++) {
+-        double c = corr_sum_e2[r] / norm;
+-        corr_e2[r].Measure(c);
+-        corr_e2_samples[r].push_back(c);
+-      }
+-      for (int r = 0; r < p_e2me1; r++) {
+-        double c = corr_sum_e2me1[r] / norm;
+-        corr_e2me1[r].Measure(c);
+-        corr_e2me1_samples[r].push_back(c);
+-      }
+-      for (int d = 0; d < N_cell; d++) {
+-        double c = corr_sum_all[d] / norm;
+-        corr_all[d].Measure(c);
+-        corr_all_samples[d].push_back(c);
++        u = s2;
++        for (int r = 0; r < p_e2; r++) {
++          corr_sum_e2[r] += spin_s * field.spin[t_offset + u];
++          u = twisted_map.next_e2[u];
++        }
++
++        u = s2;
++        for (int r = 0; r < p_e2me1; r++) {
++          corr_sum_e2me1[r] += spin_s * field.spin[t_offset + u];
++          u = twisted_map.next_e2me1[u];
++        }
++
++        int add_base = s2 * N_cell;
++        for (int d = 0; d < N_cell; d++) {
++          int u_all = twisted_map.add_table[add_base + d];
++          corr_sum_all[d] += spin_s * field.spin[t_offset + u_all];
++        }
+       }
+     }
+ 
++    const double norm = double(lattice.n_sites);
++    for (int r = 0; r < p_e1; r++) {
++      double c = corr_sum_e1[r] / norm;
++      corr_e1[r].Measure(c);
++      corr_e1_samples[r].push_back(c);
++    }
++    for (int r = 0; r < p_e2; r++) {
++      double c = corr_sum_e2[r] / norm;
++      corr_e2[r].Measure(c);
++      corr_e2_samples[r].push_back(c);
++    }
++    for (int r = 0; r < p_e2me1; r++) {
++      double c = corr_sum_e2me1[r] / norm;
++      corr_e2me1[r].Measure(c);
++      corr_e2me1_samples[r].push_back(c);
++    }
++    for (int d = 0; d < N_cell; d++) {
++      double c = corr_sum_all[d] / norm;
++      corr_all[d].Measure(c);
++      corr_all_samples[d].push_back(c);
++    }
++
+     if (wall_time > 0.0 && timer.Duration() > wall_time) break;
+   }
+ 
+@@ -552,10 +546,6 @@
+   }
+   printf("m_susc: %.12e %.12e\n", m_susc_mean, m_susc_err);
+ 
+-  if (summary_only) {
+-    return 0;
+-  }
+-
+   if (!MakeDir(data_dir)) {
+     fprintf(stderr, "WARNING: could not create data_dir: %s\n", data_dir.c_str());
+     return 0;

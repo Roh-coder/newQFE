@@ -1,0 +1,220 @@
+{
+  "created_at": "2026-05-15 03:48:37",
+  "config_path": "/workspaces/newQFE/K_from_continuum/configs/production_iso111_ref4x_qtr_reference_20260515.json",
+  "run_tag": "production_iso111_ref4x_qtr_reference_20260515",
+  "run_root": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515",
+  "reference_data_dir": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data",
+  "grid_root": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid",
+  "reference_raw_channels": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/reference_raw_channels.dat",
+  "reference_continuum_channels": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/reference_continuum_channels.dat",
+  "reference_fss_data": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/reference_fss_data.dat",
+  "reference_fss_plot": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/reference_fss.png",
+  "continuum_beta_extrapolation": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/continuum_beta_extrapolation.json",
+  "k_values": [
+    1,
+    2,
+    3
+  ],
+  "k_denominator": 4,
+  "power_fit": {
+    "method": "taylor2",
+    "model": "A + B*(1/L) + C*(1/L)^2",
+    "c_min": 0.05,
+    "c_max": 3.5,
+    "c_initial": 1.0,
+    "min_sizes_for_free_C": 8
+  },
+  "reference_summary": {
+    "k1": 1.0,
+    "k2": 1.0,
+    "k3": 1.0,
+    "r1": 1.0,
+    "r2": 1.0,
+    "beta_c_continuum": 0.2734138414317417,
+    "beta_c_continuum_sigma": 0.0007073275294138495,
+    "n_sizes": 8,
+    "lmin": 16,
+    "lmax": 128
+  },
+  "summary": {
+    "total_jobs": 8,
+    "ok": 0,
+    "skip": 8,
+    "err": 0
+  },
+  "jobs": [
+    {
+      "status": "skip",
+      "L": 16,
+      "r1": 1.0,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L16/reference_L16_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L16/reference_L16_r11.000000_r21.000000.meta.json",
+      "beta_c": 0.2734138414317417,
+      "finite_size_beta_c": 0.25919174119334304,
+      "message": "reused existing payload at continuum beta"
+    },
+    {
+      "status": "skip",
+      "L": 32,
+      "r1": 1.0,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L32/reference_L32_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L32/reference_L32_r11.000000_r21.000000.meta.json",
+      "beta_c": 0.2734138414317417,
+      "finite_size_beta_c": 0.2679435782591494,
+      "message": "reused existing payload at continuum beta"
+    },
+    {
+      "status": "skip",
+      "L": 48,
+      "r1": 1.0,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L48/reference_L48_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L48/reference_L48_r11.000000_r21.000000.meta.json",
+      "beta_c": 0.2734138414317417,
+      "finite_size_beta_c": 0.2699806488787193,
+      "message": "reused existing payload at continuum beta"
+    },
+    {
+      "status": "skip",
+      "L": 64,
+      "r1": 1.0,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L64/reference_L64_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L64/reference_L64_r11.000000_r21.000000.meta.json",
+      "beta_c": 0.2734138414317417,
+      "finite_size_beta_c": 0.272215765754454,
+      "message": "reused existing payload at continuum beta"
+    },
+    {
+      "status": "skip",
+      "L": 80,
+      "r1": 1.0,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L80/reference_L80_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L80/reference_L80_r11.000000_r21.000000.meta.json",
+      "beta_c": 0.2734138414317417,
+      "finite_size_beta_c": 0.2710685323800666,
+      "message": "reused existing payload at continuum beta"
+    },
+    {
+      "status": "skip",
+      "L": 96,
+      "r1": 1.0,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L96/reference_L96_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L96/reference_L96_r11.000000_r21.000000.meta.json",
+      "beta_c": 0.2734138414317417,
+      "finite_size_beta_c": 0.27195900905712816,
+      "message": "reused existing payload at continuum beta"
+    },
+    {
+      "status": "skip",
+      "L": 112,
+      "r1": 1.0,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L112/reference_L112_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L112/reference_L112_r11.000000_r21.000000.meta.json",
+      "beta_c": 0.2734138414317417,
+      "finite_size_beta_c": 0.2728774910183085,
+      "message": "reused existing payload at continuum beta"
+    },
+    {
+      "status": "skip",
+      "L": 128,
+      "r1": 1.0,
+      "r2": 1.0,
+      "data_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L128/reference_L128_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/K_from_continuum/results/production_iso111_ref4x_qtr_reference_20260515/reference_data/grid/L128/reference_L128_r11.000000_r21.000000.meta.json",
+      "beta_c": 0.2734138414317417,
+      "finite_size_beta_c": 0.2725379405760004,
+      "message": "reused existing payload at continuum beta"
+    }
+  ],
+  "config": {
+    "run": {
+      "tag": "production_iso111_ref4x_qtr_reference_20260515"
+    },
+    "paths": {
+      "results_root": "results",
+      "resume": true
+    },
+    "execution": {
+      "n_workers": 1,
+      "exe": null,
+      "auto_build": true,
+      "force_rebuild": false,
+      "build_command": [
+        "make"
+      ],
+      "build_timeout_s": 600
+    },
+    "reference_family": {
+      "sizes": [
+        16,
+        32,
+        48,
+        64,
+        80,
+        96,
+        112,
+        128
+      ],
+      "geometry_defaults": {
+        "Lx_mult": 1.0,
+        "Ly_mult": 1.0,
+        "Tx_frac": 0.0,
+        "Ty_frac": 0.0
+      }
+    },
+    "reference_couplings": {
+      "k3": 1.0,
+      "k1_over_k3": 1.0,
+      "k2_over_k3": 1.0
+    },
+    "beta_strategy": {
+      "mode": "free_power_continuum",
+      "weighted": false,
+      "exponent_initial": 1.0,
+      "exponent_min": 0.05,
+      "exponent_max": 3.0
+    },
+    "beta_finder": {
+      "beta_lo": 0.05,
+      "beta_hi": 0.4,
+      "n_coarse": 11,
+      "n_refine": 5,
+      "n_refine2": 5,
+      "n_refine3": 5,
+      "n_traj_coarse": 200,
+      "n_traj_fine": 400,
+      "max_shifts": 4,
+      "jackknife": false
+    },
+    "mc": {
+      "n_traj": 2000,
+      "n_skip": 10,
+      "n_therm": 1500
+    },
+    "analysis": {
+      "k_values": [
+        1,
+        2,
+        3
+      ],
+      "k_denominator": 4,
+      "power_fit": {
+        "method": "taylor2",
+        "c_min": 0.05,
+        "c_max": 3.5,
+        "c_initial": 1.0,
+        "min_sizes_for_free_C": 8
+      },
+      "fss_plots": {
+        "enabled": true,
+        "dpi": 150
+      }
+    }
+  }
+}

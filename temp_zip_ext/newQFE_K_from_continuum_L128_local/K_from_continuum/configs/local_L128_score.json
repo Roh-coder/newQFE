@@ -1,0 +1,29 @@
+{
+  "run": {
+    "tag": "local_iso111_ref4x_qtr_score_L128_grid7x7"
+  },
+  "paths": {
+    "results_root": "results"
+  },
+  "input": {
+    "reference_manifest": "results/local_iso111_ref4x_qtr_reference_L128/reference_data/manifest_reference.json",
+    "tests_manifest": "results/local_iso111_ref4x_qtr_tests_L128_grid7x7/test_data/manifest_tests.json"
+  },
+  "analysis": {
+    "k_values": [1, 2, 3],
+    "k_denominator": 4,
+    "weighted": false,
+    "power_fit": {
+      "method": "taylor2",
+      "c_min": 0.05,
+      "c_max": 3.5,
+      "c_initial": 1.0,
+      "min_sizes_for_free_C": 8
+    },
+    "fss_plots": {
+      "enabled": true,
+      "dpi": 150,
+      "max_points": null
+    }
+  }
+}

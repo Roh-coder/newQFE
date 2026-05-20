@@ -1,0 +1,87 @@
+{
+  "exact_triangular_ising_beta_c": 0.27465307216702745,
+  "failures": [],
+  "methods": [
+    {
+      "ansatz": "beta_pc(L) = sum_n c_n * (1/L)^n with c_0 = beta_c_continuum",
+      "beta_c_continuum": 0.277710204886644,
+      "beta_c_continuum_sigma": 0.0030486170728884284,
+      "delta_vs_exact": 0.003057132719616551,
+      "label": "Taylor deg 2",
+      "lmax": 56.0,
+      "lmin": 8.0,
+      "method": "taylor_deg2",
+      "n_points": 7,
+      "parameters": {
+        "coefficients_descending_powers": [
+          0.014817478949614408,
+          -0.38802739443175027,
+          0.277710204886644
+        ]
+      },
+      "rms_residual": 0.0016426721392179652
+    },
+    {
+      "ansatz": "beta_pc(L) = beta_c_continuum + a * L^(-p)",
+      "beta_c_continuum": 0.27696385266056156,
+      "beta_c_continuum_sigma": 0.004814654525710025,
+      "delta_vs_exact": 0.0023107804935341147,
+      "label": "Free power",
+      "lmax": 56.0,
+      "lmin": 8.0,
+      "method": "power_law",
+      "n_points": 7,
+      "parameters": {
+        "amplitude": -0.4117432868879741,
+        "beta_c": 0.27696385266056156,
+        "exponent": 1.0370392386910625
+      },
+      "rms_residual": 0.00163791086595885
+    },
+    {
+      "ansatz": "beta_pc(L) = beta_c_continuum + a * (L + L0)^(-p)",
+      "beta_c_continuum": 0.27348396281328613,
+      "beta_c_continuum_sigma": 0.010130839265161102,
+      "delta_vs_exact": -0.0011691093537413155,
+      "label": "Shifted power",
+      "lmax": 56.0,
+      "lmin": 8.0,
+      "method": "shifted_power_law",
+      "n_points": 7,
+      "parameters": {
+        "amplitude": -9.999999999999945,
+        "beta_c": 0.27348396281328613,
+        "exponent": 1.9447890836622506,
+        "shift": 8.268430134657896
+      },
+      "rms_residual": 0.0014540207625103095
+    },
+    {
+      "ansatz": "Bulirsch-Stoer sequence extrapolation in x = 1/L",
+      "beta_c_continuum": 0.2688356945359856,
+      "beta_c_continuum_sigma": null,
+      "delta_vs_exact": -0.005817377631041842,
+      "label": "BST",
+      "lmax": 56.0,
+      "lmin": 8.0,
+      "method": "bst",
+      "n_points": 7,
+      "parameters": {
+        "best_omega": 4.0,
+        "omega_grid_count": 191,
+        "omega_grid_max": 4.0,
+        "omega_grid_min": 0.2
+      },
+      "rms_residual": null,
+      "window_estimates": [
+        0.2688356945359856,
+        0.26881798913108296,
+        0.2687957304622457,
+        0.26879624644431765
+      ],
+      "window_spread": 3.9964073739906514e-05,
+      "window_stability": 1.664936089722679e-05
+    }
+  ],
+  "summary_file": "/workspaces/newQFE/K_from_large_referece/results/diag_fss_autocorr_findbeta/raw/summary.dat"
+}

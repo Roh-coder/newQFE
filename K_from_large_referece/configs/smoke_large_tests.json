@@ -1,0 +1,48 @@
+{
+  "run": {
+    "tag": "smoke_large_tests_20260512"
+  },
+  "paths": {
+    "results_root": "results",
+    "resume": false
+  },
+  "execution": {
+    "n_workers": 4,
+    "exe": null,
+    "auto_build": true,
+    "force_rebuild": false,
+    "build_command": ["make"],
+    "build_timeout_s": 600
+  },
+  "test_family": {
+    "sizes": [4, 6, 8],
+    "geometry_defaults": {
+      "Lx_mult": 1.0,
+      "Ly_mult": 1.0,
+      "Tx_frac": 0.0,
+      "Ty_frac": 0.0
+    }
+  },
+  "couplings": {
+    "k3": 1.0,
+    "k1_over_k3_values": [0.9, 1.0, 1.1],
+    "k2_over_k3_values": [0.9, 1.0, 1.1]
+  },
+  "beta_finder": {
+    "beta_lo": 0.05,
+    "beta_hi": 0.4,
+    "n_coarse": 7,
+    "n_refine": 3,
+    "n_refine2": 3,
+    "n_refine3": 3,
+    "n_traj_coarse": 12,
+    "n_traj_fine": 20,
+    "max_shifts": 2,
+    "jackknife": false
+  },
+  "mc": {
+    "n_traj": 60,
+    "n_skip": 5,
+    "n_therm": 40
+  }
+}

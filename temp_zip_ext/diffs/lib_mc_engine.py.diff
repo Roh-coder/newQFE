@@ -1,0 +1,172 @@
+--- temp_zip_ext/newQFE_K_from_continuum_L128_local/K_from_continuum/lib/mc_engine.py	2026-05-18 19:02:33.000000000 +0000
++++ K_from_continuum/lib/mc_engine.py	2026-05-15 01:48:04.174371264 +0000
+@@ -20,21 +20,12 @@
+ import sys
+ import time
+ import warnings
+-from concurrent.futures import ThreadPoolExecutor, as_completed
+-from itertools import count
+ 
+ import numpy as np
+ from scipy.interpolate import LinearNDInterpolator
+ from scipy.optimize import curve_fit, minimize_scalar
+ 
+ 
+-_SEED_COUNTER = count()
+-
+-
+-def _auto_seed() -> int:
+-    return (time.time_ns() ^ (os.getpid() << 16) ^ next(_SEED_COUNTER)) & 0xFFFFFFFF
+-
+-
+ def _mc_log(message: str) -> None:
+     """Emit a flushed, timestamped MC progress line."""
+     stamp = time.strftime("%H:%M:%S")
+@@ -164,9 +155,10 @@
+ def run_simulator(exe, Lx, Ly, Tx, Ty, k1, k2, k3, beta,
+                   n_traj=20000, n_skip=20, n_therm=2000,
+                   seed=0, data_dir="/tmp/k_from_cs",
+-                  wall_time=0.0, summary_only=False):
++                  wall_time=0.0):
+     """Run the C++ simulator and return (stdout_text, subdir_path)."""
+-    seed = _auto_seed() if seed == 0 else seed
++    if seed == 0:
++        seed = int(time.time() * 1000) & 0xFFFFFFFF
+     os.makedirs(data_dir, exist_ok=True)
+     before_files = set(_collect_all_to_all_files(data_dir))
+     cmd = [
+@@ -182,8 +174,6 @@
+     ]
+     if wall_time > 0:
+         cmd += ["--wall_time", f"{wall_time:.1f}"]
+-    if summary_only:
+-        cmd += ["--summary_only", "1"]
+ 
+     start_t = time.time()
+     _mc_log(
+@@ -318,8 +308,7 @@
+                 n_coarse=11, n_refine=5, n_refine2=5, n_refine3=5,
+                 n_traj_coarse=10000, n_traj_fine=30000,
+                 data_dir="/tmp/k_from_cs_scan",
+-                max_shifts=4, progress_cb=None, jackknife=False,
+-                n_workers=1):
++                max_shifts=4, progress_cb=None, jackknife=False):
+     """
+     Locate susceptibility peak in [beta_lo, beta_hi] via 3-pass GC scan.
+     Returns (beta_c, beta_c_sigma, chi_peak, scan_betas, scan_chis, scan_chi_errs).
+@@ -365,7 +354,13 @@
+                 "traj_done": _traj_done[0],
+             })
+ 
+-    def _record_beta_result(key, b, chi, chi_err, n_traj):
++    def _run_beta(b, n_traj):
++        key = round(b, 10)
++        if key in ran:
++            return ran[key]
++        stdout, _ = run_simulator(exe, Lx, Ly, Tx, Ty, k1, k2, k3, b,
++                                  n_traj=n_traj, data_dir=data_dir)
++        chi, chi_err = parse_stdout_value_with_err(stdout, "m_susc:")
+         scan_betas.append(b)
+         scan_chis.append(chi)
+         scan_chi_errs.append(chi_err)
+@@ -385,42 +380,6 @@
+                           "pts_total": _pass_counter[1]})
+         return chi, chi_err
+ 
+-    def _run_beta_once(b, n_traj):
+-        key = round(b, 10)
+-        stdout, _ = run_simulator(exe, Lx, Ly, Tx, Ty, k1, k2, k3, b,
+-                      n_traj=n_traj, data_dir=data_dir,
+-                      summary_only=True, seed=_auto_seed())
+-        chi, chi_err = parse_stdout_value_with_err(stdout, "m_susc:")
+-        return key, b, chi, chi_err
+-
+-    def _run_beta(b, n_traj):
+-        key = round(b, 10)
+-        if key in ran:
+-            return ran[key]
+-        key, beta_val, chi, chi_err = _run_beta_once(b, n_traj)
+-        return _record_beta_result(key, beta_val, chi, chi_err, n_traj)
+-
+-    def _run_beta_batch(betas, n_traj):
+-        pending = []
+-        for b in betas:
+-            beta_val = float(b)
+-            key = round(beta_val, 10)
+-            if key in ran:
+-                continue
+-            pending.append(beta_val)
+-        if not pending:
+-            return
+-        if int(n_workers) <= 1 or len(pending) == 1:
+-            for beta_val in pending:
+-                _run_beta(beta_val, n_traj)
+-            return
+-
+-        with ThreadPoolExecutor(max_workers=min(int(n_workers), len(pending))) as pool:
+-            futures = [pool.submit(_run_beta_once, beta_val, n_traj) for beta_val in pending]
+-            for future in as_completed(futures):
+-                key, beta_val, chi, chi_err = future.result()
+-                _record_beta_result(key, beta_val, chi, chi_err, n_traj)
+-
+     span = beta_hi - beta_lo
+ 
+     # --- Coarse sweeps with window translation ---
+@@ -431,7 +390,8 @@
+     # feed the GC fit, so each translation strictly adds information.
+     for shift_iter in range(max_shifts + 1):
+         _pass_counter[:] = [0, n_coarse]
+-        _run_beta_batch(np.linspace(beta_lo, beta_hi, n_coarse), n_traj_coarse)
++        for b in np.linspace(beta_lo, beta_hi, n_coarse):
++            _run_beta(float(b), n_traj_coarse)
+ 
+         order = np.argsort(scan_betas)
+         sbetas = np.array(scan_betas)[order]
+@@ -531,7 +491,8 @@
+     half = _half_width(1, last_gc)
+     fine_betas = np.linspace(beta_parabola - half, beta_parabola + half, n_refine + 2)
+     _pass_counter[:] = [0, len(fine_betas)]
+-    _run_beta_batch(fine_betas, n_traj_fine)
++    for b in fine_betas:
++        _run_beta(float(b), n_traj_fine)
+ 
+     gc1_params, beta_pass1 = _gc_fit(scan_betas, scan_chis, beta_parabola)
+     _notify(1, gc1_params, beta_pass1)
+@@ -541,7 +502,8 @@
+     half2 = _half_width(2, gc1_params)
+     fine2_betas = np.linspace(beta_pass1 - half2, beta_pass1 + half2, n_refine2 + 2)
+     _pass_counter[:] = [0, len(fine2_betas)]
+-    _run_beta_batch(fine2_betas, n_traj_fine)
++    for b in fine2_betas:
++        _run_beta(float(b), n_traj_fine)
+ 
+     gc2_params, beta_c = _gc_fit(scan_betas, scan_chis, beta_pass1)
+     _notify(2, gc2_params, beta_c)
+@@ -551,7 +513,8 @@
+     half3 = _half_width(3, gc2_params)
+     fine3_betas = np.linspace(beta_c - half3, beta_c + half3, n_refine3 + 2)
+     _pass_counter[:] = [0, len(fine3_betas)]
+-    _run_beta_batch(fine3_betas, n_traj_fine)
++    for b in fine3_betas:
++        _run_beta(float(b), n_traj_fine)
+ 
+     gc3_params, beta_c_final = _gc_fit(scan_betas, scan_chis, beta_c)
+     _notify(3, gc3_params, beta_c_final)
+@@ -628,7 +591,7 @@
+     for recenter_iter in range(max_recenters + 1):
+         # --- Spawn one parent ensemble at beta_parent with traces dump ---
+         # Note: the C++ binary supports --dump_traces 1 (S4 patch).
+-        seed = _auto_seed()
++        seed = int(time.time() * 1000) & 0xFFFFFFFF
+         _mc_log(
+             "reweight parent run "
+             f"iter={recenter_iter + 1}/{max_recenters + 1} "
+@@ -859,7 +822,7 @@
+     """
+     import reweight as rw_mod  # local import (avoid circulars)
+     if seed is None:
+-        seed = _auto_seed()
++        seed = int(time.time() * 1_000_000) & 0xFFFFFFFF
+     t0 = time.time()
+     _mc_log(
+         "spawn_parent start "
