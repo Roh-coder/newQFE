@@ -1,0 +1,110 @@
+{
+  "run": {
+    "tag": "raw_manifold_fss_quarter_twist_followup_high_stats_20260521"
+  },
+  "paths": {
+    "results_root": "results",
+    "resume": true
+  },
+  "execution": {
+    "n_workers": 1,
+    "exe": null,
+    "auto_build": true,
+    "force_rebuild": false,
+    "build_command": ["make"],
+    "build_timeout_s": 600
+  },
+  "mc": {
+    "n_traj": 10000,
+    "n_skip": 10,
+    "n_therm": 2000
+  },
+  "fss": {
+    "fit_method": "taylor2",
+    "c_min": 0.05,
+    "c_max": 3.5,
+    "c_initial": 1.0,
+    "min_sizes_for_free_C": 8
+  },
+  "benchmarks": [
+    {
+      "id": "geometry_quarter_twist_target_hs",
+      "description": "Fresh higher-stat twisted target repeat for the quarter-twist geometry.",
+      "modular_target_geometry": [12, 12, 3, 3],
+      "twisted": {
+        "base_geometry": [12, 12, 3, 3],
+        "scales": [1, 2, 3, 4],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      }
+    },
+    {
+      "id": "qtwist_repeatA_r140_r100_hs",
+      "description": "Fresh higher-stat untwisted repeat A at r1=1.4, r2=1.0.",
+      "modular_target_geometry": [12, 12, 3, 3],
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.4,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.24328844443445,
+        "critical_source": "exact anisotropic triangular critical point"
+      }
+    },
+    {
+      "id": "qtwist_repeatB_r140_r100_hs",
+      "description": "Fresh higher-stat untwisted repeat B at r1=1.4, r2=1.0.",
+      "modular_target_geometry": [12, 12, 3, 3],
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.4,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.24328844443445,
+        "critical_source": "exact anisotropic triangular critical point"
+      }
+    },
+    {
+      "id": "qtwist_repeat_r140_r080_hs",
+      "description": "Fresh higher-stat untwisted neighbor at r1=1.4, r2=0.8.",
+      "modular_target_geometry": [12, 12, 3, 3],
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.4,
+          "k2_over_k3": 0.8
+        },
+        "beta": 0.259479079276404,
+        "critical_source": "exact anisotropic triangular critical point"
+      }
+    }
+  ]
+}

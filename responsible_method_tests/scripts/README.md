@@ -24,10 +24,30 @@ top of existing data-generation workflows.
   per-scale amplitude-fitted residual metrics and largest-scale comparisons.
 - `plot_residual_scaling.py`: show only the per-scale residual trends versus
   lattice-size scale factor for twisted and untwisted families.
+- `align_manifolds.py`: reinterpolate the twisted and untwisted continuum
+  manifolds onto the same target torus cell, emit direct cross-method
+  agreement metrics, render a common-grid comparison figure, and optionally
+  switch to a `twisted_reference` mode where only the twisted interpolant
+  sampled on untwisted continuum points controls the distinguishability
+  verdict.
+- `fit_target_geometry.py`: rank untwisted coupling candidates against a
+  chosen twisted target torus using the same common-cell continuum score,
+  and emit a localization table plus a scan plot.
 - `score_campaign.py`: compute whole-manifold and cycle-cut scores for one
   benchmark entry from `configs/campaign_template.json`.
 - `summarize_benchmark.py`: emit a compact table of matched and deformed scores
   plus pass/fail status.
+
+The currently implemented summary workflow is:
+
+- `align_manifolds.py` for one benchmark manifest.
+- `align_manifolds.py --comparison-mode twisted_reference` when the intended
+  workflow is a dense twisted reference manifold compared against a sparser
+  untwisted candidate manifold.
+- `fit_target_geometry.py` for a local untwisted coupling scan around one
+  target torus.
+- `summarize_benchmark.py` for a small curated list of benchmark manifests,
+  using the same `--comparison-mode` as the align step.
 
 ## Scope Rule
 

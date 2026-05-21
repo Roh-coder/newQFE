@@ -1,0 +1,361 @@
+{
+  "run": {
+    "tag": "raw_manifold_fss_pickgeo10_20260521"
+  },
+  "paths": {
+    "results_root": "results",
+    "resume": true
+  },
+  "execution": {
+    "n_workers": 1,
+    "exe": null,
+    "auto_build": true,
+    "force_rebuild": false,
+    "build_command": ["make"],
+    "build_timeout_s": 600
+  },
+  "mc": {
+    "n_traj": 2000,
+    "n_skip": 10,
+    "n_therm": 1500
+  },
+  "fss": {
+    "fit_method": "taylor2",
+    "c_min": 0.05,
+    "c_max": 3.5,
+    "c_initial": 1.0,
+    "min_sizes_for_free_C": 8
+  },
+  "benchmarks": [
+    {
+      "id": "geometry_acute_111",
+      "description": "Acute integer-ratio target 1-1-1 approximated exactly by twisted cell (4,4,0,0).",
+      "modular_target_geometry": [4, 4, 0, 0],
+      "twisted": {
+        "base_geometry": [4, 4, 0, 0],
+        "scales": [1, 2, 3, 4],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "embedding_cycles": [1, 0],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167,
+        "critical_source": "exact anisotropic triangular critical point from realized 1-1-1 twisted geometry"
+      }
+    },
+    {
+      "id": "geometry_acute_122",
+      "description": "Acute integer-ratio target 1-2-2 approximated by twisted cell (8,5,2,1).",
+      "modular_target_geometry": [8, 5, 2, 1],
+      "twisted": {
+        "base_geometry": [8, 5, 2, 1],
+        "scales": [1, 2, 3, 4],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "embedding_cycles": [0, 1],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.365636502427,
+          "k2_over_k3": 6.159868968409
+        },
+        "beta": 0.109103599502,
+        "critical_source": "exact anisotropic triangular critical point from realized 1-2-2 twisted geometry"
+      }
+    },
+    {
+      "id": "geometry_acute_233",
+      "description": "Acute integer-ratio target 2-3-3 approximated by twisted cell (4,4,-1,1).",
+      "modular_target_geometry": [4, 4, -1, 1],
+      "twisted": {
+        "base_geometry": [4, 4, -1, 1],
+        "scales": [1, 2, 3, 4],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "embedding_cycles": [0, 2],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 3.119581887046
+        },
+        "beta": 0.169915682051,
+        "critical_source": "exact anisotropic triangular critical point from realized 2-3-3 twisted geometry"
+      }
+    },
+    {
+      "id": "geometry_acute_334",
+      "description": "Acute integer-ratio target 3-3-4 approximated by twisted cell (4,6,0,1).",
+      "modular_target_geometry": [4, 6, 0, 1],
+      "twisted": {
+        "base_geometry": [4, 6, 0, 1],
+        "scales": [1, 2, 3, 4],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "embedding_cycles": [1, 2],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 5.446287367229,
+          "k2_over_k3": 5.446287367229
+        },
+        "beta": 0.071920518113,
+        "critical_source": "exact anisotropic triangular critical point from realized 3-3-4 twisted geometry"
+      }
+    },
+    {
+      "id": "geometry_acute_344",
+      "description": "Acute integer-ratio target 3-4-4 approximated by twisted cell (5,7,1,0).",
+      "modular_target_geometry": [5, 7, 1, 0],
+      "twisted": {
+        "base_geometry": [5, 7, 1, 0],
+        "scales": [1, 2, 3, 4],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "embedding_cycles": [1, 0],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 2.206078057497
+        },
+        "beta": 0.200758621832,
+        "critical_source": "exact anisotropic triangular critical point from realized 3-4-4 twisted geometry"
+      }
+    },
+    {
+      "id": "geometry_acute_445",
+      "description": "Acute integer-ratio target 4-4-5 approximated by twisted cell (5,7,0,1).",
+      "modular_target_geometry": [5, 7, 0, 1],
+      "twisted": {
+        "base_geometry": [5, 7, 0, 1],
+        "scales": [1, 2, 3, 4],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "embedding_cycles": [1, 2],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 3.47279659745,
+          "k2_over_k3": 3.47279659745
+        },
+        "beta": 0.106416953856,
+        "critical_source": "exact anisotropic triangular critical point from realized 4-4-5 twisted geometry"
+      }
+    },
+    {
+      "id": "geometry_acute_455",
+      "description": "Acute integer-ratio target 4-5-5 approximated by twisted cell (6,8,1,0).",
+      "modular_target_geometry": [6, 8, 1, 0],
+      "twisted": {
+        "base_geometry": [6, 8, 1, 0],
+        "scales": [1, 2, 3, 4],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "embedding_cycles": [1, 0],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.990413763108
+        },
+        "beta": 0.210254830503,
+        "critical_source": "exact anisotropic triangular critical point from realized 4-5-5 twisted geometry"
+      }
+    },
+    {
+      "id": "geometry_acute_556",
+      "description": "Acute integer-ratio target 5-5-6 approximated by twisted cell (7,9,0,1).",
+      "modular_target_geometry": [7, 9, 0, 1],
+      "twisted": {
+        "base_geometry": [7, 9, 0, 1],
+        "scales": [1, 2, 3, 4],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "embedding_cycles": [0, 2],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 2.305372163697,
+          "k2_over_k3": 2.305372163697
+        },
+        "beta": 0.148995858027,
+        "critical_source": "exact anisotropic triangular critical point from realized 5-5-6 twisted geometry"
+      }
+    },
+    {
+      "id": "geometry_acute_456",
+      "description": "Acute integer-ratio target 4-5-6 approximated by twisted cell (6,6,3,1).",
+      "modular_target_geometry": [6, 6, 3, 1],
+      "twisted": {
+        "base_geometry": [6, 6, 3, 1],
+        "scales": [1, 2, 3, 4],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "embedding_cycles": [0, 1],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 4.702782819756,
+          "k2_over_k3": 7.353910143333
+        },
+        "beta": 0.066421804006,
+        "critical_source": "exact anisotropic triangular critical point from realized 4-5-6 twisted geometry"
+      }
+    },
+    {
+      "id": "geometry_acute_567",
+      "description": "Acute integer-ratio target 5-6-7 approximated by twisted cell (4,5,2,3).",
+      "modular_target_geometry": [4, 5, 2, 3],
+      "twisted": {
+        "base_geometry": [4, 5, 2, 3],
+        "scales": [1, 2, 3, 4],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "embedding_cycles": [2, 1],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 2.666681064033,
+          "k2_over_k3": 4.069832921022
+        },
+        "beta": 0.110136103641,
+        "critical_source": "exact anisotropic triangular critical point from realized 5-6-7 twisted geometry"
+      }
+    }
+  ]
+}

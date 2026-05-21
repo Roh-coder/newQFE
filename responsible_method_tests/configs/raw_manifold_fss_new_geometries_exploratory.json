@@ -1,0 +1,95 @@
+{
+  "run": {
+    "tag": "raw_manifold_fss_new_geometries_exploratory_20260521"
+  },
+  "paths": {
+    "results_root": "results",
+    "resume": true
+  },
+  "execution": {
+    "n_workers": 1,
+    "exe": null,
+    "auto_build": true,
+    "force_rebuild": false,
+    "build_command": ["make"],
+    "build_timeout_s": 600
+  },
+  "mc": {
+    "n_traj": 2500,
+    "n_skip": 10,
+    "n_therm": 1500
+  },
+  "fss": {
+    "fit_method": "taylor2",
+    "c_min": 0.05,
+    "c_max": 3.5,
+    "c_initial": 1.0,
+    "min_sizes_for_free_C": 8
+  },
+  "benchmarks": [
+    {
+      "id": "geometry_twisted_equi",
+      "description": "Twisted-equilateral control: nontrivial real-space cell with equilateral continuum shape.",
+      "modular_target_geometry": [12, 15, 3, 3],
+      "twisted": {
+        "base_geometry": [12, 15, 3, 3],
+        "scales": [1, 2, 3, 4],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      }
+    },
+    {
+      "id": "geometry_quarter_twist",
+      "description": "Quarter-twist exploratory benchmark seeded at the current anisotropy prior near (1.4, 1.0).",
+      "modular_target_geometry": [12, 12, 3, 3],
+      "twisted": {
+        "base_geometry": [12, 12, 3, 3],
+        "scales": [1, 2, 3, 4],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [12, 24, 36, 48],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.4,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.24328844443445,
+        "critical_source": "exact anisotropic triangular critical point for the quarter-twist prior"
+      }
+    }
+  ]
+}

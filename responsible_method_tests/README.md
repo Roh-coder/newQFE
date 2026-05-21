@@ -8,6 +8,9 @@ matched, do the three constructions converge to the same correlator manifold,
 and when the geometry is perturbed, are the resulting differences large enough
 to be resolved by a practical score?
 
+The dated run log for the most recent benchmark campaigns lives in
+`journal.md`.
+
 ## Scientific Motivation
 
 At criticality, the long-distance spin-spin correlator on a torus is fixed by
