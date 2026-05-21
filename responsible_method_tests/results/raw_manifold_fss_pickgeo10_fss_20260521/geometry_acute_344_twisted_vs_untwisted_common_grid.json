@@ -1,0 +1,66 @@
+{
+  "benchmark_id": "geometry_acute_344",
+  "description": "Acute integer-ratio target 3-4-4 with twisted base volume 140.",
+  "benchmark_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_fss_20260521/manifest_geometry_acute_344.json",
+  "run_tag": "raw_manifold_fss_pickgeo10_fss_20260521",
+  "target_tau": {
+    "real": 0.5,
+    "imag": 1.2124355652982142
+  },
+  "grid_size": 180,
+  "twisted": {
+    "method_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_fss_20260521/geometry_acute_344/twisted/manifest_geometry_acute_344_twisted.json",
+    "alpha": 0.29564621593750134,
+    "chi2_per_dof": 0.21791548261107868,
+    "n_fit_points": 139,
+    "couplings": {
+      "k3": 1.0,
+      "r1": 1.0,
+      "r2": 1.0,
+      "k1": 1.0,
+      "k2": 1.0
+    }
+  },
+  "untwisted": {
+    "method_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_fss_20260521/geometry_acute_344/untwisted/manifest_geometry_acute_344_untwisted.json",
+    "alpha": 0.3240853967765072,
+    "chi2_per_dof": 0.4619772633455513,
+    "n_fit_points": 143,
+    "couplings": {
+      "k3": 1.0,
+      "r1": 1.0,
+      "r2": 2.206078057497,
+      "k1": 1.0,
+      "k2": 2.206078057497
+    }
+  },
+  "common_grid": {
+    "n_grid_points": 32400,
+    "rms_abs": 0.03803187095959034,
+    "mean_abs": 0.037435071517510535,
+    "max_abs": 0.04762216281822185,
+    "relative_rms": 0.10830037477798483,
+    "correlation": 0.992984167035764
+  },
+  "twisted_on_untwisted": {
+    "n_points": 143,
+    "rms_abs": 0.037941072013195444,
+    "mean_abs": 0.03737559651086844,
+    "max_abs": 0.046491195398073615,
+    "rms_z": 3.4234354506472116,
+    "mean_abs_z": 3.396952756787137,
+    "max_abs_z": 6.378345976479725,
+    "chi2_per_point": 11.719910284748076
+  },
+  "untwisted_on_twisted": {
+    "n_points": 139,
+    "rms_abs": 0.03845759497982638,
+    "mean_abs": 0.0378549696331882,
+    "max_abs": 0.047541971239543346,
+    "rms_z": 3.359208396730488,
+    "mean_abs_z": 3.3487163384789085,
+    "max_abs_z": 3.8925738507126666,
+    "chi2_per_point": 11.284281052664618
+  },
+  "interpretation": "distinguishable at continuum-point level"
+}

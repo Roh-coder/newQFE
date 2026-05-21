@@ -1,0 +1,30 @@
+{
+  "target": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_integer_multiples_high_stats_20260520/geometry_456/twisted/manifest_geometry_456_twisted.json",
+  "grid_size": 180,
+  "best_candidate": {
+    "candidate_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_integer_multiples_high_stats_20260520/geometry_456/untwisted/manifest_geometry_456_untwisted.json",
+    "candidate_label": "geometry_456",
+    "r1": 5.065231170850374,
+    "r2": 7.742930488974055,
+    "score": 1.7523938717372016,
+    "twisted_on_untwisted_rms_z": 1.7523938717372016,
+    "untwisted_on_twisted_rms_z": 1.0475097509256923,
+    "common_grid_rel_rms": 0.008390158825824902,
+    "common_grid_corr": 0.9956798827175084,
+    "interpretation": "marginally separated"
+  },
+  "rows": [
+    {
+      "candidate_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_integer_multiples_high_stats_20260520/geometry_456/untwisted/manifest_geometry_456_untwisted.json",
+      "candidate_label": "geometry_456",
+      "r1": 5.065231170850374,
+      "r2": 7.742930488974055,
+      "score": 1.7523938717372016,
+      "twisted_on_untwisted_rms_z": 1.7523938717372016,
+      "untwisted_on_twisted_rms_z": 1.0475097509256923,
+      "common_grid_rel_rms": 0.008390158825824902,
+      "common_grid_corr": 0.9956798827175084,
+      "interpretation": "marginally separated"
+    }
+  ]
+}

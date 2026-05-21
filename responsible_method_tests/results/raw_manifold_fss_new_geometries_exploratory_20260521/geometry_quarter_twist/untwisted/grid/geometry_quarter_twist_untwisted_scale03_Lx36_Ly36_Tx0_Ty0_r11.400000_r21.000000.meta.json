@@ -1,0 +1,31 @@
+{
+  "label": "geometry_quarter_twist_untwisted_scale03",
+  "created_at": "2026-05-21 04:55:38",
+  "benchmark_id": "geometry_quarter_twist",
+  "method": "untwisted",
+  "scale": 3,
+  "family_size": 36,
+  "L": 36,
+  "Lx": 36,
+  "Ly": 36,
+  "Tx": 0,
+  "Ty": 0,
+  "k1": 1.4,
+  "k2": 1.0,
+  "k3": 1.0,
+  "r1": 1.4,
+  "r2": 1.0,
+  "beta_c": 0.24328844443445,
+  "beta_c_sigma": 0.0,
+  "production_beta": 0.24328844443445,
+  "production_beta_source": "exact_critical",
+  "critical_source": "exact anisotropic triangular critical point for the quarter-twist prior",
+  "production_wall_seconds": 1.6890783309936523,
+  "mc": {
+    "n_traj": 2500,
+    "n_skip": 10,
+    "n_therm": 1500
+  },
+  "all_to_all_file": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_new_geometries_exploratory_20260521/geometry_quarter_twist/untwisted/grid/geometry_quarter_twist_untwisted_scale03_Lx36_Ly36_Tx0_Ty0_r11.400000_r21.000000.dat",
+  "source_all_to_all_file": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_new_geometries_exploratory_20260521/_mc_scratch/geometry_quarter_twist/untwisted/geometry_quarter_twist_untwisted_scale03/prod/36x36_t0x0_k1400_1000_1000_500/two_point_all_to_all.dat"
+}

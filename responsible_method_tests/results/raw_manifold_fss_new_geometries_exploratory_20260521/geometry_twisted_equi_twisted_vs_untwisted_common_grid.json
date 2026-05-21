@@ -1,0 +1,66 @@
+{
+  "benchmark_id": "geometry_twisted_equi",
+  "description": "Twisted-equilateral control: nontrivial real-space cell with equilateral continuum shape.",
+  "benchmark_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_new_geometries_exploratory_20260521/manifest_geometry_twisted_equi.json",
+  "run_tag": "raw_manifold_fss_new_geometries_exploratory_20260521",
+  "target_tau": {
+    "real": 0.5,
+    "imag": 0.8660254037844385
+  },
+  "grid_size": 180,
+  "twisted": {
+    "method_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_new_geometries_exploratory_20260521/geometry_twisted_equi/twisted/manifest_geometry_twisted_equi_twisted.json",
+    "alpha": 0.29569001243598664,
+    "chi2_per_dof": 0.09381639651516958,
+    "n_fit_points": 188,
+    "couplings": {
+      "k3": 1.0,
+      "r1": 1.0,
+      "r2": 1.0,
+      "k1": 1.0,
+      "k2": 1.0
+    }
+  },
+  "untwisted": {
+    "method_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_new_geometries_exploratory_20260521/geometry_twisted_equi/untwisted/manifest_geometry_twisted_equi_untwisted.json",
+    "alpha": 0.29775737784900563,
+    "chi2_per_dof": 0.04241036063167624,
+    "n_fit_points": 143,
+    "couplings": {
+      "k3": 1.0,
+      "r1": 1.0,
+      "r2": 1.0,
+      "k1": 1.0,
+      "k2": 1.0
+    }
+  },
+  "common_grid": {
+    "n_grid_points": 32400,
+    "rms_abs": 0.0035152110688725724,
+    "mean_abs": 0.0028668211116041255,
+    "max_abs": 0.015187432345023288,
+    "relative_rms": 0.009942445784673567,
+    "correlation": 0.9904052665203211
+  },
+  "twisted_on_untwisted": {
+    "n_points": 143,
+    "rms_abs": 0.0031693211215313138,
+    "mean_abs": 0.002583875838852471,
+    "max_abs": 0.006256228799165597,
+    "rms_z": 0.2796713544016857,
+    "mean_abs_z": 0.21663210427305038,
+    "max_abs_z": 0.8537509067641816,
+    "chi2_per_point": 0.0782160664728733
+  },
+  "untwisted_on_twisted": {
+    "n_points": 188,
+    "rms_abs": 0.003741482673831904,
+    "mean_abs": 0.0030237767665627804,
+    "max_abs": 0.013601176413200577,
+    "rms_z": 0.3391276719520119,
+    "mean_abs_z": 0.2579423414290649,
+    "max_abs_z": 1.488923396009955,
+    "chi2_per_point": 0.11500757788359138
+  },
+  "interpretation": "not distinguished within continuum point errors"
+}

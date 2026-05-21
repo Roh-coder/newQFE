@@ -1,0 +1,31 @@
+{
+  "label": "geometry_acute_122_untwisted_scale04",
+  "created_at": "2026-05-21 06:05:50",
+  "benchmark_id": "geometry_acute_122",
+  "method": "untwisted",
+  "scale": 4,
+  "family_size": 48,
+  "L": 48,
+  "Lx": 48,
+  "Ly": 48,
+  "Tx": 0,
+  "Ty": 0,
+  "k1": 1.365636502427,
+  "k2": 6.159868968409,
+  "k3": 1.0,
+  "r1": 1.365636502427,
+  "r2": 6.159868968409,
+  "beta_c": 0.109103599502,
+  "beta_c_sigma": 0.0,
+  "production_beta": 0.109103599502,
+  "production_beta_source": "exact_critical",
+  "critical_source": "exact anisotropic triangular critical point from realized 1-2-2 twisted geometry",
+  "production_wall_seconds": 3.7504146099090576,
+  "mc": {
+    "n_traj": 2000,
+    "n_skip": 10,
+    "n_therm": 1500
+  },
+  "all_to_all_file": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_fss_20260521/geometry_acute_122/untwisted/grid/geometry_acute_122_untwisted_scale04_Lx48_Ly48_Tx0_Ty0_r11.365637_r26.159869.dat",
+  "source_all_to_all_file": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_fss_20260521/_mc_scratch/geometry_acute_122/untwisted/geometry_acute_122_untwisted_scale04/prod/48x48_t0x0_k1366_6160_1000_500/two_point_all_to_all.dat"
+}

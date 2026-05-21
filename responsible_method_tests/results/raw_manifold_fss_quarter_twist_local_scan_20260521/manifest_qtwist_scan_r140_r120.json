@@ -1,0 +1,16 @@
+{
+  "created_at": "2026-05-21 04:58:17",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_quarter_twist_local_scan.json",
+  "run_tag": "raw_manifold_fss_quarter_twist_local_scan_20260521",
+  "benchmark_id": "qtwist_scan_r140_r120",
+  "description": "Quarter-twist untwisted scan candidate r1=1.4, r2=1.2.",
+  "target_geometry": [
+    12,
+    12,
+    3,
+    3
+  ],
+  "methods": {
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_quarter_twist_local_scan_20260521/qtwist_scan_r140_r120/untwisted/manifest_qtwist_scan_r140_r120_untwisted.json"
+  }
+}

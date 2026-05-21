@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-05-21 06:10:11",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_pickgeo10_fss_20260521.json",
+  "run_tag": "raw_manifold_fss_pickgeo10_fss_20260521",
+  "benchmark_id": "geometry_acute_567",
+  "description": "Acute integer-ratio target 5-6-7 with twisted base volume 104.",
+  "target_geometry": [
+    8,
+    10,
+    4,
+    6
+  ],
+  "methods": {
+    "twisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_fss_20260521/geometry_acute_567/twisted/manifest_geometry_acute_567_twisted.json",
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_fss_20260521/geometry_acute_567/untwisted/manifest_geometry_acute_567_untwisted.json"
+  }
+}

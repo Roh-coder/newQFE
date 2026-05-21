@@ -1,0 +1,2 @@
+/workspaces/newQFE/responsible_method_tests/scripts/align_manifolds.py:409: UserWarning: This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.
+  fig.tight_layout(rect=[0.0, 0.05, 1.0, 0.95])

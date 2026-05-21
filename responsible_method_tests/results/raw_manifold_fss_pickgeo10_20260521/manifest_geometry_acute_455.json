@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-05-21 05:57:51",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_pickgeo10_20260521.json",
+  "run_tag": "raw_manifold_fss_pickgeo10_20260521",
+  "benchmark_id": "geometry_acute_455",
+  "description": "Acute integer-ratio target 4-5-5 approximated by twisted cell (6,8,1,0).",
+  "target_geometry": [
+    6,
+    8,
+    1,
+    0
+  ],
+  "methods": {
+    "twisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_20260521/geometry_acute_455/twisted/manifest_geometry_acute_455_twisted.json",
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_20260521/geometry_acute_455/untwisted/manifest_geometry_acute_455_untwisted.json"
+  }
+}

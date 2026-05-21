@@ -1,0 +1,50 @@
+{
+  "benchmark_id": "geometry_111",
+  "description": "Equilateral control geometry at exact criticality.",
+  "benchmark_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_integer_multiples_20260520/manifest_geometry_111.json",
+  "run_tag": "raw_manifold_fss_integer_multiples_20260520",
+  "target_tau": {
+    "real": 0.5,
+    "imag": 0.8660254037844387
+  },
+  "grid_size": 180,
+  "twisted": {
+    "alpha": 0.21256042919788617,
+    "chi2_per_dof": 0.06335292819060921,
+    "n_fit_points": 143
+  },
+  "untwisted": {
+    "alpha": 0.2097369219287486,
+    "chi2_per_dof": 0.2778329323732105,
+    "n_fit_points": 143
+  },
+  "common_grid": {
+    "n_grid_points": 32400,
+    "rms_abs": 0.00576745761307044,
+    "mean_abs": 0.004862727073067051,
+    "max_abs": 0.011665016012767926,
+    "relative_rms": 0.02310126124781045,
+    "correlation": 0.9909654946395842
+  },
+  "twisted_on_untwisted": {
+    "n_points": 143,
+    "rms_abs": 0.005948410949176852,
+    "mean_abs": 0.005041776290909093,
+    "max_abs": 0.01171945190000001,
+    "rms_z": 0.5523934622196686,
+    "mean_abs_z": 0.4776370952944956,
+    "max_abs_z": 1.046846361031796,
+    "chi2_per_point": 0.30513853710303235
+  },
+  "untwisted_on_twisted": {
+    "n_points": 143,
+    "rms_abs": 0.005948410949176851,
+    "mean_abs": 0.005041776290909091,
+    "max_abs": 0.011719451899999983,
+    "rms_z": 0.5210793596029902,
+    "mean_abs_z": 0.45015885629211755,
+    "max_abs_z": 0.9965892459383973,
+    "chi2_per_point": 0.27152369900426243
+  },
+  "interpretation": "not distinguished within continuum point errors"
+}

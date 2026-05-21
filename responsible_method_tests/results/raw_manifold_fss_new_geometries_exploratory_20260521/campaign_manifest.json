@@ -1,0 +1,10 @@
+{
+  "created_at": "2026-05-21 04:55:42",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_new_geometries_exploratory.json",
+  "run_tag": "raw_manifold_fss_new_geometries_exploratory_20260521",
+  "run_root": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_new_geometries_exploratory_20260521",
+  "benchmark_manifests": [
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_new_geometries_exploratory_20260521/manifest_geometry_twisted_equi.json",
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_new_geometries_exploratory_20260521/manifest_geometry_quarter_twist.json"
+  ]
+}

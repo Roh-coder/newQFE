@@ -1,0 +1,66 @@
+{
+  "benchmark_id": "geometry_acute_445",
+  "description": "Acute integer-ratio target 4-4-5 with twisted base volume 140.",
+  "benchmark_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_fss_20260521/manifest_geometry_acute_445.json",
+  "run_tag": "raw_manifold_fss_pickgeo10_fss_20260521",
+  "target_tau": {
+    "real": 0.7903225806451611,
+    "imag": 0.977770617175979
+  },
+  "grid_size": 180,
+  "twisted": {
+    "method_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_fss_20260521/geometry_acute_445/twisted/manifest_geometry_acute_445_twisted.json",
+    "alpha": 0.28122814688073805,
+    "chi2_per_dof": 0.2815724879193059,
+    "n_fit_points": 139,
+    "couplings": {
+      "k3": 1.0,
+      "r1": 1.0,
+      "r2": 1.0,
+      "k1": 1.0,
+      "k2": 1.0
+    }
+  },
+  "untwisted": {
+    "method_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_fss_20260521/geometry_acute_445/untwisted/manifest_geometry_acute_445_untwisted.json",
+    "alpha": 0.2934356830536139,
+    "chi2_per_dof": 0.03985108055720208,
+    "n_fit_points": 143,
+    "couplings": {
+      "k3": 1.0,
+      "r1": 3.47279659745,
+      "r2": 3.47279659745,
+      "k1": 3.47279659745,
+      "k2": 3.47279659745
+    }
+  },
+  "common_grid": {
+    "n_grid_points": 32400,
+    "rms_abs": 0.01657433879617832,
+    "mean_abs": 0.015976214608867972,
+    "max_abs": 0.02528072881169796,
+    "relative_rms": 0.04960943775242757,
+    "correlation": 0.9896922290429874
+  },
+  "twisted_on_untwisted": {
+    "n_points": 143,
+    "rms_abs": 0.016282508280911902,
+    "mean_abs": 0.015664887341306298,
+    "max_abs": 0.025365423499999984,
+    "rms_z": 1.4132177862661461,
+    "mean_abs_z": 1.357723007841689,
+    "max_abs_z": 2.8497270622679567,
+    "chi2_per_point": 1.9971845114189868
+  },
+  "untwisted_on_twisted": {
+    "n_points": 139,
+    "rms_abs": 0.016904280734017486,
+    "mean_abs": 0.016274420116918677,
+    "max_abs": 0.02536542349999993,
+    "rms_z": 1.3943956110157927,
+    "mean_abs_z": 1.3612731045273663,
+    "max_abs_z": 2.051223547015037,
+    "chi2_per_point": 1.944339120020106
+  },
+  "interpretation": "marginally separated"
+}

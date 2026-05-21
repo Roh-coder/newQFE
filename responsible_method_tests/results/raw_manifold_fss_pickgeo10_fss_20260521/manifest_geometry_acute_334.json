@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-05-21 06:06:59",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_pickgeo10_fss_20260521.json",
+  "run_tag": "raw_manifold_fss_pickgeo10_fss_20260521",
+  "benchmark_id": "geometry_acute_334",
+  "description": "Acute integer-ratio target 3-3-4 with twisted base volume 216.",
+  "target_geometry": [
+    12,
+    18,
+    0,
+    3
+  ],
+  "methods": {
+    "twisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_fss_20260521/geometry_acute_334/twisted/manifest_geometry_acute_334_twisted.json",
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_fss_20260521/geometry_acute_334/untwisted/manifest_geometry_acute_334_untwisted.json"
+  }
+}

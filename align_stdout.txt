@@ -1,0 +1,6 @@
+wrote /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_fss_20260521/geometry_acute_445_twisted_vs_untwisted_common_grid.png
+wrote /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_fss_20260521/geometry_acute_445_twisted_vs_untwisted_common_grid.json
+interpretation=marginally separated
+common_grid_rel_rms=0.049609
+twisted_on_untwisted_rms_z=1.413218
+untwisted_on_twisted_rms_z=1.394396

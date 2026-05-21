@@ -1,0 +1,90 @@
+{
+  "target": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_new_geometries_exploratory_20260521/geometry_quarter_twist/twisted/manifest_geometry_quarter_twist_twisted.json",
+  "grid_size": 180,
+  "best_candidate": {
+    "candidate_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_quarter_twist_local_scan_20260521/qtwist_scan_r140_r100/untwisted/manifest_qtwist_scan_r140_r100_untwisted.json",
+    "candidate_label": "qtwist_scan_r140_r100",
+    "r1": 1.4,
+    "r2": 1.0,
+    "score": 0.6205729322021676,
+    "twisted_on_untwisted_rms_z": 0.500049716266285,
+    "untwisted_on_twisted_rms_z": 0.6205729322021676,
+    "common_grid_rel_rms": 0.018280090393234062,
+    "common_grid_corr": 0.9603310327188115,
+    "interpretation": "not distinguished within continuum point errors"
+  },
+  "rows": [
+    {
+      "candidate_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_quarter_twist_local_scan_20260521/qtwist_scan_r140_r100/untwisted/manifest_qtwist_scan_r140_r100_untwisted.json",
+      "candidate_label": "qtwist_scan_r140_r100",
+      "r1": 1.4,
+      "r2": 1.0,
+      "score": 0.6205729322021676,
+      "twisted_on_untwisted_rms_z": 0.500049716266285,
+      "untwisted_on_twisted_rms_z": 0.6205729322021676,
+      "common_grid_rel_rms": 0.018280090393234062,
+      "common_grid_corr": 0.9603310327188115,
+      "interpretation": "not distinguished within continuum point errors"
+    },
+    {
+      "candidate_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_quarter_twist_local_scan_20260521/qtwist_scan_r140_r080/untwisted/manifest_qtwist_scan_r140_r080_untwisted.json",
+      "candidate_label": "qtwist_scan_r140_r080",
+      "r1": 1.4,
+      "r2": 0.8,
+      "score": 0.9015180856778672,
+      "twisted_on_untwisted_rms_z": 0.6305709117317371,
+      "untwisted_on_twisted_rms_z": 0.9015180856778672,
+      "common_grid_rel_rms": 0.02710056874914099,
+      "common_grid_corr": 0.9660776955454008,
+      "interpretation": "not distinguished within continuum point errors"
+    },
+    {
+      "candidate_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_quarter_twist_local_scan_20260521/qtwist_scan_r160_r100/untwisted/manifest_qtwist_scan_r160_r100_untwisted.json",
+      "candidate_label": "qtwist_scan_r160_r100",
+      "r1": 1.6,
+      "r2": 1.0,
+      "score": 2.603512683029886,
+      "twisted_on_untwisted_rms_z": 1.821177073603448,
+      "untwisted_on_twisted_rms_z": 2.603512683029886,
+      "common_grid_rel_rms": 0.08812459907422675,
+      "common_grid_corr": 0.9378728466308425,
+      "interpretation": "distinguishable at continuum-point level"
+    },
+    {
+      "candidate_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_quarter_twist_local_scan_20260521/qtwist_scan_r140_r120/untwisted/manifest_qtwist_scan_r140_r120_untwisted.json",
+      "candidate_label": "qtwist_scan_r140_r120",
+      "r1": 1.4,
+      "r2": 1.2,
+      "score": 3.3133987762343966,
+      "twisted_on_untwisted_rms_z": 2.3390454841824866,
+      "untwisted_on_twisted_rms_z": 3.3133987762343966,
+      "common_grid_rel_rms": 0.11083479810903862,
+      "common_grid_corr": 0.9752056551325856,
+      "interpretation": "distinguishable at continuum-point level"
+    },
+    {
+      "candidate_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_quarter_twist_local_scan_20260521/qtwist_scan_r120_r080/untwisted/manifest_qtwist_scan_r120_r080_untwisted.json",
+      "candidate_label": "qtwist_scan_r120_r080",
+      "r1": 1.2,
+      "r2": 0.8,
+      "score": 3.7812705134017133,
+      "twisted_on_untwisted_rms_z": 2.571531051121076,
+      "untwisted_on_twisted_rms_z": 3.7812705134017133,
+      "common_grid_rel_rms": 0.12856112786837826,
+      "common_grid_corr": 0.9341434213480749,
+      "interpretation": "distinguishable at continuum-point level"
+    },
+    {
+      "candidate_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_quarter_twist_local_scan_20260521/qtwist_scan_r120_r100/untwisted/manifest_qtwist_scan_r120_r100_untwisted.json",
+      "candidate_label": "qtwist_scan_r120_r100",
+      "r1": 1.2,
+      "r2": 1.0,
+      "score": 4.052373955772421,
+      "twisted_on_untwisted_rms_z": 2.7191387302353034,
+      "untwisted_on_twisted_rms_z": 4.052373955772421,
+      "common_grid_rel_rms": 0.1383023080704111,
+      "common_grid_corr": 0.9368907154449166,
+      "interpretation": "distinguishable at continuum-point level"
+    }
+  ]
+}
