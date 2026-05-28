@@ -1,0 +1,202 @@
+{
+  "anchor_label": "u/4",
+  "description": "Direct equal-volume 144x144 quarter-point and direction-ratio comparison against the standard iso111 twisted target.",
+  "mc": {
+    "n_skip": 10,
+    "n_therm": 2000,
+    "n_traj": 20000
+  },
+  "quarter_fraction": 0.25,
+  "quarter_points": {
+    "u/4": {
+      "m": 0,
+      "n": -36
+    },
+    "v/4": {
+      "m": 36,
+      "n": 0
+    },
+    "w/4": {
+      "m": 36,
+      "n": -36
+    }
+  },
+  "rows": [
+    {
+      "beta": 0.2842161223566378,
+      "candidate_tag": "r1_1p000000__r2_0p900000",
+      "direction_ratios": {
+        "v_over_u": {
+          "method": "jackknife",
+          "sigma": 0.003115568778100246,
+          "value": 1.0005735900367971
+        },
+        "w_over_u": {
+          "method": "jackknife",
+          "sigma": 0.0031556365602871204,
+          "value": 1.007612523450502
+        }
+      },
+      "quarter_points": {
+        "u/4": {
+          "sigma": 0.0027273138384952054,
+          "value": 0.302001948306467
+        },
+        "v/4": {
+          "sigma": 0.00272261328825827,
+          "value": 0.3021751736151089
+        },
+        "w/4": {
+          "sigma": 0.0026600817437810605,
+          "value": 0.30430094522004725
+        }
+      },
+      "r1": 1.0,
+      "r2": 0.9,
+      "scores": {
+        "anchor_free_u4_z": 0.0,
+        "anchor_free_v4_z": 1.2658209779206306,
+        "anchor_free_w4_z": 3.6001395514209107,
+        "anchor_label": "u/4",
+        "corr_z2": 29.503775308671614,
+        "ratio_z2": 14.563307537849097,
+        "u4_z": -3.6755154939192662,
+        "v4_over_u4_z": 1.2658209779206306,
+        "v4_z": -3.1962497963767933,
+        "w4_over_u4_z": 3.6001395514209107,
+        "w4_z": -2.403819544348605,
+        "z2_sum": 44.06708284652071
+      },
+      "seed": 1581795276
+    },
+    {
+      "beta": 0.27465307216702745,
+      "candidate_tag": "r1_1p000000__r2_1p000000",
+      "direction_ratios": {
+        "v_over_u": {
+          "method": "jackknife",
+          "sigma": 0.0028814117435534683,
+          "value": 0.998381528534428
+        },
+        "w_over_u": {
+          "method": "jackknife",
+          "sigma": 0.0031777464152073554,
+          "value": 1.0016313638941887
+        }
+      },
+      "quarter_points": {
+        "u/4": {
+          "sigma": 0.002730828297683335,
+          "value": 0.30672850137954705
+        },
+        "v/4": {
+          "sigma": 0.002728403683929049,
+          "value": 0.30623207005238656
+        },
+        "w/4": {
+          "sigma": 0.002724372506494829,
+          "value": 0.30722888718201624
+        }
+      },
+      "r1": 1.0,
+      "r2": 1.0,
+      "scores": {
+        "anchor_free_u4_z": 0.0,
+        "anchor_free_v4_z": 0.7808000859368533,
+        "anchor_free_w4_z": 2.1903564746994757,
+        "anchor_label": "u/4",
+        "corr_z2": 12.890417038617198,
+        "ratio_z2": 5.407310260456912,
+        "u4_z": -2.4123822883053307,
+        "v4_over_u4_z": 0.7808000859368533,
+        "v4_z": -2.12061544740713,
+        "w4_over_u4_z": 2.1903564746994757,
+        "w4_z": -1.6043125811094898,
+        "z2_sum": 18.29772729907411
+      },
+      "seed": 3052213914
+    },
+    {
+      "beta": 0.2658697458653609,
+      "candidate_tag": "r1_1p000000__r2_1p100000",
+      "direction_ratios": {
+        "v_over_u": {
+          "method": "jackknife",
+          "sigma": 0.003203155246814509,
+          "value": 0.9947616397052874
+        },
+        "w_over_u": {
+          "method": "jackknife",
+          "sigma": 0.0032467973993162438,
+          "value": 0.9946215072408816
+        }
+      },
+      "quarter_points": {
+        "u/4": {
+          "sigma": 0.0026181152546557694,
+          "value": 0.30490881351448035
+        },
+        "v/4": {
+          "sigma": 0.0026497277901884964,
+          "value": 0.30331159129225815
+        },
+        "w/4": {
+          "sigma": 0.0026478363258630034,
+          "value": 0.30326886366880135
+        }
+      },
+      "r1": 1.0,
+      "r2": 1.1,
+      "scores": {
+        "anchor_free_u4_z": 0.0,
+        "anchor_free_v4_z": -0.10078735389687095,
+        "anchor_free_w4_z": 0.5476515900825002,
+        "anchor_label": "u/4",
+        "corr_z2": 24.602630412033797,
+        "ratio_z2": 0.3100803548254239,
+        "u4_z": -2.9619232741893105,
+        "v4_over_u4_z": -0.10078735389687095,
+        "v4_z": -2.936112747857148,
+        "w4_over_u4_z": 0.5476515900825002,
+        "w4_z": -2.6849362863427917,
+        "z2_sum": 24.91271076685922
+      },
+      "seed": 2125579583
+    }
+  ],
+  "twisted_dat": "/workspaces/newQFE/responsible_method_tests/standard/data/iso111/twisted/reference/Lx144_Ly144_Tx0_Ty0/two_point_all_to_all.dat",
+  "twisted_reference": {
+    "direction_ratios": {
+      "v_over_u": {
+        "method": "jackknife",
+        "sigma": 0.002887775584427276,
+        "value": 0.9951963061452161
+      },
+      "w_over_u": {
+        "method": "jackknife",
+        "sigma": 0.0028737075525913686,
+        "value": 0.9922469535756355
+      }
+    },
+    "quarter_points": {
+      "u/4": {
+        "sigma": 0.002569120618694907,
+        "value": 0.3157734243438585
+      },
+      "v/4": {
+        "sigma": 0.0026219662372356737,
+        "value": 0.31425654548583387
+      },
+      "w/4": {
+        "sigma": 0.002649061345532308,
+        "value": 0.31332521832534005
+      }
+    }
+  },
+  "untwisted_lattice": [
+    144,
+    144,
+    0,
+    0
+  ]
+}

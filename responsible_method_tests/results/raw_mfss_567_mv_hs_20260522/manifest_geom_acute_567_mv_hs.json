@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-05-22 19:56:12",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_acute_567_matched_volume_scale6to10_hi5000_20260522.json",
+  "run_tag": "raw_mfss_567_mv_hs_20260522",
+  "benchmark_id": "geom_acute_567_mv_hs",
+  "description": "High-stat matched-volume 5-6-7 follow-up on the largest feasible multiplicative large-lattice window. The family is anchored at the original scale-2 lattices and uses relative multipliers 1..5, corresponding to the original absolute scales 2, 4, 6, 8, and 10.",
+  "target_geometry": [
+    12,
+    15,
+    6,
+    9
+  ],
+  "methods": {
+    "twisted": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/manifest_geom_acute_567_mv_hs_twisted.json",
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/untwisted/manifest_geom_acute_567_mv_hs_untwisted.json"
+  }
+}

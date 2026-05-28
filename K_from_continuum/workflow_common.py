@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Any
 
 import numpy as np
-from scipy.optimize import curve_fit
+from scipy.optimize import brentq, curve_fit
 
 _WORKFLOW_ROOT = os.path.dirname(os.path.abspath(__file__))
 _RUNTIME_ROOT = _WORKFLOW_ROOT
@@ -399,6 +399,29 @@ def couplings_from_ratio(couplings_cfg: dict[str, Any], section_name: str) -> di
     }
 
 
+def exact_triangular_ising_beta(couplings: dict[str, float]) -> float:
+    k1 = float(couplings["k1"])
+    k2 = float(couplings["k2"])
+    k3 = float(couplings["k3"])
+    if min(k1, k2, k3) <= 0.0:
+        raise ValueError("exact triangular Ising beta requires positive couplings")
+
+    def critical_equation(beta: float) -> float:
+        s1 = np.sinh(2.0 * beta * k1)
+        s2 = np.sinh(2.0 * beta * k2)
+        s3 = np.sinh(2.0 * beta * k3)
+        return float(s1 * s2 + s2 * s3 + s3 * s1 - 1.0)
+
+    beta_lo = 0.0
+    beta_hi = 1.0
+    while critical_equation(beta_hi) <= 0.0:
+        beta_hi *= 2.0
+        if beta_hi > 1.0e6:
+            raise ValueError("failed to bracket exact triangular Ising critical beta")
+
+    return float(brentq(critical_equation, beta_lo, beta_hi, xtol=1.0e-14, rtol=1.0e-12, maxiter=200))
+
+
 def build_test_geometry_map(test_family_cfg: dict[str, Any]) -> dict[int, tuple[int, int, int, int]]:
     if "sizes" not in test_family_cfg:
         raise ValueError("test_family.sizes is required")
@@ -746,7 +769,8 @@ def fit_observable_continuum_power(
     chi2_fc = _weighted_chi2(y, y_fit_fc, sigma_fit)
     aicc_fc = _aicc_from_chi2(chi2_fc, n, 2)
 
-    if n < max(3, min_sizes_for_free_C):
+    min_sizes_for_selected_fit = 3 if fit_method == "taylor2" else max(3, min_sizes_for_free_C)
+    if n < min_sizes_for_selected_fit:
         return A_fc, sA_fc, B_fc, C_fc, n, "fixed_C_n<min"
 
     if fit_method == "taylor2":
@@ -827,6 +851,35 @@ def find_beta_for_lattice(
     k1 = couplings["k1"]
     k2 = couplings["k2"]
     k3 = couplings["k3"]
+
+    mode = str(beta_cfg.get("mode", "scan")).strip().lower()
+    if mode == "exact_triangular_sinh_rule":
+        beta_c = exact_triangular_ising_beta(couplings)
+        return {
+            "label": label,
+            "created_at": timestamp(),
+            "beta_find_wall_seconds": 0.0,
+            "L": int(max(abs(Lx), abs(Ly))),
+            "Lx": int(Lx),
+            "Ly": int(Ly),
+            "Tx": int(Tx),
+            "Ty": int(Ty),
+            "k1": float(k1),
+            "k2": float(k2),
+            "k3": float(k3),
+            "r1": float(couplings["r1"]),
+            "r2": float(couplings["r2"]),
+            "beta_c": float(beta_c),
+            "beta_c_sigma": 0.0,
+            "chi_peak": float("nan"),
+            "scan_betas": [],
+            "scan_chis": [],
+            "scan_chi_errs": [],
+            "beta_finder": {
+                "mode": "exact_triangular_sinh_rule",
+                "critical_equation": "sinh(2 beta k1) sinh(2 beta k2) + sinh(2 beta k2) sinh(2 beta k3) + sinh(2 beta k3) sinh(2 beta k1) = 1",
+            },
+        }
 
     scratch = _safe_mc_scratch_dir(scratch_root, label)
     ensure_dir(scratch)

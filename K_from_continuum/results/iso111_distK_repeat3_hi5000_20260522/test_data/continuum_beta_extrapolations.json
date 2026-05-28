@@ -1,0 +1,632 @@
+{
+  "created_at": "2026-05-22 21:31:43",
+  "config_path": "/workspaces/newQFE/K_from_continuum/configs/iso111_distinguishabilityK_repeat3_hi5000_tests_20260522.json",
+  "run_tag": "iso111_distK_repeat3_hi5000_20260522",
+  "mode": "taylor2_continuum",
+  "points": [
+    {
+      "r1": 0.995,
+      "r2": 1.0,
+      "continuum_beta": 0.2751118020130263,
+      "continuum_beta_sigma": 2.2701277446416883,
+      "jobs": [
+        {
+          "status": "ok",
+          "L": 60,
+          "r1": 0.995,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L60/test_L60_r10.995000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L60/test_L60_r10.995000_r21.000000.meta.json",
+          "beta_c": 0.2751118020130263,
+          "finite_size_beta_c": 0.27511180201302654,
+          "wall_seconds": 11.33869743347168,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 48,
+          "r1": 0.995,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L48/test_L48_r10.995000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L48/test_L48_r10.995000_r21.000000.meta.json",
+          "beta_c": 0.2751118020130263,
+          "finite_size_beta_c": 0.27511180201302654,
+          "wall_seconds": 7.134905815124512,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 36,
+          "r1": 0.995,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L36/test_L36_r10.995000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L36/test_L36_r10.995000_r21.000000.meta.json",
+          "beta_c": 0.2751118020130263,
+          "finite_size_beta_c": 0.27511180201302654,
+          "wall_seconds": 2.8358893394470215,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 24,
+          "r1": 0.995,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L24/test_L24_r10.995000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L24/test_L24_r10.995000_r21.000000.meta.json",
+          "beta_c": 0.2751118020130263,
+          "finite_size_beta_c": 0.27511180201302654,
+          "wall_seconds": 1.2033090591430664,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 12,
+          "r1": 0.995,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L12/test_L12_r10.995000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L12/test_L12_r10.995000_r21.000000.meta.json",
+          "beta_c": 0.2751118020130263,
+          "finite_size_beta_c": 0.27511180201302654,
+          "wall_seconds": 0.3191509246826172,
+          "message": "completed with shared continuum beta"
+        }
+      ],
+      "production_jobs": [
+        {
+          "status": "ok",
+          "L": 60,
+          "r1": 0.995,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L60/test_L60_r10.995000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L60/test_L60_r10.995000_r21.000000.meta.json",
+          "beta_c": 0.2751118020130263,
+          "finite_size_beta_c": 0.27511180201302654,
+          "wall_seconds": 11.33869743347168,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 48,
+          "r1": 0.995,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L48/test_L48_r10.995000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L48/test_L48_r10.995000_r21.000000.meta.json",
+          "beta_c": 0.2751118020130263,
+          "finite_size_beta_c": 0.27511180201302654,
+          "wall_seconds": 7.134905815124512,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 36,
+          "r1": 0.995,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L36/test_L36_r10.995000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L36/test_L36_r10.995000_r21.000000.meta.json",
+          "beta_c": 0.2751118020130263,
+          "finite_size_beta_c": 0.27511180201302654,
+          "wall_seconds": 2.8358893394470215,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 24,
+          "r1": 0.995,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L24/test_L24_r10.995000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L24/test_L24_r10.995000_r21.000000.meta.json",
+          "beta_c": 0.2751118020130263,
+          "finite_size_beta_c": 0.27511180201302654,
+          "wall_seconds": 1.2033090591430664,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 12,
+          "r1": 0.995,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L12/test_L12_r10.995000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L12/test_L12_r10.995000_r21.000000.meta.json",
+          "beta_c": 0.2751118020130263,
+          "finite_size_beta_c": 0.27511180201302654,
+          "wall_seconds": 0.3191509246826172,
+          "message": "completed with shared continuum beta"
+        }
+      ],
+      "beta_extrapolation": {
+        "method": "taylor2_continuum",
+        "ansatz": "beta_c(L) = beta_c(infinity) + a1/L + a2/L^2",
+        "weighted": false,
+        "parameters": {
+          "beta_c": 0.2751118020130263,
+          "linear": -1.1455495389826466e-17,
+          "quadratic": -6.146045600473915e-19
+        },
+        "L_values": [
+          12,
+          24,
+          36,
+          48,
+          60
+        ],
+        "beta_values": [
+          0.27511180201302654,
+          0.27511180201302654,
+          0.27511180201302654,
+          0.27511180201302654,
+          0.27511180201302654
+        ],
+        "sigma_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "beta_fit_values": [
+          0.2751118020130263,
+          0.2751118020130263,
+          0.2751118020130263,
+          0.2751118020130263,
+          0.2751118020130263
+        ],
+        "residual_values": [
+          2.220446049250313e-16,
+          2.220446049250313e-16,
+          2.220446049250313e-16,
+          2.220446049250313e-16,
+          2.220446049250313e-16
+        ],
+        "beta_c_continuum": 0.2751118020130263,
+        "beta_c_continuum_sigma": 2.2701277446416883,
+        "rms_residual": 2.220446049250313e-16,
+        "n_points": 5,
+        "lmin": 12,
+        "lmax": 60
+      },
+      "finite_beta_rows": [
+        {
+          "L": 12,
+          "beta_c": 0.27511180201302654,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 24,
+          "beta_c": 0.27511180201302654,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 36,
+          "beta_c": 0.27511180201302654,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 48,
+          "beta_c": 0.27511180201302654,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 60,
+          "beta_c": 0.27511180201302654,
+          "beta_c_sigma": 0.0
+        }
+      ]
+    },
+    {
+      "r1": 1.0,
+      "r2": 1.0,
+      "continuum_beta": 0.2746530721670271,
+      "continuum_beta_sigma": 2.2701277446416883,
+      "jobs": [
+        {
+          "status": "ok",
+          "L": 60,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L60/test_L60_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L60/test_L60_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2746530721670271,
+          "finite_size_beta_c": 0.27465307216702745,
+          "wall_seconds": 11.632610559463501,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 48,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L48/test_L48_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L48/test_L48_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2746530721670271,
+          "finite_size_beta_c": 0.27465307216702745,
+          "wall_seconds": 5.945896625518799,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 36,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L36/test_L36_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L36/test_L36_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2746530721670271,
+          "finite_size_beta_c": 0.27465307216702745,
+          "wall_seconds": 2.8323514461517334,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 24,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L24/test_L24_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L24/test_L24_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2746530721670271,
+          "finite_size_beta_c": 0.27465307216702745,
+          "wall_seconds": 1.1997809410095215,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 12,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L12/test_L12_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L12/test_L12_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2746530721670271,
+          "finite_size_beta_c": 0.27465307216702745,
+          "wall_seconds": 0.3373141288757324,
+          "message": "completed with shared continuum beta"
+        }
+      ],
+      "production_jobs": [
+        {
+          "status": "ok",
+          "L": 60,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L60/test_L60_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L60/test_L60_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2746530721670271,
+          "finite_size_beta_c": 0.27465307216702745,
+          "wall_seconds": 11.632610559463501,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 48,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L48/test_L48_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L48/test_L48_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2746530721670271,
+          "finite_size_beta_c": 0.27465307216702745,
+          "wall_seconds": 5.945896625518799,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 36,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L36/test_L36_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L36/test_L36_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2746530721670271,
+          "finite_size_beta_c": 0.27465307216702745,
+          "wall_seconds": 2.8323514461517334,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 24,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L24/test_L24_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L24/test_L24_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2746530721670271,
+          "finite_size_beta_c": 0.27465307216702745,
+          "wall_seconds": 1.1997809410095215,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 12,
+          "r1": 1.0,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L12/test_L12_r11.000000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L12/test_L12_r11.000000_r21.000000.meta.json",
+          "beta_c": 0.2746530721670271,
+          "finite_size_beta_c": 0.27465307216702745,
+          "wall_seconds": 0.3373141288757324,
+          "message": "completed with shared continuum beta"
+        }
+      ],
+      "beta_extrapolation": {
+        "method": "taylor2_continuum",
+        "ansatz": "beta_c(L) = beta_c(infinity) + a1/L + a2/L^2",
+        "weighted": false,
+        "parameters": {
+          "beta_c": 0.2746530721670271,
+          "linear": 2.5352709774242103e-15,
+          "quadratic": -4.3663712820861585e-14
+        },
+        "L_values": [
+          12,
+          24,
+          36,
+          48,
+          60
+        ],
+        "beta_values": [
+          0.27465307216702745,
+          0.27465307216702745,
+          0.27465307216702745,
+          0.27465307216702745,
+          0.27465307216702745
+        ],
+        "sigma_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "beta_fit_values": [
+          0.27465307216702706,
+          0.27465307216702717,
+          0.2746530721670271,
+          0.27465307216702717,
+          0.27465307216702717
+        ],
+        "residual_values": [
+          3.885780586188048e-16,
+          2.7755575615628914e-16,
+          3.3306690738754696e-16,
+          2.7755575615628914e-16,
+          2.7755575615628914e-16
+        ],
+        "beta_c_continuum": 0.2746530721670271,
+        "beta_c_continuum_sigma": 2.2701277446416883,
+        "rms_residual": 3.1401849173675503e-16,
+        "n_points": 5,
+        "lmin": 12,
+        "lmax": 60
+      },
+      "finite_beta_rows": [
+        {
+          "L": 12,
+          "beta_c": 0.27465307216702745,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 24,
+          "beta_c": 0.27465307216702745,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 36,
+          "beta_c": 0.27465307216702745,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 48,
+          "beta_c": 0.27465307216702745,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 60,
+          "beta_c": 0.27465307216702745,
+          "beta_c_sigma": 0.0
+        }
+      ]
+    },
+    {
+      "r1": 1.005,
+      "r2": 1.0,
+      "continuum_beta": 0.27419628726185136,
+      "continuum_beta_sigma": 2.2701277446416883,
+      "jobs": [
+        {
+          "status": "ok",
+          "L": 60,
+          "r1": 1.005,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L60/test_L60_r11.005000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L60/test_L60_r11.005000_r21.000000.meta.json",
+          "beta_c": 0.27419628726185136,
+          "finite_size_beta_c": 0.2741962872618517,
+          "wall_seconds": 11.29422664642334,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 48,
+          "r1": 1.005,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L48/test_L48_r11.005000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L48/test_L48_r11.005000_r21.000000.meta.json",
+          "beta_c": 0.27419628726185136,
+          "finite_size_beta_c": 0.2741962872618517,
+          "wall_seconds": 5.915743350982666,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 36,
+          "r1": 1.005,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L36/test_L36_r11.005000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L36/test_L36_r11.005000_r21.000000.meta.json",
+          "beta_c": 0.27419628726185136,
+          "finite_size_beta_c": 0.2741962872618517,
+          "wall_seconds": 2.9558863639831543,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 24,
+          "r1": 1.005,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L24/test_L24_r11.005000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L24/test_L24_r11.005000_r21.000000.meta.json",
+          "beta_c": 0.27419628726185136,
+          "finite_size_beta_c": 0.2741962872618517,
+          "wall_seconds": 1.1851410865783691,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 12,
+          "r1": 1.005,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L12/test_L12_r11.005000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L12/test_L12_r11.005000_r21.000000.meta.json",
+          "beta_c": 0.27419628726185136,
+          "finite_size_beta_c": 0.2741962872618517,
+          "wall_seconds": 0.25186753273010254,
+          "message": "completed with shared continuum beta"
+        }
+      ],
+      "production_jobs": [
+        {
+          "status": "ok",
+          "L": 60,
+          "r1": 1.005,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L60/test_L60_r11.005000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L60/test_L60_r11.005000_r21.000000.meta.json",
+          "beta_c": 0.27419628726185136,
+          "finite_size_beta_c": 0.2741962872618517,
+          "wall_seconds": 11.29422664642334,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 48,
+          "r1": 1.005,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L48/test_L48_r11.005000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L48/test_L48_r11.005000_r21.000000.meta.json",
+          "beta_c": 0.27419628726185136,
+          "finite_size_beta_c": 0.2741962872618517,
+          "wall_seconds": 5.915743350982666,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 36,
+          "r1": 1.005,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L36/test_L36_r11.005000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L36/test_L36_r11.005000_r21.000000.meta.json",
+          "beta_c": 0.27419628726185136,
+          "finite_size_beta_c": 0.2741962872618517,
+          "wall_seconds": 2.9558863639831543,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 24,
+          "r1": 1.005,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L24/test_L24_r11.005000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L24/test_L24_r11.005000_r21.000000.meta.json",
+          "beta_c": 0.27419628726185136,
+          "finite_size_beta_c": 0.2741962872618517,
+          "wall_seconds": 1.1851410865783691,
+          "message": "completed with shared continuum beta"
+        },
+        {
+          "status": "ok",
+          "L": 12,
+          "r1": 1.005,
+          "r2": 1.0,
+          "data_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L12/test_L12_r11.005000_r21.000000.dat",
+          "metadata_path": "/workspaces/newQFE/K_from_continuum/results/iso111_distK_repeat3_hi5000_20260522/test_data/grid/L12/test_L12_r11.005000_r21.000000.meta.json",
+          "beta_c": 0.27419628726185136,
+          "finite_size_beta_c": 0.2741962872618517,
+          "wall_seconds": 0.25186753273010254,
+          "message": "completed with shared continuum beta"
+        }
+      ],
+      "beta_extrapolation": {
+        "method": "taylor2_continuum",
+        "ansatz": "beta_c(L) = beta_c(infinity) + a1/L + a2/L^2",
+        "weighted": false,
+        "parameters": {
+          "beta_c": 0.27419628726185136,
+          "linear": 2.537943935897394e-15,
+          "quadratic": -4.3663469449797085e-14
+        },
+        "L_values": [
+          12,
+          24,
+          36,
+          48,
+          60
+        ],
+        "beta_values": [
+          0.2741962872618517,
+          0.2741962872618517,
+          0.2741962872618517,
+          0.2741962872618517,
+          0.2741962872618517
+        ],
+        "sigma_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "beta_fit_values": [
+          0.2741962872618513,
+          0.2741962872618514,
+          0.27419628726185136,
+          0.2741962872618514,
+          0.2741962872618514
+        ],
+        "residual_values": [
+          3.885780586188048e-16,
+          2.7755575615628914e-16,
+          3.3306690738754696e-16,
+          2.7755575615628914e-16,
+          2.7755575615628914e-16
+        ],
+        "beta_c_continuum": 0.27419628726185136,
+        "beta_c_continuum_sigma": 2.2701277446416883,
+        "rms_residual": 3.1401849173675503e-16,
+        "n_points": 5,
+        "lmin": 12,
+        "lmax": 60
+      },
+      "finite_beta_rows": [
+        {
+          "L": 12,
+          "beta_c": 0.2741962872618517,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 24,
+          "beta_c": 0.2741962872618517,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 36,
+          "beta_c": 0.2741962872618517,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 48,
+          "beta_c": 0.2741962872618517,
+          "beta_c_sigma": 0.0
+        },
+        {
+          "L": 60,
+          "beta_c": 0.2741962872618517,
+          "beta_c_sigma": 0.0
+        }
+      ]
+    }
+  ]
+}

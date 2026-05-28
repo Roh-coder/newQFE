@@ -1,0 +1,31 @@
+{
+  "label": "geometry_acute_556_twisted_scale02",
+  "created_at": "2026-05-21 17:26:14",
+  "benchmark_id": "geometry_acute_556",
+  "method": "twisted",
+  "scale": 2,
+  "family_size": 2,
+  "L": 2,
+  "Lx": 42,
+  "Ly": 54,
+  "Tx": 0,
+  "Ty": 6,
+  "k1": 1.0,
+  "k2": 1.0,
+  "k3": 1.0,
+  "r1": 1.0,
+  "r2": 1.0,
+  "beta_c": 0.274653072167027,
+  "beta_c_sigma": 0.0,
+  "production_beta": 0.274653072167027,
+  "production_beta_source": "exact_critical",
+  "critical_source": "exact isotropic triangular critical point",
+  "production_wall_seconds": 4.10681939125061,
+  "mc": {
+    "n_traj": 2000,
+    "n_skip": 10,
+    "n_therm": 1500
+  },
+  "all_to_all_file": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/geometry_acute_556/twisted/grid/geometry_acute_556_twisted_scale02_Lx42_Ly54_Tx0_Ty6_r11.000000_r21.000000.dat",
+  "source_all_to_all_file": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/_mc_scratch/geometry_acute_556/twisted/geometry_acute_556_twisted_scale02/prod/42x54_t0x6_k1000_1000_1000_500/two_point_all_to_all.dat"
+}

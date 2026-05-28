@@ -1,0 +1,69 @@
+{
+  "run": {
+    "tag": "raw_mfss_567_mv_hs_20260522"
+  },
+  "paths": {
+    "results_root": "results",
+    "resume": true
+  },
+  "execution": {
+    "n_workers": 1,
+    "exe": null,
+    "auto_build": true,
+    "force_rebuild": false,
+    "build_command": ["make"],
+    "build_timeout_s": 600
+  },
+  "mc": {
+    "n_traj": 5000,
+    "n_skip": 10,
+    "n_therm": 1500
+  },
+  "fss": {
+    "fit_method": "taylor2",
+    "c_min": 0.05,
+    "c_max": 3.5,
+    "c_initial": 1.0,
+    "min_sizes_for_free_C": 8
+  },
+  "benchmarks": [
+    {
+      "id": "geom_acute_567_mv_hs",
+      "description": "High-stat matched-volume 5-6-7 follow-up on the largest feasible multiplicative large-lattice window. The family is anchored at the original scale-2 lattices and uses relative multipliers 1..5, corresponding to the original absolute scales 2, 4, 6, 8, and 10.",
+      "modular_target_geometry": [12, 15, 6, 9],
+      "twisted": {
+        "entries": [
+          {"scale": 1, "family_size": 2, "lattice": [24, 30, 12, 18]},
+          {"scale": 2, "family_size": 4, "lattice": [48, 60, 24, 36]},
+          {"scale": 3, "family_size": 6, "lattice": [72, 90, 36, 54]},
+          {"scale": 4, "family_size": 8, "lattice": [96, 120, 48, 72]},
+          {"scale": 5, "family_size": 10, "lattice": [120, 150, 60, 90]}
+        ],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "entries": [
+          {"scale": 1, "family_size": 2, "lattice": [30, 30, 0, 0]},
+          {"scale": 2, "family_size": 4, "lattice": [60, 60, 0, 0]},
+          {"scale": 3, "family_size": 6, "lattice": [90, 90, 0, 0]},
+          {"scale": 4, "family_size": 8, "lattice": [120, 120, 0, 0]},
+          {"scale": 5, "family_size": 10, "lattice": [150, 150, 0, 0]}
+        ],
+        "embedding_cycles": [2, 1],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 2.666681064033,
+          "k2_over_k3": 4.069832921022
+        },
+        "beta": 0.110136103641,
+        "critical_source": "exact anisotropic triangular critical point from realized 5-6-7 twisted geometry"
+      }
+    }
+  ]
+}

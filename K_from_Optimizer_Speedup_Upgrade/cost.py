@@ -47,6 +47,7 @@ statistically distinguishable from the reference.
 Public API
 ----------
   boundary_paths(Lx, Ly, Tx, Ty) -> list of three (dm, dn) direction vectors
+    paired_boundary_paths(ref_geom, test_geom, ...) -> side-aligned path pairs
   l2_cost(ref_data, test_data, ...) -> (cost, sigma_cost, per_dir, per_dir_sigma)
   snr(cost, sigma_cost) -> float
   snr_status(cost, sigma_cost) -> str  ("ok" | "marginal" | "need_more_stats")
@@ -69,6 +70,75 @@ def boundary_paths(Lx, Ly, Tx, Ty):
         (Tx,        -Ly),
         (-Lx - Tx,  Ly - Ty),
     ]
+
+
+def boundary_cycle_lengths(Lx, Ly, Tx, Ty):
+    """Physical lengths of the three boundary cycles in triangular units."""
+    return tuple(
+        math.sqrt(dm * dm + dm * dn + dn * dn)
+        for dm, dn in boundary_paths(Lx, Ly, Tx, Ty)
+    )
+
+
+def _validate_cycle_roles(cycle_roles):
+    if cycle_roles is None:
+        return None
+    if isinstance(cycle_roles, dict):
+        roles = tuple(cycle_roles[idx] for idx in range(3))
+    else:
+        roles = tuple(cycle_roles)
+    if len(roles) != 3:
+        raise ValueError("cycle_roles must have exactly three entries")
+    if len(set(roles)) != 3:
+        raise ValueError("cycle_roles entries must be distinct")
+    return roles
+
+
+def cycle_roles(Lx, Ly, Tx, Ty, cycle_roles=None):
+    """Map each cycle index to a physical-side role.
+
+    For generic twisted geometries we identify the physical sides by sorting
+    the cycle lengths short → mid → long.  For the untwisted square branch,
+    repository notes already establish the fixed side ordering
+    cycle 0 → mid, cycle 1 → short, cycle 2 → long.
+    """
+    roles = _validate_cycle_roles(cycle_roles)
+    if roles is not None:
+        return roles
+    if Tx == 0 and Ty == 0 and Lx == Ly:
+        return ("mid", "short", "long")
+    order = sorted(
+        range(3),
+        key=lambda idx: (boundary_cycle_lengths(Lx, Ly, Tx, Ty)[idx], idx),
+    )
+    roles = [None, None, None]
+    for role, idx in zip(("short", "mid", "long"), order):
+        roles[idx] = role
+    return tuple(roles)
+
+
+def paired_boundary_paths(ref_geom, test_geom,
+                          ref_cycle_roles=None, test_cycle_roles=None):
+    """Return ref/test boundary paths paired by physical side, not index."""
+    ref_paths = boundary_paths(*ref_geom)
+    test_paths = boundary_paths(*test_geom)
+    ref_roles = cycle_roles(*ref_geom, cycle_roles=ref_cycle_roles)
+    test_roles = cycle_roles(*test_geom, cycle_roles=test_cycle_roles)
+
+    ref_by_role = {role: idx for idx, role in enumerate(ref_roles)}
+    test_by_role = {role: idx for idx, role in enumerate(test_roles)}
+    if set(ref_by_role) != set(test_by_role):
+        raise ValueError(
+            f"reference/test cycle roles disagree: {ref_roles!r} vs {test_roles!r}"
+        )
+
+    paired = []
+    for role in test_roles:
+        ref_idx = ref_by_role[role]
+        test_idx = test_by_role[role]
+        paired.append((role, ref_idx, ref_paths[ref_idx],
+                       test_idx, test_paths[test_idx]))
+    return paired
 
 
 _SQRT3_2 = math.sqrt(3.0) / 2.0
@@ -113,7 +183,8 @@ def _tile_interp(data, Lx, Ly, Tx, Ty, field, copies=2):
 def l2_cost(ref_data, test_data,
             test_Lx, test_Ly, test_Tx, test_Ty,
             ref_Lx, ref_Ly, ref_Tx, ref_Ty,
-            n_samples=400, copies=2):
+            n_samples=400, copies=2,
+            ref_cycle_roles=None, test_cycle_roles=None):
     """
     Plain L² cost between reference and test correlators along the three
     boundary directions.
@@ -130,8 +201,12 @@ def l2_cost(ref_data, test_data,
     iref_err  = _tile_interp(ref_data,  ref_Lx,  ref_Ly,  ref_Tx,  ref_Ty,  "conn_err", copies)
     itest_err = _tile_interp(test_data, test_Lx, test_Ly, test_Tx, test_Ty, "conn_err", copies)
 
-    ref_paths  = boundary_paths(ref_Lx,  ref_Ly,  ref_Tx,  ref_Ty)
-    test_paths = boundary_paths(test_Lx, test_Ly, test_Tx, test_Ty)
+    paired_paths = paired_boundary_paths(
+        (ref_Lx, ref_Ly, ref_Tx, ref_Ty),
+        (test_Lx, test_Ly, test_Tx, test_Ty),
+        ref_cycle_roles=ref_cycle_roles,
+        test_cycle_roles=test_cycle_roles,
+    )
 
     # Torus periodicity: t=0 and t=1 are the same lattice site, so we sample
     # only t ∈ [0, 1) and use the periodic trapezoid rule (= uniform sum /
@@ -142,9 +217,9 @@ def l2_cost(ref_data, test_data,
 
     per_dir       = []
     per_dir_sigma = []
-    dir_labels    = ["v", "u", "w"]
+    dir_labels    = [str(role) for role, *_ in paired_paths]
 
-    for (rdm, rdn), (tdm, tdn) in zip(ref_paths, test_paths):
+    for _, _, (rdm, rdn), _, (tdm, tdn) in paired_paths:
         rex, rey = rdm + 0.5 * rdn, _SQRT3_2 * rdn
         tex, tey = tdm + 0.5 * tdn, _SQRT3_2 * tdn
         pts_ref  = np.column_stack([t * rex, t * rey])

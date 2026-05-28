@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-05-22 18:49:12",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_acute_567_matched_volume_20260522.json",
+  "run_tag": "raw_manifold_fss_acute_567_matched_volume_20260522",
+  "benchmark_id": "geometry_acute_567_matched_volume",
+  "description": "Acute integer-ratio target 5-6-7 with approximately matched base volumes above 100. Twisted base is [12,15,6,9] with volume 234, untwisted base is square [15,15,0,0] with volume 225, and both families run integer scales 1..10.",
+  "target_geometry": [
+    12,
+    15,
+    6,
+    9
+  ],
+  "methods": {
+    "twisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/manifest_geometry_acute_567_matched_volume_twisted.json",
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/untwisted/manifest_geometry_acute_567_matched_volume_untwisted.json"
+  }
+}

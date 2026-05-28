@@ -1,0 +1,16 @@
+{
+  "created_at": "2026-05-25 00:29:52",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524.json",
+  "run_tag": "raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524",
+  "benchmark_id": "iso111_scan_r11p200_r21p000",
+  "description": "Equilateral responsible wide scan candidate r1=1.200, r2=1.000.",
+  "target_geometry": [
+    12,
+    12,
+    0,
+    0
+  ],
+  "methods": {
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p200_r21p000/untwisted/manifest_iso111_scan_r11p200_r21p000_untwisted.json"
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "run": {
+    "tag": "iso111_and_far456_size10to100"
+  },
+  "paths": {
+    "results_root": "stupid_method",
+    "resume": true
+  },
+  "execution": {
+    "n_workers": 2,
+    "exe": null,
+    "auto_build": true,
+    "force_rebuild": false,
+    "build_command": [
+      "make"
+    ],
+    "build_timeout_s": 600
+  },
+  "mc": {
+    "n_traj": 10000,
+    "n_skip": 10,
+    "n_therm": 2000
+  },
+  "fss": {
+    "fit_method": "taylor2",
+    "c_min": 0.05,
+    "c_max": 3.5,
+    "c_initial": 1.0,
+    "min_sizes_for_free_C": 3
+  },
+  "benchmarks": [
+    {
+      "id": "geometry_111_size10to100",
+      "description": "Fresh 1-1-1 control with untwisted and twisted square families over sizes 10..100.",
+      "modular_target_geometry": [
+        10,
+        10,
+        0,
+        0
+      ],
+      "twisted": {
+        "sizes": [
+          10,
+          20,
+          30,
+          40,
+          50,
+          60,
+          70,
+          80,
+          90,
+          100
+        ],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [
+          10,
+          20,
+          30,
+          40,
+          50,
+          60,
+          70,
+          80,
+          90,
+          100
+        ],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      }
+    },
+    {
+      "id": "geometry_111_vs_iso111_scan_r15p065_r27p743_size10to100",
+      "description": "Fresh untwisted exact 4-5-6 square family over sizes 10..100, compared against a fresh redundant twisted 1-1-1 family over the same sizes.",
+      "modular_target_geometry": [
+        10,
+        10,
+        0,
+        0
+      ],
+      "twisted": {
+        "sizes": [
+          10,
+          20,
+          30,
+          40,
+          50,
+          60,
+          70,
+          80,
+          90,
+          100
+        ],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [
+          10,
+          20,
+          30,
+          40,
+          50,
+          60,
+          70,
+          80,
+          90,
+          100
+        ],
+        "geometry_defaults": {
+          "Lx_mult": 1.0,
+          "Ly_mult": 1.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 5.065231170850374,
+          "k2_over_k3": 7.742930488974055
+        },
+        "beta": 0.062828607070227,
+        "critical_source": "exact 4-5-6 anisotropic triangular critical point"
+      }
+    }
+  ]
+}

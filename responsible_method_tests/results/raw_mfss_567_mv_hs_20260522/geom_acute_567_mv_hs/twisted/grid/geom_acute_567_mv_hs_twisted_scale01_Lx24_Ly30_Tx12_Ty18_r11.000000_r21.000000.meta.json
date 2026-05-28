@@ -1,0 +1,31 @@
+{
+  "label": "geom_acute_567_mv_hs_twisted_scale01",
+  "created_at": "2026-05-22 19:37:07",
+  "benchmark_id": "geom_acute_567_mv_hs",
+  "method": "twisted",
+  "scale": 1,
+  "family_size": 2,
+  "L": 2,
+  "Lx": 24,
+  "Ly": 30,
+  "Tx": 12,
+  "Ty": 18,
+  "k1": 1.0,
+  "k2": 1.0,
+  "k3": 1.0,
+  "r1": 1.0,
+  "r2": 1.0,
+  "beta_c": 0.274653072167027,
+  "beta_c_sigma": 0.0,
+  "production_beta": 0.274653072167027,
+  "production_beta_source": "exact_critical",
+  "critical_source": "exact isotropic triangular critical point",
+  "production_wall_seconds": 2.2063074111938477,
+  "mc": {
+    "n_traj": 5000,
+    "n_skip": 10,
+    "n_therm": 1500
+  },
+  "all_to_all_file": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/grid/geom_acute_567_mv_hs_twisted_scale01_Lx24_Ly30_Tx12_Ty18_r11.000000_r21.000000.dat",
+  "source_all_to_all_file": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/_mc_scratch/geom_acute_567_mv_hs/twisted/geom_acute_567_mv_hs_twisted_scale01/prod/24x30_t12x18_k1000_1000_1000_500/two_point_all_to_all.dat"
+}

@@ -1,0 +1,31 @@
+{
+  "label": "iso111_scan_r11p200_r20p900_untwisted_scale06",
+  "created_at": "2026-05-25 02:43:33",
+  "benchmark_id": "iso111_scan_r11p200_r20p900",
+  "method": "untwisted",
+  "scale": 6,
+  "family_size": 72,
+  "L": 72,
+  "Lx": 72,
+  "Ly": 72,
+  "Tx": 0,
+  "Ty": 0,
+  "k1": 1.2,
+  "k2": 0.9,
+  "k3": 1.0,
+  "r1": 1.2,
+  "r2": 0.9,
+  "beta_c": 0.26633140791072274,
+  "beta_c_sigma": 0.0,
+  "production_beta": 0.26633140791072274,
+  "production_beta_source": "exact_critical",
+  "critical_source": "exact anisotropic triangular critical point",
+  "production_wall_seconds": 75.95603108406067,
+  "mc": {
+    "n_traj": 20000,
+    "n_skip": 10,
+    "n_therm": 2000
+  },
+  "all_to_all_file": "/workspaces/newQFE/responsible_method_tests/stupid_method/large_hi20000/iso111_scan_r11p200_r20p900/untwisted/grid/iso111_scan_r11p200_r20p900_untwisted_scale06_Lx72_Ly72_Tx0_Ty0_r11.200000_r20.900000.dat",
+  "source_all_to_all_file": "/workspaces/newQFE/responsible_method_tests/stupid_method/large_hi20000/_mc_scratch/iso111_scan_r11p200_r20p900/untwisted/iso111_scan_r11p200_r20p900_untwisted_scale06/prod/72x72_t0x0_k1200_900_1000_500/two_point_all_to_all.dat"
+}

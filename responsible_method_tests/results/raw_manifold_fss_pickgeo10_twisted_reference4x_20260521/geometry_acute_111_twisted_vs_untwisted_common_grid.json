@@ -7,7 +7,7 @@
   "interpretation_basis": "twisted interpolant sampled on untwisted continuum points",
   "primary_metric": {
     "key": "twisted_on_untwisted",
-    "rms_z": 3.2159774442346016
+    "rms_z": 1.3832836216688205
   },
   "target_tau": {
     "real": 0.5,
@@ -16,8 +16,8 @@
   "grid_size": 180,
   "twisted": {
     "method_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/geometry_acute_111/twisted/manifest_geometry_acute_111_twisted.json",
-    "alpha": 0.412810623147916,
-    "chi2_per_dof": 0.2111005074672999,
+    "alpha": 0.22654464563259305,
+    "chi2_per_dof": 0.09541405337787434,
     "n_fit_points": 575,
     "couplings": {
       "k3": 1.0,
@@ -29,8 +29,8 @@
   },
   "untwisted": {
     "method_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/geometry_acute_111/untwisted/manifest_geometry_acute_111_untwisted.json",
-    "alpha": 0.45727157124694756,
-    "chi2_per_dof": 0.2858773708323407,
+    "alpha": 0.25864951212858356,
+    "chi2_per_dof": 0.044166104995986756,
     "n_fit_points": 143,
     "couplings": {
       "k3": 1.0,
@@ -42,31 +42,31 @@
   },
   "common_grid": {
     "n_grid_points": 32400,
-    "rms_abs": 0.0468652001768493,
-    "mean_abs": 0.04505538473018436,
-    "max_abs": 0.09337246404799515,
-    "relative_rms": 0.09065931781203435,
-    "correlation": 0.9550975246242344
+    "rms_abs": 0.03647608439041901,
+    "mean_abs": 0.03580343990199117,
+    "max_abs": 0.05264560208271474,
+    "relative_rms": 0.12544403990841954,
+    "correlation": 0.9151939741703216
   },
   "twisted_on_untwisted": {
     "n_points": 143,
-    "rms_abs": 0.04750549825479426,
-    "mean_abs": 0.045592929572727287,
-    "max_abs": 0.08733681069999999,
-    "rms_z": 3.2159774442346016,
-    "mean_abs_z": 2.762530220709032,
-    "max_abs_z": 9.1770198030792,
-    "chi2_per_point": 10.34251092182572
+    "rms_abs": 0.03685624255603665,
+    "mean_abs": 0.03619823312657342,
+    "max_abs": 0.048831399100000006,
+    "rms_z": 1.3832836216688205,
+    "mean_abs_z": 1.3024797613295513,
+    "max_abs_z": 2.935174266527759,
+    "chi2_per_point": 1.9134735779772085
   },
   "untwisted_on_twisted": {
     "n_points": 575,
-    "rms_abs": 0.0470408767574158,
-    "mean_abs": 0.0451207719372307,
-    "max_abs": 0.08733681069999999,
-    "rms_z": 3.9716527847940872,
-    "mean_abs_z": 3.486791881723127,
-    "max_abs_z": 11.90183505862013,
-    "chi2_per_point": 15.774025842962628
+    "rms_abs": 0.036620938313576865,
+    "mean_abs": 0.03588411780545919,
+    "max_abs": 0.05217934640091959,
+    "rms_z": 1.6052746099355075,
+    "mean_abs_z": 1.5176404179804788,
+    "max_abs_z": 3.441873366497523,
+    "chi2_per_point": 2.576906573303596
   },
-  "interpretation": "distinguishable at continuum-point level"
+  "interpretation": "marginally separated"
 }

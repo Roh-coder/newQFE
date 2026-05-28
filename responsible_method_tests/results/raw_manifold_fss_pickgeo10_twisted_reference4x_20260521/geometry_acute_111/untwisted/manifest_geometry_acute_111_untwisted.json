@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-05-21 06:28:18",
+  "created_at": "2026-05-21 18:43:23",
   "benchmark_id": "geometry_acute_111",
   "benchmark_description": "Acute integer-ratio target 1-1-1 with twisted reference base volume 576, exactly 4x the untwisted 12x12 base.",
   "method": "untwisted",

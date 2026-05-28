@@ -1,0 +1,81 @@
+{
+  "created_at": "2026-05-22 21:30:21",
+  "config_path": "/workspaces/newQFE/K_from_continuum/configs/iso111_distinguishabilityK_repeat3_hi5000_reference_20260522.json",
+  "run_tag": "iso111_distK_repeat3_hi5000_20260522",
+  "mode": "free_power_continuum",
+  "point": {
+    "r1": 1.0,
+    "r2": 1.0,
+    "beta_extrapolation": {
+      "method": "free_power_continuum",
+      "ansatz": "beta_c(L) = beta_c(infinity) + a * L^(-p)",
+      "weighted": false,
+      "parameters": {
+        "beta_c": 0.2746530721670275,
+        "amplitude": -1.3322676295501878e-15,
+        "exponent": 1.0,
+        "exponent_initial": 1.0,
+        "exponent_min": 0.05,
+        "exponent_max": 3.0
+      },
+      "L_values": [
+        24,
+        48,
+        72,
+        96
+      ],
+      "beta_values": [
+        0.27465307216702745,
+        0.27465307216702745,
+        0.27465307216702745,
+        0.27465307216702745
+      ],
+      "sigma_values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "beta_fit_values": [
+        0.27465307216702745,
+        0.2746530721670275,
+        0.2746530721670275,
+        0.2746530721670275
+      ],
+      "residual_values": [
+        0.0,
+        -5.551115123125783e-17,
+        -5.551115123125783e-17,
+        -5.551115123125783e-17
+      ],
+      "beta_c_continuum": 0.2746530721670275,
+      "beta_c_continuum_sigma": 9.858265816926003e-17,
+      "rms_residual": 4.8074067159589095e-17,
+      "n_points": 4,
+      "lmin": 24,
+      "lmax": 96
+    },
+    "finite_beta_rows": [
+      {
+        "L": 24,
+        "beta_c": 0.27465307216702745,
+        "beta_c_sigma": 0.0
+      },
+      {
+        "L": 48,
+        "beta_c": 0.27465307216702745,
+        "beta_c_sigma": 0.0
+      },
+      {
+        "L": 72,
+        "beta_c": 0.27465307216702745,
+        "beta_c_sigma": 0.0
+      },
+      {
+        "L": 96,
+        "beta_c": 0.27465307216702745,
+        "beta_c_sigma": 0.0
+      }
+    ]
+  }
+}

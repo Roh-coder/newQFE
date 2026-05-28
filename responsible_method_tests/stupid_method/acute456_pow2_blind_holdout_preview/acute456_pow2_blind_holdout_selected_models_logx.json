@@ -1,0 +1,519 @@
+{
+  "benchmark": "geometry_acute_456_pow2_blind_holdout",
+  "description": "Acute 4-5-6 shared-boundary-midpoint blind holdout study. Training ladder uses scales 4,8,16,32,64,128 on the matched-volume base cells; the blind datum is the smallest twisted multiple of the base lattice with volume above 1e6.",
+  "shared_point": {
+    "coord": {
+      "a_wrap": 0.5,
+      "b_wrap": 0.5
+    },
+    "twisted": {
+      "m": -9,
+      "n": 5
+    },
+    "untwisted": {
+      "m": -6,
+      "n": 6
+    },
+    "boundary_index": 2
+  },
+  "train_scales": [
+    4,
+    8,
+    16,
+    32,
+    64,
+    128
+  ],
+  "train_mc": {
+    "n_traj": 30,
+    "n_skip": 1,
+    "n_therm": 20
+  },
+  "holdout_mc": {
+    "n_traj": 30,
+    "n_skip": 1,
+    "n_therm": 20
+  },
+  "holdout": {
+    "scale": 81,
+    "lattice": [
+      972,
+      972,
+      486,
+      162
+    ],
+    "disp": [
+      -729,
+      405
+    ],
+    "volume": 1023516.0,
+    "sqrt_volume": 1011.6896757405406,
+    "conn": -0.007856714331033044,
+    "conn_err": 0.004225117374850758,
+    "path": "responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/holdout_twisted/972x972_t486x162_k1000_1000_1000_500/two_point_all_to_all.dat",
+    "stdout_tail": [
+      "duration: 16.241836",
+      "cluster_size/V: 0.0129",
+      "accept_metropolis: 1.2015",
+      "U4: 2.538542813273e-01 6.951142069547e-02",
+      "m_susc: 1.220906315575e-03 2.451077742205e-04",
+      "opening file: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/holdout_twisted/972x972_t486x162_k1000_1000_1000_500/972x972_t486x162_k1000_1000_1000_500_711D1FD5.dat",
+      "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/holdout_twisted/972x972_t486x162_k1000_1000_1000_500/two_point_typed.dat",
+      "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/holdout_twisted/972x972_t486x162_k1000_1000_1000_500/two_point_all_to_all.dat"
+    ]
+  },
+  "methods": {
+    "twisted": {
+      "training_series": [
+        {
+          "scale": 4,
+          "lattice": [
+            48,
+            48,
+            24,
+            8
+          ],
+          "disp": [
+            -36,
+            20
+          ],
+          "volume": 2496.0,
+          "sqrt_volume": 49.95998398718719,
+          "conn": 0.47300412212246146,
+          "conn_err": 0.03358000799966397,
+          "path": "responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_004/48x48_t24x8_k1000_1000_1000_500/two_point_all_to_all.dat",
+          "stdout_tail": [
+            "duration: 0.029426",
+            "cluster_size/V: 1.1453",
+            "accept_metropolis: 1.0598",
+            "U4: 9.609137404237e-01 6.337701162680e-02",
+            "m_susc: 1.207236492919e-02 4.541966731266e-03",
+            "opening file: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_004/48x48_t24x8_k1000_1000_1000_500/48x48_t24x8_k1000_1000_1000_500_7E689A3A.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_004/48x48_t24x8_k1000_1000_1000_500/two_point_typed.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_004/48x48_t24x8_k1000_1000_1000_500/two_point_all_to_all.dat"
+          ]
+        },
+        {
+          "scale": 8,
+          "lattice": [
+            96,
+            96,
+            48,
+            16
+          ],
+          "disp": [
+            -72,
+            40
+          ],
+          "volume": 9984.0,
+          "sqrt_volume": 99.91996797437437,
+          "conn": 0.23841387245233397,
+          "conn_err": 0.04706355012381822,
+          "path": "responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_008/96x96_t48x16_k1000_1000_1000_500/two_point_all_to_all.dat",
+          "stdout_tail": [
+            "duration: 0.112754",
+            "cluster_size/V: 0.9630",
+            "accept_metropolis: 1.1238",
+            "U4: 7.941845390541e-01 1.099622997033e-01",
+            "m_susc: 5.405706644877e-02 1.129434834607e-02",
+            "opening file: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_008/96x96_t48x16_k1000_1000_1000_500/96x96_t48x16_k1000_1000_1000_500_B2D98939.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_008/96x96_t48x16_k1000_1000_1000_500/two_point_typed.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_008/96x96_t48x16_k1000_1000_1000_500/two_point_all_to_all.dat"
+          ]
+        },
+        {
+          "scale": 16,
+          "lattice": [
+            192,
+            192,
+            96,
+            32
+          ],
+          "disp": [
+            -144,
+            80
+          ],
+          "volume": 39936.0,
+          "sqrt_volume": 199.83993594874875,
+          "conn": 0.2545244713228086,
+          "conn_err": 0.03062543367794504,
+          "path": "responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_016/192x192_t96x32_k1000_1000_1000_500/two_point_all_to_all.dat",
+          "stdout_tail": [
+            "duration: 0.465798",
+            "cluster_size/V: 0.6592",
+            "accept_metropolis: 1.1331",
+            "U4: 9.014425584410e-01 9.176184805699e-02",
+            "m_susc: 2.169003168881e-02 8.017710523094e-03",
+            "opening file: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_016/192x192_t96x32_k1000_1000_1000_500/192x192_t96x32_k1000_1000_1000_500_2312C134.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_016/192x192_t96x32_k1000_1000_1000_500/two_point_typed.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_016/192x192_t96x32_k1000_1000_1000_500/two_point_all_to_all.dat"
+          ]
+        },
+        {
+          "scale": 32,
+          "lattice": [
+            384,
+            384,
+            192,
+            64
+          ],
+          "disp": [
+            -288,
+            160
+          ],
+          "volume": 159744.0,
+          "sqrt_volume": 399.6798718974975,
+          "conn": 0.20187424678730737,
+          "conn_err": 0.03195258272073286,
+          "path": "responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_032/384x384_t192x64_k1000_1000_1000_500/two_point_all_to_all.dat",
+          "stdout_tail": [
+            "duration: 3.145956",
+            "cluster_size/V: 0.5187",
+            "accept_metropolis: 1.1610",
+            "U4: 9.326340616281e-01 8.181677339173e-02",
+            "m_susc: 9.431407520948e-03 2.166743755961e-03",
+            "opening file: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_032/384x384_t192x64_k1000_1000_1000_500/384x384_t192x64_k1000_1000_1000_500_067965FC.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_032/384x384_t192x64_k1000_1000_1000_500/two_point_typed.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_032/384x384_t192x64_k1000_1000_1000_500/two_point_all_to_all.dat"
+          ]
+        },
+        {
+          "scale": 64,
+          "lattice": [
+            768,
+            768,
+            384,
+            128
+          ],
+          "disp": [
+            -576,
+            320
+          ],
+          "volume": 638976.0,
+          "sqrt_volume": 799.359743794995,
+          "conn": 0.03918440898258392,
+          "conn_err": 0.01585032546085122,
+          "path": "responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_064/768x768_t384x128_k1000_1000_1000_500/two_point_all_to_all.dat",
+          "stdout_tail": [
+            "duration: 10.615300",
+            "cluster_size/V: 0.0954",
+            "accept_metropolis: 1.1906",
+            "U4: -1.114893981598e-01 -3.600014092515e-02",
+            "m_susc: 2.841375602060e-02 5.903630893865e-03",
+            "opening file: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_064/768x768_t384x128_k1000_1000_1000_500/768x768_t384x128_k1000_1000_1000_500_F565AC50.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_064/768x768_t384x128_k1000_1000_1000_500/two_point_typed.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_064/768x768_t384x128_k1000_1000_1000_500/two_point_all_to_all.dat"
+          ]
+        },
+        {
+          "scale": 128,
+          "lattice": [
+            1536,
+            1536,
+            768,
+            256
+          ],
+          "disp": [
+            -1152,
+            640
+          ],
+          "volume": 2555904.0,
+          "sqrt_volume": 1598.71948758999,
+          "conn": -0.0028680649364270657,
+          "conn_err": 0.0008504483848302594,
+          "path": "responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_128/1536x1536_t768x256_k1000_1000_1000_500/two_point_all_to_all.dat",
+          "stdout_tail": [
+            "duration: 40.415057",
+            "cluster_size/V: 0.0021",
+            "accept_metropolis: 1.2050",
+            "U4: 6.273370007418e-01 1.194272101130e-01",
+            "m_susc: 2.658678496602e-04 3.792461597729e-05",
+            "opening file: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_128/1536x1536_t768x256_k1000_1000_1000_500/1536x1536_t768x256_k1000_1000_1000_500_17D09C8C.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_128/1536x1536_t768x256_k1000_1000_1000_500/two_point_typed.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/twisted/scale_128/1536x1536_t768x256_k1000_1000_1000_500/two_point_all_to_all.dat"
+          ]
+        }
+      ],
+      "fits": {
+        "taylor2": {
+          "prediction_holdout": 0.017979522015262747,
+          "delta_vs_holdout": 0.02583623634629579,
+          "z_holdout": 6.114915647096879,
+          "chi2dof_train": 7.2913154081253415,
+          "coef": [
+            -0.03966136090115527,
+            60.0501610698794,
+            -1755.7620618730148
+          ]
+        },
+        "power_free": {
+          "prediction_holdout": 0.039051054234242655,
+          "delta_vs_holdout": 0.0469077685652757,
+          "z_holdout": 11.10212200126928,
+          "chi2dof_train": 3.6898290483004383,
+          "coef": [
+            -0.3785029360681117,
+            2.069890506655667,
+            0.2313556695758167
+          ]
+        },
+        "pade11": {
+          "prediction_holdout": 0.03166210521662256,
+          "delta_vs_holdout": 0.039518819547655605,
+          "z_holdout": 9.353306912343829,
+          "chi2dof_train": 3.9114834930727755,
+          "coef": [
+            -0.07402191054285553,
+            127.76899815560928,
+            197.2821563517739
+          ]
+        },
+        "pade21": {
+          "prediction_holdout": 0.03754779123961591,
+          "delta_vs_holdout": 0.04540450557064895,
+          "z_holdout": 10.746329993318295,
+          "chi2dof_train": 4.960008642743171,
+          "coef": [
+            -0.10316291174655173,
+            206.1031580692805,
+            4792.237207082803,
+            486.70396730468985
+          ]
+        }
+      },
+      "ranking": [
+        "taylor2",
+        "pade11",
+        "pade21",
+        "power_free"
+      ],
+      "best_by_abs_z": "taylor2"
+    },
+    "untwisted": {
+      "training_series": [
+        {
+          "scale": 4,
+          "lattice": [
+            48,
+            48,
+            0,
+            0
+          ],
+          "disp": [
+            -24,
+            24
+          ],
+          "volume": 2304.0,
+          "sqrt_volume": 48.0,
+          "conn": 0.37652576504093793,
+          "conn_err": 0.04812249270621726,
+          "path": "responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_004/48x48_t0x0_k4703_7354_1000_500/two_point_all_to_all.dat",
+          "stdout_tail": [
+            "duration: 0.041170",
+            "cluster_size/V: 1.1492",
+            "accept_metropolis: 1.0048",
+            "U4: 9.118869991945e-01 8.576000241641e-02",
+            "m_susc: 2.910622093086e-02 9.456092245764e-03",
+            "opening file: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_004/48x48_t0x0_k4703_7354_1000_500/48x48_t0x0_k4703_7354_1000_500_00AC3B3E.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_004/48x48_t0x0_k4703_7354_1000_500/two_point_typed.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_004/48x48_t0x0_k4703_7354_1000_500/two_point_all_to_all.dat"
+          ]
+        },
+        {
+          "scale": 8,
+          "lattice": [
+            96,
+            96,
+            0,
+            0
+          ],
+          "disp": [
+            -48,
+            48
+          ],
+          "volume": 9216.0,
+          "sqrt_volume": 96.0,
+          "conn": 0.395775213830265,
+          "conn_err": 0.04507071334313664,
+          "path": "responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_008/96x96_t0x0_k4703_7354_1000_500/two_point_all_to_all.dat",
+          "stdout_tail": [
+            "duration: 0.123910",
+            "cluster_size/V: 1.1744",
+            "accept_metropolis: 1.0042",
+            "U4: 9.786156983879e-01 5.043160516915e-02",
+            "m_susc: 4.990215798628e-03 1.063343761779e-03",
+            "opening file: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_008/96x96_t0x0_k4703_7354_1000_500/96x96_t0x0_k4703_7354_1000_500_2A8ACD22.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_008/96x96_t0x0_k4703_7354_1000_500/two_point_typed.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_008/96x96_t0x0_k4703_7354_1000_500/two_point_all_to_all.dat"
+          ]
+        },
+        {
+          "scale": 16,
+          "lattice": [
+            192,
+            192,
+            0,
+            0
+          ],
+          "disp": [
+            -96,
+            96
+          ],
+          "volume": 36864.0,
+          "sqrt_volume": 192.0,
+          "conn": 0.23522991913009245,
+          "conn_err": 0.04551990565722931,
+          "path": "responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_016/192x192_t0x0_k4703_7354_1000_500/two_point_all_to_all.dat",
+          "stdout_tail": [
+            "duration: 0.433921",
+            "cluster_size/V: 0.7556",
+            "accept_metropolis: 1.0401",
+            "U4: 9.185615360965e-01 8.093447898444e-02",
+            "m_susc: 2.888235319789e-02 1.251211630283e-02",
+            "opening file: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_016/192x192_t0x0_k4703_7354_1000_500/192x192_t0x0_k4703_7354_1000_500_2DDECC9E.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_016/192x192_t0x0_k4703_7354_1000_500/two_point_typed.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_016/192x192_t0x0_k4703_7354_1000_500/two_point_all_to_all.dat"
+          ]
+        },
+        {
+          "scale": 32,
+          "lattice": [
+            384,
+            384,
+            0,
+            0
+          ],
+          "disp": [
+            -192,
+            192
+          ],
+          "volume": 147456.0,
+          "sqrt_volume": 384.0,
+          "conn": 0.25802973238937815,
+          "conn_err": 0.02336168614703036,
+          "path": "responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_032/384x384_t0x0_k4703_7354_1000_500/two_point_all_to_all.dat",
+          "stdout_tail": [
+            "duration: 2.843105",
+            "cluster_size/V: 0.4908",
+            "accept_metropolis: 1.0530",
+            "U4: 9.370783244371e-01 7.397822514141e-02",
+            "m_susc: 2.014530706962e-02 1.070037370411e-02",
+            "opening file: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_032/384x384_t0x0_k4703_7354_1000_500/384x384_t0x0_k4703_7354_1000_500_4433B74C.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_032/384x384_t0x0_k4703_7354_1000_500/two_point_typed.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_032/384x384_t0x0_k4703_7354_1000_500/two_point_all_to_all.dat"
+          ]
+        },
+        {
+          "scale": 64,
+          "lattice": [
+            768,
+            768,
+            0,
+            0
+          ],
+          "disp": [
+            -384,
+            384
+          ],
+          "volume": 589824.0,
+          "sqrt_volume": 768.0,
+          "conn": 0.028242650011602907,
+          "conn_err": 0.017015317890275092,
+          "path": "responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_064/768x768_t0x0_k4703_7354_1000_500/two_point_all_to_all.dat",
+          "stdout_tail": [
+            "duration: 10.321531",
+            "cluster_size/V: 0.1728",
+            "accept_metropolis: 1.0797",
+            "U4: 8.321219135081e-02 2.512610719112e-02",
+            "m_susc: 2.385163409960e-02 5.220734979826e-03",
+            "opening file: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_064/768x768_t0x0_k4703_7354_1000_500/768x768_t0x0_k4703_7354_1000_500_0C74A060.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_064/768x768_t0x0_k4703_7354_1000_500/two_point_typed.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_064/768x768_t0x0_k4703_7354_1000_500/two_point_all_to_all.dat"
+          ]
+        },
+        {
+          "scale": 128,
+          "lattice": [
+            1536,
+            1536,
+            0,
+            0
+          ],
+          "disp": [
+            -768,
+            768
+          ],
+          "volume": 2359296.0,
+          "sqrt_volume": 1536.0,
+          "conn": 0.0049677673987092484,
+          "conn_err": 0.0012825912550570055,
+          "path": "responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_128/1536x1536_t0x0_k4703_7354_1000_500/two_point_all_to_all.dat",
+          "stdout_tail": [
+            "duration: 38.910003",
+            "cluster_size/V: 0.0043",
+            "accept_metropolis: 1.1052",
+            "U4: 7.681163605148e-01 1.230664298242e-01",
+            "m_susc: 2.695765128469e-04 5.772244325435e-05",
+            "opening file: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_128/1536x1536_t0x0_k4703_7354_1000_500/1536x1536_t0x0_k4703_7354_1000_500_CD87DC02.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_128/1536x1536_t0x0_k4703_7354_1000_500/two_point_typed.dat",
+            "wrote: responsible_method_tests/stupid_method/acute456_pow2_blind_holdout_preview/mc_runs/untwisted/scale_128/1536x1536_t0x0_k4703_7354_1000_500/two_point_all_to_all.dat"
+          ]
+        }
+      ],
+      "fits": {
+        "taylor2": {
+          "prediction_holdout": 0.030884806920421358,
+          "delta_vs_holdout": 0.0387415212514544,
+          "z_holdout": 9.169336095147617,
+          "chi2dof_train": 10.342279566301611,
+          "coef": [
+            -0.0466899903260874,
+            81.42942347865677,
+            -2982.2608563037625
+          ]
+        },
+        "power_free": {
+          "prediction_holdout": 0.05420647677596735,
+          "delta_vs_holdout": 0.06206319110700039,
+          "z_holdout": 14.689104609595047,
+          "chi2dof_train": 9.60337982969873,
+          "coef": [
+            -2.3344631176281703,
+            3.3760467142841137,
+            0.05000000000002052
+          ]
+        },
+        "pade11": {
+          "prediction_holdout": 0.04942806849282361,
+          "delta_vs_holdout": 0.05728478282385665,
+          "z_holdout": 13.558151819600065,
+          "chi2dof_train": 7.763347952627574,
+          "coef": [
+            -0.11311615654901461,
+            225.37666717535953,
+            374.8663038234737
+          ]
+        },
+        "pade21": {
+          "prediction_holdout": 0.045220936056602296,
+          "delta_vs_holdout": 0.05307765038763534,
+          "z_holdout": 12.562408491553487,
+          "chi2dof_train": 10.430256145672406,
+          "coef": [
+            -0.08852473251415446,
+            161.75755798919838,
+            -2777.6526199772516,
+            177.22359338053786
+          ]
+        }
+      },
+      "ranking": [
+        "taylor2",
+        "pade21",
+        "pade11",
+        "power_free"
+      ],
+      "best_by_abs_z": "taylor2"
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "benchmark_id": "geometry_111_vs_iso111_scan_r15p065_r27p743_far_456_vs_iso111",
+  "description": "Fresh far-point rerun: untwisted exact 4-5-6 couplings on the square lattice compared against the fresh twisted 1-1-1 reference.",
+  "benchmark_manifest": "/workspaces/newQFE/responsible_method_tests/stupid_method/far_456_vs_iso111/manifest_geometry_111_vs_iso111_scan_r15p065_r27p743_far_456_vs_iso111.json",
+  "run_tag": "",
+  "comparison_mode": "symmetric",
+  "interpretation_basis": "max bidirectional pointwise RMS z across both sampling directions",
+  "primary_metric": {
+    "key": "bidirectional_max_rms_z",
+    "rms_z": 0.6013940420634708
+  },
+  "target_tau": {
+    "real": 0.5,
+    "imag": 0.8660254037844387
+  },
+  "grid_size": 180,
+  "twisted": {
+    "method_manifest": "/workspaces/newQFE/responsible_method_tests/stupid_method/geometry_111/twisted/manifest_geometry_111_twisted.json",
+    "alpha": 0.25526513929232475,
+    "chi2_per_dof": 0.06232593084052074,
+    "n_fit_points": 143,
+    "couplings": {
+      "k3": 1.0,
+      "r1": 1.0,
+      "r2": 1.0,
+      "k1": 1.0,
+      "k2": 1.0
+    }
+  },
+  "untwisted": {
+    "method_manifest": "/workspaces/newQFE/responsible_method_tests/stupid_method/far_456_vs_iso111/iso111_scan_r15p065_r27p743/untwisted/manifest_iso111_scan_r15p065_r27p743_untwisted.json",
+    "alpha": 0.2600375495526364,
+    "chi2_per_dof": 0.2695189079085469,
+    "n_fit_points": 143,
+    "couplings": {
+      "k3": 1.0,
+      "r1": 5.065231170850374,
+      "r2": 7.742930488974055,
+      "k1": 5.065231170850374,
+      "k2": 7.742930488974055
+    }
+  },
+  "common_grid": {
+    "n_grid_points": 32400,
+    "rms_abs": 0.006790028456734767,
+    "mean_abs": 0.0060847765120764265,
+    "max_abs": 0.015626825999999983,
+    "relative_rms": 0.022157482474574844,
+    "correlation": 0.9813657602843503
+  },
+  "twisted_on_untwisted": {
+    "n_points": 143,
+    "rms_abs": 0.007048488406362941,
+    "mean_abs": 0.00622065771328671,
+    "max_abs": 0.015626825999999983,
+    "rms_z": 0.591480035795342,
+    "mean_abs_z": 0.47870427936747983,
+    "max_abs_z": 2.3975906104795452,
+    "chi2_per_point": 0.34984863274445904
+  },
+  "untwisted_on_twisted": {
+    "n_points": 143,
+    "rms_abs": 0.007048488406362945,
+    "mean_abs": 0.006220657713286709,
+    "max_abs": 0.015626825999999983,
+    "rms_z": 0.6013940420634708,
+    "mean_abs_z": 0.5004603800645311,
+    "max_abs_z": 2.2572399966613714,
+    "chi2_per_point": 0.36167479382943973
+  },
+  "interpretation": "not distinguished within continuum point errors"
+}

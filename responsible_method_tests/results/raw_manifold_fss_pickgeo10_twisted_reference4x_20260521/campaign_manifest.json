@@ -1,9 +1,18 @@
 {
-  "created_at": "2026-05-21 06:24:42",
+  "created_at": "2026-05-21 18:43:55",
   "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521.json",
   "run_tag": "raw_manifold_fss_pickgeo10_twisted_reference4x_20260521",
   "run_root": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521",
   "benchmark_manifests": [
-    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/manifest_geometry_acute_111.json"
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/manifest_geometry_acute_111.json",
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/manifest_geometry_acute_122.json",
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/manifest_geometry_acute_233.json",
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/manifest_geometry_acute_334.json",
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/manifest_geometry_acute_344.json",
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/manifest_geometry_acute_445.json",
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/manifest_geometry_acute_455.json",
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/manifest_geometry_acute_556.json",
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/manifest_geometry_acute_456.json",
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/manifest_geometry_acute_567.json"
   ]
 }

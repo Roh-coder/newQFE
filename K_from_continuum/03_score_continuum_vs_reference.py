@@ -27,6 +27,81 @@ from workflow_common import (
 _HERE = os.path.dirname(os.path.abspath(__file__))
 
 DEFAULT_CONFIG_PATH = "configs/score_example.json"
+_SCORE_MODES = {"raw", "additive_offset", "shape_only"}
+
+
+def _parse_score_mode(value: Any) -> str:
+    mode = "raw" if value is None else str(value).strip().lower()
+    if mode not in _SCORE_MODES:
+        allowed = ", ".join(sorted(_SCORE_MODES))
+        raise ValueError(f"analysis.score_mode must be one of {{{allowed}}}")
+    return mode
+
+
+def _weighted_average(values: list[float], variances: list[float]) -> float:
+    numerator = 0.0
+    denominator = 0.0
+    finite_values: list[float] = []
+
+    for value, variance in zip(values, variances):
+        if not np.isfinite(value):
+            continue
+        finite_values.append(float(value))
+        weight = 1.0
+        if np.isfinite(variance) and variance > 0.0:
+            weight = 1.0 / float(variance)
+        numerator += weight * float(value)
+        denominator += weight
+
+    if denominator > 0.0:
+        return float(numerator / denominator)
+    if finite_values:
+        return float(np.mean(finite_values))
+    return 0.0
+
+
+def _compute_score_nuisance(
+    channel_entries: list[dict[str, Any]],
+    score_mode: str,
+) -> tuple[float, dict[int, float]]:
+    global_offset = 0.0
+    cycle_offsets = {0: 0.0, 1: 0.0, 2: 0.0}
+    if score_mode == "raw":
+        return global_offset, cycle_offsets
+
+    if score_mode == "additive_offset":
+        global_offset = _weighted_average(
+            [float(entry["diff"]) for entry in channel_entries],
+            [float(entry["var"]) for entry in channel_entries],
+        )
+        return global_offset, cycle_offsets
+
+    if score_mode == "shape_only":
+        for cycle in range(3):
+            cycle_rows = [entry for entry in channel_entries if int(entry["cycle"]) == cycle]
+            cycle_offsets[cycle] = _weighted_average(
+                [float(entry["diff"]) for entry in cycle_rows],
+                [float(entry["var"]) for entry in cycle_rows],
+            )
+        return global_offset, cycle_offsets
+
+    raise ValueError(f"unsupported score mode: {score_mode}")
+
+
+def _channel_nuisance(
+    *,
+    cycle: int,
+    score_mode: str,
+    global_offset: float,
+    cycle_offsets: dict[int, float],
+) -> float:
+    if score_mode == "raw":
+        return 0.0
+    if score_mode == "additive_offset":
+        return float(global_offset)
+    if score_mode == "shape_only":
+        return float(cycle_offsets.get(int(cycle), 0.0))
+    raise ValueError(f"unsupported score mode: {score_mode}")
 
 
 def _check_required_keys(section: dict[str, Any], section_name: str, keys: list[str]) -> None:
@@ -127,7 +202,15 @@ def _draw_heatmap(ax, grid: np.ndarray, r1_values: list[float], r2_values: list[
     cb.set_label(cbar_label)
 
 
-def _save_heatmaps(r1_values: list[float], r2_values: list[float], score_grid: np.ndarray, zscore_grid: np.ndarray, comparison_data_dir: str, run_tag: str) -> None:
+def _save_heatmaps(
+    r1_values: list[float],
+    r2_values: list[float],
+    score_grid: np.ndarray,
+    zscore_grid: np.ndarray,
+    comparison_data_dir: str,
+    run_tag: str,
+    score_mode: str,
+) -> None:
     if len(r1_values) == 0 or len(r2_values) == 0:
         return
 
@@ -136,13 +219,29 @@ def _save_heatmaps(r1_values: list[float], r2_values: list[float], score_grid: n
     combined_path = os.path.join(comparison_data_dir, "score_zscore_heatmaps.png")
 
     fig1, ax1 = plt.subplots(figsize=(6.5, 5.3))
-    _draw_heatmap(ax1, score_grid, r1_values, r2_values, f"Score heatmap (tag={run_tag})", "score", "viridis")
+    _draw_heatmap(
+        ax1,
+        score_grid,
+        r1_values,
+        r2_values,
+        f"Score heatmap ({score_mode}, tag={run_tag})",
+        "score",
+        "viridis",
+    )
     fig1.tight_layout()
     fig1.savefig(score_path, dpi=150)
     plt.close(fig1)
 
     fig2, ax2 = plt.subplots(figsize=(6.5, 5.3))
-    _draw_heatmap(ax2, zscore_grid, r1_values, r2_values, f"RMS z-score heatmap (tag={run_tag})", "z_rms", "magma")
+    _draw_heatmap(
+        ax2,
+        zscore_grid,
+        r1_values,
+        r2_values,
+        f"RMS z-score heatmap ({score_mode}, tag={run_tag})",
+        "z_rms",
+        "magma",
+    )
     fig2.tight_layout()
     fig2.savefig(zscore_path, dpi=150)
     plt.close(fig2)
@@ -150,7 +249,7 @@ def _save_heatmaps(r1_values: list[float], r2_values: list[float], score_grid: n
     fig3, (ax3, ax4) = plt.subplots(1, 2, figsize=(13.0, 5.3))
     _draw_heatmap(ax3, score_grid, r1_values, r2_values, "Score", "score", "viridis")
     _draw_heatmap(ax4, zscore_grid, r1_values, r2_values, "RMS z-score", "z_rms", "magma")
-    fig3.suptitle(f"Score and z-score heatmaps (tag={run_tag})")
+    fig3.suptitle(f"Score and z-score heatmaps (mode={score_mode}, tag={run_tag})")
     fig3.tight_layout()
     fig3.savefig(combined_path, dpi=150)
     plt.close(fig3)
@@ -332,6 +431,7 @@ def main() -> None:
     fractions = np.array(k_values, dtype=float) / float(k_denom)
 
     weighted = bool(cfg["analysis"]["weighted"])
+    score_mode = _parse_score_mode(cfg["analysis"].get("score_mode", "raw"))
     c_min = float(cfg["analysis"]["power_fit"]["c_min"])
     c_max = float(cfg["analysis"]["power_fit"]["c_max"])
     c_initial = float(cfg["analysis"]["power_fit"]["c_initial"])
@@ -371,6 +471,7 @@ def main() -> None:
     continuum_rows: list[list[Any]] = []
     compare_rows: list[list[Any]] = []
     score_rows: list[list[Any]] = []
+    score_diagnostic_rows: list[list[Any]] = []
     fss_rows: list[list[Any]] = []
     fss_plot_index_rows: list[list[Any]] = []
 
@@ -423,6 +524,9 @@ def main() -> None:
             n_score = 0
             z2_sum = 0.0
             n_z = 0
+            raw_z2_sum = 0.0
+            raw_n_z = 0
+            channel_score_entries: list[dict[str, Any]] = []
 
             for cycle in range(3):
                 for ik, kval in enumerate(k_values):
@@ -580,40 +684,89 @@ def main() -> None:
                         diff = A - ref_value
                         if np.isfinite(sigma_A) and np.isfinite(ref_sigma):
                             var = sigma_A * sigma_A + ref_sigma * ref_sigma
-                        weight = 1.0
-                        if weighted and np.isfinite(var) and var > 0.0:
-                            weight = 1.0 / var
-                        diff2 = diff * diff
-                        if np.isfinite(var) and var > 0.0:
-                            diff2 = min(diff2, 25.0 * var)
-                        score += weight * diff2
-                        n_score += 1
                         if np.isfinite(var) and var > 0.0:
                             z = diff / np.sqrt(var)
-                            z2_sum += z * z
-                            n_z += 1
+                            raw_z2_sum += z * z
+                            raw_n_z += 1
 
-                    compare_rows.append(
-                        [
-                            float(r1),
-                            float(r2),
-                            cycle,
-                            int(kval),
-                            float(fractions[ik]),
-                            A,
-                            sigma_A,
-                            ref_value,
-                            ref_sigma,
-                            diff,
-                            var,
-                            z,
-                            fit_mode,
-                            ref_fit_mode,
-                        ]
+                    channel_score_entries.append(
+                        {
+                            "r1": float(r1),
+                            "r2": float(r2),
+                            "cycle": int(cycle),
+                            "k": int(kval),
+                            "t": float(fractions[ik]),
+                            "A": A,
+                            "sigma_A": sigma_A,
+                            "ref_A": ref_value,
+                            "ref_sigma_A": ref_sigma,
+                            "diff": diff,
+                            "var": var,
+                            "z": z,
+                            "fit_mode": fit_mode,
+                            "ref_fit_mode": ref_fit_mode,
+                        }
                     )
+
+            global_offset, cycle_offsets = _compute_score_nuisance(channel_score_entries, score_mode)
+            raw_diff_values: list[float] = []
+            residual_values: list[float] = []
+
+            for entry in channel_score_entries:
+                diff = float(entry["diff"])
+                var = float(entry["var"])
+                nuisance = _channel_nuisance(
+                    cycle=int(entry["cycle"]),
+                    score_mode=score_mode,
+                    global_offset=global_offset,
+                    cycle_offsets=cycle_offsets,
+                )
+                score_residual = np.nan
+                score_z = np.nan
+                if np.isfinite(diff):
+                    raw_diff_values.append(diff)
+                    score_residual = diff - nuisance
+                    residual_values.append(float(score_residual))
+                    weight = 1.0
+                    if weighted and np.isfinite(var) and var > 0.0:
+                        weight = 1.0 / var
+                    diff2 = score_residual * score_residual
+                    if np.isfinite(var) and var > 0.0:
+                        diff2 = min(diff2, 25.0 * var)
+                    score += weight * diff2
+                    n_score += 1
+                    if np.isfinite(var) and var > 0.0:
+                        score_z = score_residual / np.sqrt(var)
+                        z2_sum += score_z * score_z
+                        n_z += 1
+
+                compare_rows.append(
+                    [
+                        float(entry["r1"]),
+                        float(entry["r2"]),
+                        int(entry["cycle"]),
+                        int(entry["k"]),
+                        float(entry["t"]),
+                        entry["A"],
+                        entry["sigma_A"],
+                        entry["ref_A"],
+                        entry["ref_sigma_A"],
+                        entry["diff"],
+                        entry["var"],
+                        entry["z"],
+                        entry["fit_mode"],
+                        entry["ref_fit_mode"],
+                        score_residual,
+                        score_z,
+                        nuisance,
+                    ]
+                )
 
             score_value = float(score) if n_score > 0 else np.nan
             z_rms = float(np.sqrt(z2_sum / n_z)) if n_z > 0 else np.nan
+            raw_z_rms = float(np.sqrt(raw_z2_sum / raw_n_z)) if raw_n_z > 0 else np.nan
+            mean_raw_diff = float(np.mean(raw_diff_values)) if raw_diff_values else np.nan
+            mean_score_residual = float(np.mean(residual_values)) if residual_values else np.nan
             score_rows.append(
                 [
                     float(r1),
@@ -623,6 +776,21 @@ def main() -> None:
                     z_rms,
                     int(n_z),
                     len(missing_sizes),
+                ]
+            )
+            score_diagnostic_rows.append(
+                [
+                    float(r1),
+                    float(r2),
+                    score_mode,
+                    float(global_offset),
+                    float(cycle_offsets[0]),
+                    float(cycle_offsets[1]),
+                    float(cycle_offsets[2]),
+                    mean_raw_diff,
+                    mean_score_residual,
+                    raw_z_rms,
+                    z_rms,
                 ]
             )
             score_grid[r2_index[_ratio_key(r2)], r1_index[_ratio_key(r1)]] = score_value
@@ -666,6 +834,7 @@ def main() -> None:
         f"k_values={k_values}",
         f"k_denominator={k_denom}",
         f"weighted={weighted}",
+        f"score_mode={score_mode}",
         f"continuum_fit={fit_model_desc}",
     ]
 
@@ -674,6 +843,7 @@ def main() -> None:
     continuum_test_channels_path = os.path.join(comparison_data_dir, "continuum_test_channels.dat")
     channel_comparison_path = os.path.join(comparison_data_dir, "channel_comparison.dat")
     score_map_path = os.path.join(comparison_data_dir, "score_map.dat")
+    score_diagnostics_path = os.path.join(comparison_data_dir, "score_diagnostics.dat")
     fss_plot_data_path = os.path.join(comparison_data_dir, "fss_plot_data.dat")
     fss_plot_index_path = os.path.join(comparison_data_dir, "fss_plot_index.dat")
     manifest_score_path = os.path.join(comparison_data_dir, "manifest_score.json")
@@ -714,6 +884,9 @@ def main() -> None:
             "z",
             "test_fit_mode",
             "reference_fit_mode",
+            "score_residual",
+            "score_z",
+            "score_nuisance",
         ],
         compare_rows,
     )
@@ -722,6 +895,24 @@ def main() -> None:
         header_common,
         ["r1", "r2", "score", "n_channels_scored", "z_rms", "n_channels_with_z", "n_missing_sizes"],
         score_rows,
+    )
+    write_dat(
+        score_diagnostics_path,
+        header_common,
+        [
+            "r1",
+            "r2",
+            "score_mode",
+            "global_offset",
+            "cycle0_offset",
+            "cycle1_offset",
+            "cycle2_offset",
+            "mean_raw_diff",
+            "mean_score_residual",
+            "raw_z_rms",
+            "score_z_rms",
+        ],
+        score_diagnostic_rows,
     )
     write_dat(
         fss_plot_data_path,
@@ -747,11 +938,11 @@ def main() -> None:
             ["r1_min", "r2_min", "score_min", "z_rms_at_min"],
             [[best[0], best[1], best[2], best[4]]],
         )
-        log(f"Best point: r1={best[0]:.6f}, r2={best[1]:.6f}, score={best[2]:.8g}")
+        log(f"Best point ({score_mode}): r1={best[0]:.6f}, r2={best[1]:.6f}, score={best[2]:.8g}")
     else:
         log("No finite scores produced. Check missing payloads or fit failures.")
 
-    _save_heatmaps(r1_values, r2_values, score_grid, zscore_grid, comparison_data_dir, tag)
+    _save_heatmaps(r1_values, r2_values, score_grid, zscore_grid, comparison_data_dir, tag, score_mode)
 
     manifest = {
         "created_at": timestamp(),
@@ -769,6 +960,7 @@ def main() -> None:
         "k_values": k_values,
         "k_denominator": k_denom,
         "weighted": weighted,
+        "score_mode": score_mode,
         "power_fit": {
             "method": fit_method,
             "model": fit_model_desc,
@@ -789,6 +981,7 @@ def main() -> None:
             "continuum_test_channels": continuum_test_channels_path,
             "channel_comparison": channel_comparison_path,
             "score_map": score_map_path,
+            "score_diagnostics": score_diagnostics_path,
             "score_minimum": score_minimum_path,
             "fss_plot_data": fss_plot_data_path,
             "fss_plot_index": fss_plot_index_path,

@@ -1,0 +1,9 @@
+{
+  "created_at": "2026-05-21 19:21:42",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_large_ref_probe_456_20260521.json",
+  "run_tag": "raw_manifold_large_ref_probe_456_20260521",
+  "run_root": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_large_ref_probe_456_20260521",
+  "benchmark_manifests": [
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_large_ref_probe_456_20260521/manifest_geometry_acute_456.json"
+  ]
+}

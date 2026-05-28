@@ -1,0 +1,10 @@
+{
+  "created_at": "2026-05-25 02:45:49",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_stupid_method_large_hi20000_20260525.json",
+  "run_tag": "large_hi20000",
+  "run_root": "/workspaces/newQFE/responsible_method_tests/stupid_method/large_hi20000",
+  "benchmark_manifests": [
+    "/workspaces/newQFE/responsible_method_tests/stupid_method/large_hi20000/manifest_iso111_scan_r11p000_r21p000.json",
+    "/workspaces/newQFE/responsible_method_tests/stupid_method/large_hi20000/manifest_iso111_scan_r11p200_r20p900.json"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "benchmark_id": "geometry_111_vs_iso111_scan_r11p200_r20p900_large_hi20000",
+  "description": "Larger-lattice higher-stat rerun: untwisted (1.2,0.9) candidate compared against a fresh twisted 1-1-1 reference.",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_stupid_method_large_hi20000_20260525.json",
+  "methods": {
+    "twisted": "/workspaces/newQFE/responsible_method_tests/stupid_method/large_hi20000/geometry_111/twisted/manifest_geometry_111_twisted.json",
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/stupid_method/large_hi20000/iso111_scan_r11p200_r20p900/untwisted/manifest_iso111_scan_r11p200_r20p900_untwisted.json"
+  }
+}

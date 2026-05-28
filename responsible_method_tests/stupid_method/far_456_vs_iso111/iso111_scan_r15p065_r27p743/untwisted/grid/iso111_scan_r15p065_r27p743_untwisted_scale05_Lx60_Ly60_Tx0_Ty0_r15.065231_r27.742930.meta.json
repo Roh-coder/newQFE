@@ -1,0 +1,31 @@
+{
+  "label": "iso111_scan_r15p065_r27p743_untwisted_scale05",
+  "created_at": "2026-05-25 03:04:27",
+  "benchmark_id": "iso111_scan_r15p065_r27p743",
+  "method": "untwisted",
+  "scale": 5,
+  "family_size": 60,
+  "L": 60,
+  "Lx": 60,
+  "Ly": 60,
+  "Tx": 0,
+  "Ty": 0,
+  "k1": 5.065231170850374,
+  "k2": 7.742930488974055,
+  "k3": 1.0,
+  "r1": 5.065231170850374,
+  "r2": 7.742930488974055,
+  "beta_c": 0.062828607070227,
+  "beta_c_sigma": 0.0,
+  "production_beta": 0.062828607070227,
+  "production_beta_source": "exact_critical",
+  "critical_source": "exact 4-5-6 anisotropic triangular critical point",
+  "production_wall_seconds": 21.272038221359253,
+  "mc": {
+    "n_traj": 10000,
+    "n_skip": 10,
+    "n_therm": 2000
+  },
+  "all_to_all_file": "/workspaces/newQFE/responsible_method_tests/stupid_method/far_456_vs_iso111/iso111_scan_r15p065_r27p743/untwisted/grid/iso111_scan_r15p065_r27p743_untwisted_scale05_Lx60_Ly60_Tx0_Ty0_r15.065231_r27.742930.dat",
+  "source_all_to_all_file": "/workspaces/newQFE/responsible_method_tests/stupid_method/far_456_vs_iso111/_mc_scratch/iso111_scan_r15p065_r27p743/untwisted/iso111_scan_r15p065_r27p743_untwisted_scale05/prod/60x60_t0x0_k5065_7743_1000_500/two_point_all_to_all.dat"
+}

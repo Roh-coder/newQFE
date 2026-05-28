@@ -1,0 +1,72 @@
+{
+  "benchmark_id": "geometry_acute_445",
+  "description": "Acute integer-ratio target 4-4-5 with twisted reference base volume 560, the nearest integer multiple to 4x the untwisted 12x12 base.",
+  "benchmark_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/manifest_geometry_acute_445.json",
+  "run_tag": "raw_manifold_fss_pickgeo10_twisted_reference4x_20260521",
+  "comparison_mode": "twisted_reference",
+  "interpretation_basis": "twisted interpolant sampled on untwisted continuum points",
+  "primary_metric": {
+    "key": "twisted_on_untwisted",
+    "rms_z": 0.9773547031348242
+  },
+  "target_tau": {
+    "real": 0.7903225806451611,
+    "imag": 0.977770617175979
+  },
+  "grid_size": 180,
+  "twisted": {
+    "method_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/geometry_acute_445/twisted/manifest_geometry_acute_445_twisted.json",
+    "alpha": 0.214654389241113,
+    "chi2_per_dof": 0.09724847471552947,
+    "n_fit_points": 559,
+    "couplings": {
+      "k3": 1.0,
+      "r1": 1.0,
+      "r2": 1.0,
+      "k1": 1.0,
+      "k2": 1.0
+    }
+  },
+  "untwisted": {
+    "method_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/geometry_acute_445/untwisted/manifest_geometry_acute_445_untwisted.json",
+    "alpha": 0.23644355685484492,
+    "chi2_per_dof": 0.11631185652031581,
+    "n_fit_points": 143,
+    "couplings": {
+      "k3": 1.0,
+      "r1": 3.47279659745,
+      "r2": 3.47279659745,
+      "k1": 3.47279659745,
+      "k2": 3.47279659745
+    }
+  },
+  "common_grid": {
+    "n_grid_points": 32400,
+    "rms_abs": 0.02243808519647905,
+    "mean_abs": 0.018745293531527298,
+    "max_abs": 0.06513447562991953,
+    "relative_rms": 0.08505047908505545,
+    "correlation": 0.8752060863001634
+  },
+  "twisted_on_untwisted": {
+    "n_points": 143,
+    "rms_abs": 0.022856134019988032,
+    "mean_abs": 0.018753964756763976,
+    "max_abs": 0.0630529381635801,
+    "rms_z": 0.9773547031348242,
+    "mean_abs_z": 0.6918810172043386,
+    "max_abs_z": 3.6108332915919323,
+    "chi2_per_point": 0.9552222157397603
+  },
+  "untwisted_on_twisted": {
+    "n_points": 559,
+    "rms_abs": 0.02249675076605228,
+    "mean_abs": 0.018713852692082235,
+    "max_abs": 0.06386653200181802,
+    "rms_z": 1.0985022009316296,
+    "mean_abs_z": 0.8003111697752728,
+    "max_abs_z": 3.7983703719934074,
+    "chi2_per_point": 1.2067070854516344
+  },
+  "interpretation": "not distinguished within continuum point errors"
+}

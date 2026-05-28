@@ -35,6 +35,10 @@ struct TwistedMap {
   std::vector<int> disp_m;
   std::vector<int> disp_n;
   std::vector<int> add_table;
+  std::vector<int> add_single;
+  int single_disp_id = -1;
+  int single_disp_m = 0;
+  int single_disp_n = 0;
 };
 
 int Mod(int a, int n) {
@@ -72,7 +76,10 @@ void AddUniqueLink(QfeLattice* lattice, int a, int b, double wt) {
 void InitTriangleTwistedParallelogram(QfeLattice* lattice,
                                       int Lx, int Ly, int Tx, int Ty,
                                       double K1, double K2, double K3,
-                                      TwistedMap* map_out) {
+                                      TwistedMap* map_out,
+                                      bool single_disp_only,
+                                      int single_disp_m,
+                                      int single_disp_n) {
   const int Ncell = Lx * Ly + Tx * Ty;
   assert(Ncell > 0);
 
@@ -146,7 +153,16 @@ void InitTriangleTwistedParallelogram(QfeLattice* lattice,
     map_out->next_e2me1.assign(Ncell, -1);
     map_out->disp_m.assign(Ncell, 0);
     map_out->disp_n.assign(Ncell, 0);
-    map_out->add_table.assign(Ncell * Ncell, -1);
+    map_out->add_table.clear();
+    map_out->add_single.clear();
+    map_out->single_disp_id = -1;
+    map_out->single_disp_m = single_disp_m;
+    map_out->single_disp_n = single_disp_n;
+    if (single_disp_only) {
+      map_out->add_single.assign(Ncell, -1);
+    } else {
+      map_out->add_table.assign(Ncell * Ncell, -1);
+    }
   }
 
   for (int s = 0; s < Ncell; s++) {
@@ -171,14 +187,31 @@ void InitTriangleTwistedParallelogram(QfeLattice* lattice,
   }
 
   if (map_out != nullptr) {
-    for (int s = 0; s < Ncell; s++) {
-      Coord c = reps[s];
-      for (int d = 0; d < Ncell; d++) {
-        Coord dd = reps[d];
-        int64_t k = CosetKey(c.m + dd.m, c.n + dd.n, Lx, Ly, Tx, Ty, Ncell);
+    if (single_disp_only) {
+      int64_t single_key = CosetKey(single_disp_m, single_disp_n, Lx, Ly, Tx, Ty, Ncell);
+      auto single_it = key_to_id.find(single_key);
+      assert(single_it != key_to_id.end());
+      map_out->single_disp_id = single_it->second;
+      map_out->single_disp_m = reps[map_out->single_disp_id].m;
+      map_out->single_disp_n = reps[map_out->single_disp_id].n;
+
+      for (int s = 0; s < Ncell; s++) {
+        Coord c = reps[s];
+        int64_t k = CosetKey(c.m + single_disp_m, c.n + single_disp_n, Lx, Ly, Tx, Ty, Ncell);
         auto it = key_to_id.find(k);
         assert(it != key_to_id.end());
-        map_out->add_table[s * Ncell + d] = it->second;
+        map_out->add_single[s] = it->second;
+      }
+    } else {
+      for (int s = 0; s < Ncell; s++) {
+        Coord c = reps[s];
+        for (int d = 0; d < Ncell; d++) {
+          Coord dd = reps[d];
+          int64_t k = CosetKey(c.m + dd.m, c.n + dd.n, Lx, Ly, Tx, Ty, Ncell);
+          auto it = key_to_id.find(k);
+          assert(it != key_to_id.end());
+          map_out->add_table[s * Ncell + d] = it->second;
+        }
       }
     }
   }
@@ -261,6 +294,11 @@ int main(int argc, char* argv[]) {
   std::string data_dir = "ising_tri_twisted_parallelogram";
   std::string two_point_name = "two_point_typed.dat";
   std::string full_two_point_name = "two_point_all_to_all.dat";
+  int single_disp_m = 0;
+  int single_disp_n = 0;
+  bool have_single_disp_m = false;
+  bool have_single_disp_n = false;
+  std::string single_disp_samples_name;
   // Speedup 4 (FS reweighting): when nonzero, dump one (E_per_site, |m|, m^2)
   // line per accepted trajectory to <subdir>/traces_<seed>.dat so the Python
   // side can reweight chi(beta) over a window without rerunning MC.
@@ -290,10 +328,13 @@ int main(int argc, char* argv[]) {
       {"data_dir", required_argument, 0, 'd'},
       {"two_point_name", required_argument, 0, 'p'},
       {"full_two_point_name", required_argument, 0, 'f'},
+      {"single_disp_m", required_argument, 0, 'm'},
+      {"single_disp_n", required_argument, 0, 'n'},
+      {"single_disp_samples_name", required_argument, 0, 'J'},
       {"dump_traces", required_argument, 0, 'D'},
       {0, 0, 0, 0}};
 
-  const char* short_options = "X:Y:P:Q:Z:a:b:c:g:B:S:h:t:s:w:e:W:d:p:f:D:";
+  const char* short_options = "X:Y:P:Q:Z:a:b:c:g:B:S:h:t:s:w:e:W:d:p:f:m:n:J:D:";
 
   while (true) {
     int o = 0;
@@ -321,9 +362,22 @@ int main(int argc, char* argv[]) {
       case 'd': data_dir = optarg; break;
       case 'p': two_point_name = optarg; break;
       case 'f': full_two_point_name = optarg; break;
+      case 'm': single_disp_m = atoi(optarg); have_single_disp_m = true; break;
+      case 'n': single_disp_n = atoi(optarg); have_single_disp_n = true; break;
+      case 'J': single_disp_samples_name = optarg; break;
       case 'D': dump_traces = atoi(optarg); break;
       default: break;
     }
+  }
+
+  if (have_single_disp_m != have_single_disp_n) {
+    fprintf(stderr, "ERROR: --single_disp_m and --single_disp_n must be provided together\n");
+    return 1;
+  }
+  const bool single_disp_only = have_single_disp_m && have_single_disp_n;
+  if (!single_disp_only && !single_disp_samples_name.empty()) {
+    fprintf(stderr, "ERROR: --single_disp_samples_name requires --single_disp_m and --single_disp_n\n");
+    return 1;
   }
 
   const int N_cell = L_x * L_y + T_x * T_y;
@@ -353,12 +407,21 @@ int main(int argc, char* argv[]) {
   printf("data_dir: %s\n", data_dir.c_str());
   printf("two_point_name: %s\n", two_point_name.c_str());
   printf("full_two_point_name: %s\n", full_two_point_name.c_str());
+  if (single_disp_only) {
+    printf("single_disp: (%d, %d)\n", single_disp_m, single_disp_n);
+  }
+  if (!single_disp_samples_name.empty()) {
+    printf("single_disp_samples_name: %s\n", single_disp_samples_name.c_str());
+  }
 
   QfeLattice lattice;
   TwistedMap twisted_map;
   lattice.SeedRng(seed);
   InitTriangleTwistedParallelogram(&lattice, L_x, L_y, T_x, T_y, K1, K2, K3,
-                                   &twisted_map);
+                                   &twisted_map,
+                                   single_disp_only,
+                                   single_disp_m,
+                                   single_disp_n);
 
   if (N_t > 1) {
     lattice.AddDimension(N_t);
@@ -379,6 +442,7 @@ int main(int argc, char* argv[]) {
   const int p_e1 = OrbitPeriod(twisted_map.next_e1);
   const int p_e2 = OrbitPeriod(twisted_map.next_e2);
   const int p_e2me1 = OrbitPeriod(twisted_map.next_e2me1);
+  const bool compute_typed_corr = !single_disp_only;
   printf("periods e1/e2/e2-e1: %d %d %d\n", p_e1, p_e2, p_e2me1);
 
   QfeMeasReal mag;
@@ -386,14 +450,14 @@ int main(int argc, char* argv[]) {
   QfeMeasReal mag_4;
   QfeMeasReal energy;
   QfeMeasReal energy_2;
-  std::vector<QfeMeasReal> corr_e1(p_e1);
-  std::vector<QfeMeasReal> corr_e2(p_e2);
-  std::vector<QfeMeasReal> corr_e2me1(p_e2me1);
-  std::vector<QfeMeasReal> corr_all(N_cell);
-  std::vector<std::vector<double>> corr_e1_samples(p_e1);
-  std::vector<std::vector<double>> corr_e2_samples(p_e2);
-  std::vector<std::vector<double>> corr_e2me1_samples(p_e2me1);
-  std::vector<std::vector<double>> corr_all_samples(N_cell);
+  std::vector<QfeMeasReal> corr_e1(compute_typed_corr ? p_e1 : 0);
+  std::vector<QfeMeasReal> corr_e2(compute_typed_corr ? p_e2 : 0);
+  std::vector<QfeMeasReal> corr_e2me1(compute_typed_corr ? p_e2me1 : 0);
+  std::vector<QfeMeasReal> corr_all(single_disp_only ? 1 : N_cell);
+  std::vector<std::vector<double>> corr_e1_samples(compute_typed_corr ? p_e1 : 0);
+  std::vector<std::vector<double>> corr_e2_samples(compute_typed_corr ? p_e2 : 0);
+  std::vector<std::vector<double>> corr_e2me1_samples(compute_typed_corr ? p_e2me1 : 0);
+  std::vector<std::vector<double>> corr_all_samples(single_disp_only ? 1 : N_cell);
   std::vector<double> mag_samples;
   std::vector<double> abs_mag_samples;
   std::vector<double> m2_samples;
@@ -440,10 +504,10 @@ int main(int argc, char* argv[]) {
     energy.Measure(e_mean);
     energy_2.Measure(e_mean * e_mean);
 
-    std::vector<double> corr_sum_e1(p_e1, 0.0);
-    std::vector<double> corr_sum_e2(p_e2, 0.0);
-    std::vector<double> corr_sum_e2me1(p_e2me1, 0.0);
-    std::vector<double> corr_sum_all(N_cell, 0.0);
+    std::vector<double> corr_sum_e1(compute_typed_corr ? p_e1 : 0, 0.0);
+    std::vector<double> corr_sum_e2(compute_typed_corr ? p_e2 : 0, 0.0);
+    std::vector<double> corr_sum_e2me1(compute_typed_corr ? p_e2me1 : 0, 0.0);
+    std::vector<double> corr_sum_all(single_disp_only ? 1 : N_cell, 0.0);
 
     for (int t0 = 0; t0 < N_t; t0++) {
       int t_offset = t0 * N_cell;
@@ -451,52 +515,67 @@ int main(int argc, char* argv[]) {
         int s = t_offset + s2;
         double spin_s = field.spin[s];
 
-        int u = s2;
-        for (int r = 0; r < p_e1; r++) {
-          corr_sum_e1[r] += spin_s * field.spin[t_offset + u];
-          u = twisted_map.next_e1[u];
+        if (compute_typed_corr) {
+          int u = s2;
+          for (int r = 0; r < p_e1; r++) {
+            corr_sum_e1[r] += spin_s * field.spin[t_offset + u];
+            u = twisted_map.next_e1[u];
+          }
+
+          u = s2;
+          for (int r = 0; r < p_e2; r++) {
+            corr_sum_e2[r] += spin_s * field.spin[t_offset + u];
+            u = twisted_map.next_e2[u];
+          }
+
+          u = s2;
+          for (int r = 0; r < p_e2me1; r++) {
+            corr_sum_e2me1[r] += spin_s * field.spin[t_offset + u];
+            u = twisted_map.next_e2me1[u];
+          }
         }
 
-        u = s2;
-        for (int r = 0; r < p_e2; r++) {
-          corr_sum_e2[r] += spin_s * field.spin[t_offset + u];
-          u = twisted_map.next_e2[u];
-        }
-
-        u = s2;
-        for (int r = 0; r < p_e2me1; r++) {
-          corr_sum_e2me1[r] += spin_s * field.spin[t_offset + u];
-          u = twisted_map.next_e2me1[u];
-        }
-
-        int add_base = s2 * N_cell;
-        for (int d = 0; d < N_cell; d++) {
-          int u_all = twisted_map.add_table[add_base + d];
-          corr_sum_all[d] += spin_s * field.spin[t_offset + u_all];
+        if (single_disp_only) {
+          int u_all = twisted_map.add_single[s2];
+          corr_sum_all[0] += spin_s * field.spin[t_offset + u_all];
+        } else {
+          int add_base = s2 * N_cell;
+          for (int d = 0; d < N_cell; d++) {
+            int u_all = twisted_map.add_table[add_base + d];
+            corr_sum_all[d] += spin_s * field.spin[t_offset + u_all];
+          }
         }
       }
     }
 
     const double norm = double(lattice.n_sites);
-    for (int r = 0; r < p_e1; r++) {
-      double c = corr_sum_e1[r] / norm;
-      corr_e1[r].Measure(c);
-      corr_e1_samples[r].push_back(c);
+    if (compute_typed_corr) {
+      for (int r = 0; r < p_e1; r++) {
+        double c = corr_sum_e1[r] / norm;
+        corr_e1[r].Measure(c);
+        corr_e1_samples[r].push_back(c);
+      }
+      for (int r = 0; r < p_e2; r++) {
+        double c = corr_sum_e2[r] / norm;
+        corr_e2[r].Measure(c);
+        corr_e2_samples[r].push_back(c);
+      }
+      for (int r = 0; r < p_e2me1; r++) {
+        double c = corr_sum_e2me1[r] / norm;
+        corr_e2me1[r].Measure(c);
+        corr_e2me1_samples[r].push_back(c);
+      }
     }
-    for (int r = 0; r < p_e2; r++) {
-      double c = corr_sum_e2[r] / norm;
-      corr_e2[r].Measure(c);
-      corr_e2_samples[r].push_back(c);
-    }
-    for (int r = 0; r < p_e2me1; r++) {
-      double c = corr_sum_e2me1[r] / norm;
-      corr_e2me1[r].Measure(c);
-      corr_e2me1_samples[r].push_back(c);
-    }
-    for (int d = 0; d < N_cell; d++) {
-      double c = corr_sum_all[d] / norm;
-      corr_all[d].Measure(c);
-      corr_all_samples[d].push_back(c);
+    if (single_disp_only) {
+      double c = corr_sum_all[0] / norm;
+      corr_all[0].Measure(c);
+      corr_all_samples[0].push_back(c);
+    } else {
+      for (int d = 0; d < N_cell; d++) {
+        double c = corr_sum_all[d] / norm;
+        corr_all[d].Measure(c);
+        corr_all_samples[d].push_back(c);
+      }
     }
 
     if (wall_time > 0.0 && timer.Duration() > wall_time) break;
@@ -551,24 +630,25 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  char run_id[128];
-  char subdir[256];
-  char path[512];
+  char run_id_buffer[128];
     // Compact format keeps path short (<260 chars) on Windows MAX_PATH.
     // k values stored as integer * 1000 (e.g. 0.850 -> 850).
-    sprintf(run_id, "%dx%d_t%dx%d_k%d_%d_%d_%d",
+    snprintf(run_id_buffer, sizeof(run_id_buffer), "%dx%d_t%dx%d_k%d_%d_%d_%d",
       L_x, L_y, T_x, T_y,
       (int)round(K1*1000), (int)round(K2*1000),
       (int)round(K3*1000), (int)round(Kt*1000));
-  sprintf(subdir, "%s/%s", data_dir.c_str(), run_id);
+  std::string run_id(run_id_buffer);
+  std::string subdir = data_dir + "/" + run_id;
   if (!MakeDir(subdir)) {
-    fprintf(stderr, "WARNING: could not create run subdir: %s\n", subdir);
+    fprintf(stderr, "WARNING: could not create run subdir: %s\n", subdir.c_str());
     return 0;
   }
-  sprintf(path, "%s/%s_%08X.dat", subdir, run_id, seed);
+  char seed_suffix[32];
+  snprintf(seed_suffix, sizeof(seed_suffix), "_%08X.dat", seed);
+  std::string path = subdir + "/" + run_id + seed_suffix;
 
-  printf("opening file: %s\n", path);
-  FILE* file = fopen(path, "w");
+  printf("opening file: %s\n", path.c_str());
+  FILE* file = fopen(path.c_str(), "w");
   assert(file != nullptr);
 
   fprintf(file, "L_x %d\n", L_x);
@@ -591,65 +671,117 @@ int main(int argc, char* argv[]) {
   fprintf(file, "m_susc %.12e %.12e\n", m_susc_mean, m_susc_err);
   fclose(file);
 
-  char two_point_path[512];
-  sprintf(two_point_path, "%s/%s", subdir, two_point_name.c_str());
-  FILE* corr_file = fopen(two_point_path, "w");
+  std::string two_point_path = subdir + "/" + two_point_name;
+  FILE* corr_file = fopen(two_point_path.c_str(), "w");
   assert(corr_file != nullptr);
   // Typed format: type r mean err
   // type 0: e1, type 1: e2, type 2: e2-e1.
   // type 4: connected e1, type 5: connected e2, type 6: connected e2-e1.
-  for (int r = 0; r < p_e1; r++) {
-    fprintf(corr_file, "0 %d %.16e %.16e\n", r, corr_e1[r].Mean(), corr_e1[r].Error());
-  }
-  for (int r = 0; r < p_e2; r++) {
-    fprintf(corr_file, "1 %d %.16e %.16e\n", r, corr_e2[r].Mean(), corr_e2[r].Error());
-  }
-  for (int r = 0; r < p_e2me1; r++) {
-    fprintf(corr_file, "2 %d %.16e %.16e\n", r, corr_e2me1[r].Mean(), corr_e2me1[r].Error());
-  }
+  if (compute_typed_corr) {
+    for (int r = 0; r < p_e1; r++) {
+      fprintf(corr_file, "0 %d %.16e %.16e\n", r, corr_e1[r].Mean(), corr_e1[r].Error());
+    }
+    for (int r = 0; r < p_e2; r++) {
+      fprintf(corr_file, "1 %d %.16e %.16e\n", r, corr_e2[r].Mean(), corr_e2[r].Error());
+    }
+    for (int r = 0; r < p_e2me1; r++) {
+      fprintf(corr_file, "2 %d %.16e %.16e\n", r, corr_e2me1[r].Mean(), corr_e2me1[r].Error());
+    }
 
-  for (int r = 0; r < p_e1; r++) {
-    double mean_conn = 0.0;
-    double err_conn = 0.0;
-    JackknifeConnectedCorr(corr_e1_samples[r], mag_samples, &mean_conn, &err_conn);
-    fprintf(corr_file, "4 %d %.16e %.16e\n", r, mean_conn, err_conn);
-  }
-  for (int r = 0; r < p_e2; r++) {
-    double mean_conn = 0.0;
-    double err_conn = 0.0;
-    JackknifeConnectedCorr(corr_e2_samples[r], mag_samples, &mean_conn, &err_conn);
-    fprintf(corr_file, "5 %d %.16e %.16e\n", r, mean_conn, err_conn);
-  }
-  for (int r = 0; r < p_e2me1; r++) {
-    double mean_conn = 0.0;
-    double err_conn = 0.0;
-    JackknifeConnectedCorr(corr_e2me1_samples[r], mag_samples, &mean_conn, &err_conn);
-    fprintf(corr_file, "6 %d %.16e %.16e\n", r, mean_conn, err_conn);
+    for (int r = 0; r < p_e1; r++) {
+      double mean_conn = 0.0;
+      double err_conn = 0.0;
+      JackknifeConnectedCorr(corr_e1_samples[r], mag_samples, &mean_conn, &err_conn);
+      fprintf(corr_file, "4 %d %.16e %.16e\n", r, mean_conn, err_conn);
+    }
+    for (int r = 0; r < p_e2; r++) {
+      double mean_conn = 0.0;
+      double err_conn = 0.0;
+      JackknifeConnectedCorr(corr_e2_samples[r], mag_samples, &mean_conn, &err_conn);
+      fprintf(corr_file, "5 %d %.16e %.16e\n", r, mean_conn, err_conn);
+    }
+    for (int r = 0; r < p_e2me1; r++) {
+      double mean_conn = 0.0;
+      double err_conn = 0.0;
+      JackknifeConnectedCorr(corr_e2me1_samples[r], mag_samples, &mean_conn, &err_conn);
+      fprintf(corr_file, "6 %d %.16e %.16e\n", r, mean_conn, err_conn);
+    }
+  } else {
+    fprintf(corr_file, "# typed correlators omitted in single-displacement mode\n");
   }
   fclose(corr_file);
-  printf("wrote: %s\n", two_point_path);
+  printf("wrote: %s\n", two_point_path.c_str());
 
-  char full_two_point_path[512];
-  sprintf(full_two_point_path, "%s/%s", subdir, full_two_point_name.c_str());
-  FILE* full_file = fopen(full_two_point_path, "w");
+  std::string full_two_point_path = subdir + "/" + full_two_point_name;
+  FILE* full_file = fopen(full_two_point_path.c_str(), "w");
   assert(full_file != nullptr);
   fprintf(full_file, "# Equal-time spatial all-to-all average over all time slices.\n");
   fprintf(full_file, "# d m n corr err corr_conn err_conn\n");
-  for (int d = 0; d < N_cell; d++) {
+  if (single_disp_only) {
     double cconn = 0.0;
     double econn = 0.0;
-    JackknifeConnectedCorr(corr_all_samples[d], mag_samples, &cconn, &econn);
+    JackknifeConnectedCorr(corr_all_samples[0], mag_samples, &cconn, &econn);
+    int d = twisted_map.single_disp_id;
     fprintf(full_file, "%d %d %d %.16e %.16e %.16e %.16e\n",
             d,
             twisted_map.disp_m[d],
             twisted_map.disp_n[d],
-            corr_all[d].Mean(),
-            corr_all[d].Error(),
+            corr_all[0].Mean(),
+            corr_all[0].Error(),
             cconn,
             econn);
+  } else {
+    for (int d = 0; d < N_cell; d++) {
+      double cconn = 0.0;
+      double econn = 0.0;
+      JackknifeConnectedCorr(corr_all_samples[d], mag_samples, &cconn, &econn);
+      fprintf(full_file, "%d %d %d %.16e %.16e %.16e %.16e\n",
+              d,
+              twisted_map.disp_m[d],
+              twisted_map.disp_n[d],
+              corr_all[d].Mean(),
+              corr_all[d].Error(),
+              cconn,
+              econn);
+    }
   }
   fclose(full_file);
-  printf("wrote: %s\n", full_two_point_path);
+  printf("wrote: %s\n", full_two_point_path.c_str());
+
+  if (single_disp_only && !single_disp_samples_name.empty()) {
+    std::string sample_path = subdir + "/" + single_disp_samples_name;
+    FILE* sample_file = fopen(sample_path.c_str(), "w");
+    if (sample_file == nullptr) {
+      fprintf(stderr, "WARNING: could not open single-disp sample file: %s\n", sample_path.c_str());
+    } else {
+      const int d = twisted_map.single_disp_id;
+      const std::vector<double>& corr_samples = corr_all_samples[0];
+      assert(corr_samples.size() == mag_samples.size());
+      fprintf(sample_file, "# single-displacement corr/mag samples for true ratio jackknife\n");
+      fprintf(sample_file, "# seed %u\n", seed);
+      fprintf(sample_file, "# L_x %d\n", L_x);
+      fprintf(sample_file, "# L_y %d\n", L_y);
+      fprintf(sample_file, "# T_x %d\n", T_x);
+      fprintf(sample_file, "# T_y %d\n", T_y);
+      fprintf(sample_file, "# K1 %.16e\n", K1);
+      fprintf(sample_file, "# K2 %.16e\n", K2);
+      fprintf(sample_file, "# K3 %.16e\n", K3);
+      fprintf(sample_file, "# Kt %.16e\n", Kt);
+      fprintf(sample_file, "# beta %.16e\n", beta);
+      fprintf(sample_file, "# n_therm %d\n", n_therm);
+      fprintf(sample_file, "# n_traj %d\n", n_traj);
+      fprintf(sample_file, "# n_skip %d\n", n_skip);
+      fprintf(sample_file, "# d %d\n", d);
+      fprintf(sample_file, "# m %d\n", twisted_map.disp_m[d]);
+      fprintf(sample_file, "# n %d\n", twisted_map.disp_n[d]);
+      fprintf(sample_file, "# columns: sample corr mag\n");
+      for (size_t i = 0; i < corr_samples.size(); i++) {
+        fprintf(sample_file, "%zu %.16e %.16e\n", i, corr_samples[i], mag_samples[i]);
+      }
+      fclose(sample_file);
+      printf("wrote: %s\n", sample_path.c_str());
+    }
+  }
 
   // -------------------------------------------------------------------------
   // Speedup 4 (FS reweighting): per-trajectory traces.
@@ -662,11 +794,12 @@ int main(int argc, char* argv[]) {
   // legacy CLI bit-equivalent when not used (--dump_traces 0 = default).
   // -------------------------------------------------------------------------
   if (dump_traces) {
-    char traces_path[512];
-    sprintf(traces_path, "%s/traces_%08X.dat", subdir, seed);
-    FILE* tf = fopen(traces_path, "w");
+    char traces_name[32];
+    snprintf(traces_name, sizeof(traces_name), "traces_%08X.dat", seed);
+    std::string traces_path = subdir + "/" + traces_name;
+    FILE* tf = fopen(traces_path.c_str(), "w");
     if (tf == nullptr) {
-      fprintf(stderr, "WARNING: could not open traces file: %s\n", traces_path);
+      fprintf(stderr, "WARNING: could not open traces file: %s\n", traces_path.c_str());
     } else {
       fprintf(tf, "# E_per_site  abs_m  m^2  (one line per measured trajectory)\n");
       fprintf(tf, "# n_sites %d  beta %.12e  K1 %.12e  K2 %.12e  K3 %.12e  Kt %.12e\n",
@@ -679,7 +812,7 @@ int main(int argc, char* argv[]) {
         fprintf(tf, "%.12e %.12e %.12e\n", e_i, abs_m_i, m2_i);
       }
       fclose(tf);
-      printf("wrote: %s\n", traces_path);
+      printf("wrote: %s\n", traces_path.c_str());
     }
   }
 

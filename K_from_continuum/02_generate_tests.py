@@ -210,7 +210,6 @@ def _point_worker(job: dict[str, Any]) -> dict[str, Any]:
                 beta_cfg=job["beta_finder"],
                 scratch_root=job["scratch_root"],
                 label=size_job["label"],
-                n_workers=int(job.get("n_workers", 1)),
             )
         except Exception as exc:  # noqa: BLE001
             errors.append((size_job, str(exc)))

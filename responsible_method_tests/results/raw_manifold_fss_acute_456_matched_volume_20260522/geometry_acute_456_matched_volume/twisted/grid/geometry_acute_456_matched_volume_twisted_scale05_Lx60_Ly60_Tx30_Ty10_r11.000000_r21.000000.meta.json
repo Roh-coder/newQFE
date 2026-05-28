@@ -1,0 +1,31 @@
+{
+  "label": "geometry_acute_456_matched_volume_twisted_scale05",
+  "created_at": "2026-05-22 18:17:15",
+  "benchmark_id": "geometry_acute_456_matched_volume",
+  "method": "twisted",
+  "scale": 5,
+  "family_size": 5,
+  "L": 5,
+  "Lx": 60,
+  "Ly": 60,
+  "Tx": 30,
+  "Ty": 10,
+  "k1": 1.0,
+  "k2": 1.0,
+  "k3": 1.0,
+  "r1": 1.0,
+  "r2": 1.0,
+  "beta_c": 0.274653072167027,
+  "beta_c_sigma": 0.0,
+  "production_beta": 0.274653072167027,
+  "production_beta_source": "exact_critical",
+  "critical_source": "exact isotropic triangular critical point",
+  "production_wall_seconds": 7.967318296432495,
+  "mc": {
+    "n_traj": 2000,
+    "n_skip": 10,
+    "n_therm": 1500
+  },
+  "all_to_all_file": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_456_matched_volume_20260522/geometry_acute_456_matched_volume/twisted/grid/geometry_acute_456_matched_volume_twisted_scale05_Lx60_Ly60_Tx30_Ty10_r11.000000_r21.000000.dat",
+  "source_all_to_all_file": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_456_matched_volume_20260522/_mc_scratch/geometry_acute_456_matched_volume/twisted/geometry_acute_456_matched_volume_twisted_scale05/prod/60x60_t30x10_k1000_1000_1000_500/two_point_all_to_all.dat"
+}

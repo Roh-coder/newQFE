@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-05-25 04:54:52",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_iso111_base4_size4to100_step4_20260525.json",
+  "run_tag": "iso111_base4_size4to100_step4",
+  "benchmark_id": "geometry_111_base4_size4to100_step4",
+  "description": "Fresh 1-1-1 control with untwisted and twisted square families over sizes 4,8,12,...,100.",
+  "target_geometry": [
+    4,
+    4,
+    0,
+    0
+  ],
+  "methods": {
+    "twisted": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_base4_size4to100_step4/geometry_111_base4_size4to100_step4/twisted/manifest_geometry_111_base4_size4to100_step4_twisted.json",
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_base4_size4to100_step4/geometry_111_base4_size4to100_step4/untwisted/manifest_geometry_111_base4_size4to100_step4_untwisted.json"
+  }
+}

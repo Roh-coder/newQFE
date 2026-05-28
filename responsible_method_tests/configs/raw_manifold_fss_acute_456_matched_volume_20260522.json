@@ -1,0 +1,64 @@
+{
+  "run": {
+    "tag": "raw_manifold_fss_acute_456_matched_volume_20260522"
+  },
+  "paths": {
+    "results_root": "results",
+    "resume": true
+  },
+  "execution": {
+    "n_workers": 1,
+    "exe": null,
+    "auto_build": true,
+    "force_rebuild": false,
+    "build_command": ["make"],
+    "build_timeout_s": 600
+  },
+  "mc": {
+    "n_traj": 2000,
+    "n_skip": 10,
+    "n_therm": 1500
+  },
+  "fss": {
+    "fit_method": "taylor2",
+    "c_min": 0.05,
+    "c_max": 3.5,
+    "c_initial": 1.0,
+    "min_sizes_for_free_C": 8
+  },
+  "benchmarks": [
+    {
+      "id": "geometry_acute_456_matched_volume",
+      "description": "Acute integer-ratio target 4-5-6 with approximately matched base volumes above 100. Twisted base is [12,12,6,2] with volume 156, untwisted base is square [12,12,0,0] with volume 144, and both families run integer scales 1..10.",
+      "modular_target_geometry": [12, 12, 6, 2],
+      "twisted": {
+        "base_geometry": [12, 12, 6, 2],
+        "scales": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "sizes": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "geometry_defaults": {
+          "Lx_mult": 12.0,
+          "Ly_mult": 12.0,
+          "Tx_frac": 0.0,
+          "Ty_frac": 0.0
+        },
+        "embedding_cycles": [0, 1],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 4.702782819756,
+          "k2_over_k3": 7.353910143333
+        },
+        "beta": 0.066421804006,
+        "critical_source": "exact anisotropic triangular critical point from realized 4-5-6 twisted geometry"
+      }
+    }
+  ]
+}

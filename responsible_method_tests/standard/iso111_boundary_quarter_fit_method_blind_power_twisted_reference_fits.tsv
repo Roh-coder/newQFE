@@ -1,0 +1,6 @@
+panel	y_axis_label	fit_family	fit_A	fit_sigma_A	fit_B	fit_C	fit_sigma_C	fit_mode	n_used
+v/4	Connected correlator	blind_power	0.2156465096	0.0325797367	1.9512764540	0.6012621819	0.1262369929	power_fit	5
+u/4	Connected correlator	blind_power	0.2206979820	0.0310779268	1.9789185645	0.6124046857	0.1270837660	power_fit	5
+w/4	Connected correlator	blind_power	0.1959419912	0.0416985495	1.6458182016	0.5317906559	0.1270011090	power_fit	5
+(v/4)/(u/4)	Correlator ratio	blind_power	0.9286388716	17.6108394028	0.0875055177	0.0500000000	12.4264578521	power_fit	5
+(w/4)/(u/4)	Correlator ratio	blind_power	0.9462045938	17.6300775858	0.0643105611	0.0500000000	16.9272468369	power_fit	5

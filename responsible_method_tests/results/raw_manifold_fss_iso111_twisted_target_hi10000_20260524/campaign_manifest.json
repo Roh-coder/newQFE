@@ -1,0 +1,9 @@
+{
+  "created_at": "2026-05-24 23:21:34",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_iso111_twisted_target_hi10000_20260524.json",
+  "run_tag": "raw_manifold_fss_iso111_twisted_target_hi10000_20260524",
+  "run_root": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_twisted_target_hi10000_20260524",
+  "benchmark_manifests": [
+    "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_twisted_target_hi10000_20260524/manifest_geometry_111.json"
+  ]
+}

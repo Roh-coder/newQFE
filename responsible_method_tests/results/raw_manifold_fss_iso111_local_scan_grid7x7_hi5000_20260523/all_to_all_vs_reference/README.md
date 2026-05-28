@@ -1,0 +1,26 @@
+# All-to-all correlator galleries
+
+- scan json: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/geometry_111_coupling_fit_scan.json
+- reference manifest: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_integer_multiples_20260520/geometry_111/twisted/manifest_geometry_111_twisted.json
+
+## Generated outputs
+
+### scale 1 (family size 12)
+- reference: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/all_to_all_vs_reference/scale01_reference_conn.png
+- gallery: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/all_to_all_vs_reference/scale01_untwisted_gallery_conn.png
+- difference gallery: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/all_to_all_vs_reference/scale01_untwisted_minus_reference_conn.png
+
+### scale 2 (family size 24)
+- reference: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/all_to_all_vs_reference/scale02_reference_conn.png
+- gallery: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/all_to_all_vs_reference/scale02_untwisted_gallery_conn.png
+- difference gallery: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/all_to_all_vs_reference/scale02_untwisted_minus_reference_conn.png
+
+### scale 3 (family size 36)
+- reference: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/all_to_all_vs_reference/scale03_reference_conn.png
+- gallery: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/all_to_all_vs_reference/scale03_untwisted_gallery_conn.png
+- difference gallery: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/all_to_all_vs_reference/scale03_untwisted_minus_reference_conn.png
+
+### scale 4 (family size 48)
+- reference: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/all_to_all_vs_reference/scale04_reference_conn.png
+- gallery: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/all_to_all_vs_reference/scale04_untwisted_gallery_conn.png
+- difference gallery: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/all_to_all_vs_reference/scale04_untwisted_minus_reference_conn.png

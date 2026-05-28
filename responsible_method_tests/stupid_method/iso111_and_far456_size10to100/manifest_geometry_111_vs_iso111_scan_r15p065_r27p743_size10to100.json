@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-05-25 04:01:42",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_iso111_and_far456_size10to100_20260525.json",
+  "run_tag": "iso111_and_far456_size10to100",
+  "benchmark_id": "geometry_111_vs_iso111_scan_r15p065_r27p743_size10to100",
+  "description": "Fresh untwisted exact 4-5-6 square family over sizes 10..100, compared against a fresh redundant twisted 1-1-1 family over the same sizes.",
+  "target_geometry": [
+    10,
+    10,
+    0,
+    0
+  ],
+  "methods": {
+    "twisted": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_vs_iso111_scan_r15p065_r27p743_size10to100/twisted/manifest_geometry_111_vs_iso111_scan_r15p065_r27p743_size10to100_twisted.json",
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_vs_iso111_scan_r15p065_r27p743_size10to100/untwisted/manifest_geometry_111_vs_iso111_scan_r15p065_r27p743_size10to100_untwisted.json"
+  }
+}

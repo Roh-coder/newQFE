@@ -1,0 +1,100 @@
+{
+  "created_at": "2026-05-22 19:48:58",
+  "benchmark_id": "geom_acute_567_mv_hs",
+  "benchmark_description": "High-stat matched-volume 5-6-7 follow-up on the largest feasible multiplicative large-lattice window. The family is anchored at the original scale-2 lattices and uses relative multipliers 1..5, corresponding to the original absolute scales 2, 4, 6, 8, and 10.",
+  "method": "twisted",
+  "target_geometry": [
+    12,
+    15,
+    6,
+    9
+  ],
+  "target_tau": {
+    "real": 0.3783783783783784,
+    "imag": 0.6085583918485244
+  },
+  "critical_source": "exact isotropic triangular critical point",
+  "beta": 0.274653072167027,
+  "couplings": {
+    "k3": 1.0,
+    "r1": 1.0,
+    "r2": 1.0,
+    "k1": 1.0,
+    "k2": 1.0
+  },
+  "embedding_cycles": [
+    0,
+    1
+  ],
+  "resume": true,
+  "payloads": [
+    {
+      "scale": 1,
+      "family_size": 2,
+      "lattice": [
+        24,
+        30,
+        12,
+        18
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/grid/geom_acute_567_mv_hs_twisted_scale01_Lx24_Ly30_Tx12_Ty18_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/grid/geom_acute_567_mv_hs_twisted_scale01_Lx24_Ly30_Tx12_Ty18_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 2,
+      "family_size": 4,
+      "lattice": [
+        48,
+        60,
+        24,
+        36
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/grid/geom_acute_567_mv_hs_twisted_scale02_Lx48_Ly60_Tx24_Ty36_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/grid/geom_acute_567_mv_hs_twisted_scale02_Lx48_Ly60_Tx24_Ty36_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 3,
+      "family_size": 6,
+      "lattice": [
+        72,
+        90,
+        36,
+        54
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/grid/geom_acute_567_mv_hs_twisted_scale03_Lx72_Ly90_Tx36_Ty54_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/grid/geom_acute_567_mv_hs_twisted_scale03_Lx72_Ly90_Tx36_Ty54_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 4,
+      "family_size": 8,
+      "lattice": [
+        96,
+        120,
+        48,
+        72
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/grid/geom_acute_567_mv_hs_twisted_scale04_Lx96_Ly120_Tx48_Ty72_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/grid/geom_acute_567_mv_hs_twisted_scale04_Lx96_Ly120_Tx48_Ty72_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 5,
+      "family_size": 10,
+      "lattice": [
+        120,
+        150,
+        60,
+        90
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/grid/geom_acute_567_mv_hs_twisted_scale05_Lx120_Ly150_Tx60_Ty90_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/grid/geom_acute_567_mv_hs_twisted_scale05_Lx120_Ly150_Tx60_Ty90_r11.000000_r21.000000.meta.json"
+    }
+  ],
+  "smallest_point_count": 936,
+  "comparable_point_count": 935,
+  "smallest_lattice_points": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/smallest_lattice_points.dat",
+  "pointwise_raw": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/pointwise_raw.dat",
+  "pointwise_continuum": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/pointwise_continuum.dat",
+  "modular_raw": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/modular_raw.dat",
+  "modular_aligned": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/modular_aligned.dat",
+  "modular_alignment": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/modular_alignment.json"
+}

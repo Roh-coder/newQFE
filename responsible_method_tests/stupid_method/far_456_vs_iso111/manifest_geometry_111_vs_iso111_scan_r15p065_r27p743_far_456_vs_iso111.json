@@ -1,0 +1,9 @@
+{
+  "benchmark_id": "geometry_111_vs_iso111_scan_r15p065_r27p743_far_456_vs_iso111",
+  "description": "Fresh far-point rerun: untwisted exact 4-5-6 couplings on the square lattice compared against the fresh twisted 1-1-1 reference.",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_far_456_vs_iso111_20260525.json",
+  "methods": {
+    "twisted": "/workspaces/newQFE/responsible_method_tests/stupid_method/geometry_111/twisted/manifest_geometry_111_twisted.json",
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/stupid_method/far_456_vs_iso111/iso111_scan_r15p065_r27p743/untwisted/manifest_iso111_scan_r15p065_r27p743_untwisted.json"
+  }
+}

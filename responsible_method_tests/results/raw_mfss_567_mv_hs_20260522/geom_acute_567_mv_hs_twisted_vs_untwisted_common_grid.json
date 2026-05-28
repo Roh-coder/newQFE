@@ -1,0 +1,72 @@
+{
+  "benchmark_id": "geom_acute_567_mv_hs",
+  "description": "High-stat matched-volume 5-6-7 follow-up on the largest feasible multiplicative large-lattice window. The family is anchored at the original scale-2 lattices and uses relative multipliers 1..5, corresponding to the original absolute scales 2, 4, 6, 8, and 10.",
+  "benchmark_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/manifest_geom_acute_567_mv_hs.json",
+  "run_tag": "raw_mfss_567_mv_hs_20260522",
+  "comparison_mode": "symmetric",
+  "interpretation_basis": "max bidirectional pointwise RMS z across both sampling directions",
+  "primary_metric": {
+    "key": "bidirectional_max_rms_z",
+    "rms_z": 2.268303941522555
+  },
+  "target_tau": {
+    "real": 0.3783783783783784,
+    "imag": 0.6085583918485244
+  },
+  "grid_size": 180,
+  "twisted": {
+    "method_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/twisted/manifest_geom_acute_567_mv_hs_twisted.json",
+    "alpha": 0.18029775799454556,
+    "chi2_per_dof": 0.10981625648334914,
+    "n_fit_points": 935,
+    "couplings": {
+      "k3": 1.0,
+      "r1": 1.0,
+      "r2": 1.0,
+      "k1": 1.0,
+      "k2": 1.0
+    }
+  },
+  "untwisted": {
+    "method_manifest": "/workspaces/newQFE/responsible_method_tests/results/raw_mfss_567_mv_hs_20260522/geom_acute_567_mv_hs/untwisted/manifest_geom_acute_567_mv_hs_untwisted.json",
+    "alpha": 0.20181459671232313,
+    "chi2_per_dof": 0.08632378199989771,
+    "n_fit_points": 899,
+    "couplings": {
+      "k3": 1.0,
+      "r1": 2.666681064033,
+      "r2": 4.069832921022,
+      "k1": 2.666681064033,
+      "k2": 4.069832921022
+    }
+  },
+  "common_grid": {
+    "n_grid_points": 32400,
+    "rms_abs": 0.03027072981909158,
+    "mean_abs": 0.029966988304980884,
+    "max_abs": 0.04002043118386828,
+    "relative_rms": 0.12821114965343414,
+    "correlation": 0.9787095215296717
+  },
+  "twisted_on_untwisted": {
+    "n_points": 899,
+    "rms_abs": 0.03028753846076974,
+    "mean_abs": 0.029994099319230458,
+    "max_abs": 0.03995952061707145,
+    "rms_z": 2.0918201823336027,
+    "mean_abs_z": 2.0405518206608986,
+    "max_abs_z": 4.861874783570112,
+    "chi2_per_point": 4.375711675218187
+  },
+  "untwisted_on_twisted": {
+    "n_points": 935,
+    "rms_abs": 0.03033864708371834,
+    "mean_abs": 0.02999999188492937,
+    "max_abs": 0.03974700267741213,
+    "rms_z": 2.268303941522555,
+    "mean_abs_z": 2.2069035762125906,
+    "max_abs_z": 4.992277844538204,
+    "chi2_per_point": 5.145202771126759
+  },
+  "interpretation": "distinguishable at continuum-point level"
+}

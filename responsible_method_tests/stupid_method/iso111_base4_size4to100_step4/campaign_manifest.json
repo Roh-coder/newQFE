@@ -1,0 +1,9 @@
+{
+  "created_at": "2026-05-25 04:54:52",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_iso111_base4_size4to100_step4_20260525.json",
+  "run_tag": "iso111_base4_size4to100_step4",
+  "run_root": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_base4_size4to100_step4",
+  "benchmark_manifests": [
+    "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_base4_size4to100_step4/manifest_geometry_111_base4_size4to100_step4.json"
+  ]
+}

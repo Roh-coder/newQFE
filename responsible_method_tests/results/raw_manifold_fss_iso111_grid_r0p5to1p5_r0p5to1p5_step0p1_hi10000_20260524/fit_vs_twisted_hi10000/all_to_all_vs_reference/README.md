@@ -1,0 +1,13 @@
+# All-to-all correlator galleries
+
+- scan json: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/fit_vs_twisted_hi10000/geometry_111_coupling_fit_scan.json
+- reference manifest: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_twisted_target_hi10000_20260524/geometry_111/twisted/manifest_geometry_111_twisted.json
+- all-candidate comparisons: not generated
+
+## Generated outputs
+
+### scale 5 (family size 5)
+- reference: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/fit_vs_twisted_hi10000/all_to_all_vs_reference/scale05_reference_conn.png
+- gallery: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/fit_vs_twisted_hi10000/all_to_all_vs_reference/scale05_untwisted_gallery_conn.png
+- difference gallery: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/fit_vs_twisted_hi10000/all_to_all_vs_reference/scale05_untwisted_minus_reference_conn.png
+- best-candidate 4-panel comparison: /workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/fit_vs_twisted_hi10000/all_to_all_vs_reference/scale05_best_candidate_comparison_conn.png

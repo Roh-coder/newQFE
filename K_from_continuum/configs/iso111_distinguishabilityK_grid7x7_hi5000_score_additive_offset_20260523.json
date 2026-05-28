@@ -1,0 +1,30 @@
+{
+  "run": {
+    "tag": "iso111_distK_grid7x7_hi5000_additive_offset_20260523"
+  },
+  "paths": {
+    "results_root": "results"
+  },
+  "input": {
+    "reference_manifest": "results/iso111_distK_dense_hi5000_20260522/reference_data/manifest_reference.json",
+    "tests_manifest": "results/iso111_distK_grid7x7_hi5000_20260523/test_data/manifest_tests.json"
+  },
+  "analysis": {
+    "k_values": [1, 2, 3, 4, 5, 6, 7],
+    "k_denominator": 8,
+    "weighted": false,
+    "score_mode": "additive_offset",
+    "power_fit": {
+      "method": "taylor2",
+      "c_min": 0.05,
+      "c_max": 3.5,
+      "c_initial": 1.0,
+      "min_sizes_for_free_C": 8
+    },
+    "fss_plots": {
+      "enabled": true,
+      "dpi": 150,
+      "max_points": 9
+    }
+  }
+}

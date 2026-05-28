@@ -1,0 +1,6 @@
+panel	y_axis_label	fit_family	fit_A	fit_sigma_A	fit_B	fit_C	fit_sigma_C	fit_mode	n_used
+v/2	Connected correlator	continuum	0.2371031212	0.0083684073	9.4916355154	-100.7746601913	nan	taylor2	5
+u/2	Connected correlator	continuum	0.2384398705	0.0082920111	9.3394597310	-98.0342294222	nan	taylor2	5
+w/2	Connected correlator	continuum	0.2359712495	0.0083723089	9.7429041163	-109.7049723285	nan	taylor2	5
+(v/2)/(u/2)	Correlator ratio	continuum	0.9968277049	0.0354596294	0.3597240487	-6.3871783913	nan	taylor2	5
+(w/2)/(u/2)	Correlator ratio	continuum	0.9946988403	0.0354856861	0.9058948106	-26.2919729321	nan	taylor2	5

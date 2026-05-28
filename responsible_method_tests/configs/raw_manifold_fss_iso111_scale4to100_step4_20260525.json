@@ -1,0 +1,117 @@
+{
+  "run": {
+    "tag": "iso111_scale4to100_step4"
+  },
+  "paths": {
+    "results_root": "stupid_method",
+    "resume": true
+  },
+  "execution": {
+    "n_workers": 2,
+    "exe": null,
+    "auto_build": true,
+    "force_rebuild": false,
+    "build_command": [
+      "make"
+    ],
+    "build_timeout_s": 600
+  },
+  "mc": {
+    "n_traj": 10000,
+    "n_skip": 10,
+    "n_therm": 2000
+  },
+  "fss": {
+    "fit_method": "taylor2",
+    "c_min": 0.05,
+    "c_max": 3.5,
+    "c_initial": 1.0,
+    "min_sizes_for_free_C": 3
+  },
+  "benchmarks": [
+    {
+      "id": "geometry_111_scale4to100_step4",
+      "description": "Fresh 1-1-1 control with a 10x10 base lattice, requested scales 4,8,12,...,100, plus the required scale-1 anchor for exact point matching.",
+      "modular_target_geometry": [
+        10,
+        10,
+        0,
+        0
+      ],
+      "twisted": {
+        "entries": [
+          { "scale": 1, "family_size": 1, "lattice": [10, 10, 0, 0] },
+          { "scale": 4, "family_size": 4, "lattice": [40, 40, 0, 0] },
+          { "scale": 8, "family_size": 8, "lattice": [80, 80, 0, 0] },
+          { "scale": 12, "family_size": 12, "lattice": [120, 120, 0, 0] },
+          { "scale": 16, "family_size": 16, "lattice": [160, 160, 0, 0] },
+          { "scale": 20, "family_size": 20, "lattice": [200, 200, 0, 0] },
+          { "scale": 24, "family_size": 24, "lattice": [240, 240, 0, 0] },
+          { "scale": 28, "family_size": 28, "lattice": [280, 280, 0, 0] },
+          { "scale": 32, "family_size": 32, "lattice": [320, 320, 0, 0] },
+          { "scale": 36, "family_size": 36, "lattice": [360, 360, 0, 0] },
+          { "scale": 40, "family_size": 40, "lattice": [400, 400, 0, 0] },
+          { "scale": 44, "family_size": 44, "lattice": [440, 440, 0, 0] },
+          { "scale": 48, "family_size": 48, "lattice": [480, 480, 0, 0] },
+          { "scale": 52, "family_size": 52, "lattice": [520, 520, 0, 0] },
+          { "scale": 56, "family_size": 56, "lattice": [560, 560, 0, 0] },
+          { "scale": 60, "family_size": 60, "lattice": [600, 600, 0, 0] },
+          { "scale": 64, "family_size": 64, "lattice": [640, 640, 0, 0] },
+          { "scale": 68, "family_size": 68, "lattice": [680, 680, 0, 0] },
+          { "scale": 72, "family_size": 72, "lattice": [720, 720, 0, 0] },
+          { "scale": 76, "family_size": 76, "lattice": [760, 760, 0, 0] },
+          { "scale": 80, "family_size": 80, "lattice": [800, 800, 0, 0] },
+          { "scale": 84, "family_size": 84, "lattice": [840, 840, 0, 0] },
+          { "scale": 88, "family_size": 88, "lattice": [880, 880, 0, 0] },
+          { "scale": 92, "family_size": 92, "lattice": [920, 920, 0, 0] },
+          { "scale": 96, "family_size": 96, "lattice": [960, 960, 0, 0] },
+          { "scale": 100, "family_size": 100, "lattice": [1000, 1000, 0, 0] }
+        ],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      },
+      "untwisted": {
+        "entries": [
+          { "scale": 1, "family_size": 1, "lattice": [10, 10, 0, 0] },
+          { "scale": 4, "family_size": 4, "lattice": [40, 40, 0, 0] },
+          { "scale": 8, "family_size": 8, "lattice": [80, 80, 0, 0] },
+          { "scale": 12, "family_size": 12, "lattice": [120, 120, 0, 0] },
+          { "scale": 16, "family_size": 16, "lattice": [160, 160, 0, 0] },
+          { "scale": 20, "family_size": 20, "lattice": [200, 200, 0, 0] },
+          { "scale": 24, "family_size": 24, "lattice": [240, 240, 0, 0] },
+          { "scale": 28, "family_size": 28, "lattice": [280, 280, 0, 0] },
+          { "scale": 32, "family_size": 32, "lattice": [320, 320, 0, 0] },
+          { "scale": 36, "family_size": 36, "lattice": [360, 360, 0, 0] },
+          { "scale": 40, "family_size": 40, "lattice": [400, 400, 0, 0] },
+          { "scale": 44, "family_size": 44, "lattice": [440, 440, 0, 0] },
+          { "scale": 48, "family_size": 48, "lattice": [480, 480, 0, 0] },
+          { "scale": 52, "family_size": 52, "lattice": [520, 520, 0, 0] },
+          { "scale": 56, "family_size": 56, "lattice": [560, 560, 0, 0] },
+          { "scale": 60, "family_size": 60, "lattice": [600, 600, 0, 0] },
+          { "scale": 64, "family_size": 64, "lattice": [640, 640, 0, 0] },
+          { "scale": 68, "family_size": 68, "lattice": [680, 680, 0, 0] },
+          { "scale": 72, "family_size": 72, "lattice": [720, 720, 0, 0] },
+          { "scale": 76, "family_size": 76, "lattice": [760, 760, 0, 0] },
+          { "scale": 80, "family_size": 80, "lattice": [800, 800, 0, 0] },
+          { "scale": 84, "family_size": 84, "lattice": [840, 840, 0, 0] },
+          { "scale": 88, "family_size": 88, "lattice": [880, 880, 0, 0] },
+          { "scale": 92, "family_size": 92, "lattice": [920, 920, 0, 0] },
+          { "scale": 96, "family_size": 96, "lattice": [960, 960, 0, 0] },
+          { "scale": 100, "family_size": 100, "lattice": [1000, 1000, 0, 0] }
+        ],
+        "couplings": {
+          "k3": 1.0,
+          "k1_over_k3": 1.0,
+          "k2_over_k3": 1.0
+        },
+        "beta": 0.274653072167027,
+        "critical_source": "exact isotropic triangular critical point"
+      }
+    }
+  ]
+}

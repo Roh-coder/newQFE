@@ -1,0 +1,89 @@
+{
+  "label": "test_L24_r11.000000_r21.000000",
+  "created_at": "2026-05-22 20:26:27",
+  "wall_seconds": 0.5443809032440186,
+  "L": 24,
+  "Lx": 24,
+  "Ly": 24,
+  "Tx": 0,
+  "Ty": 0,
+  "k1": 1.0,
+  "k2": 1.0,
+  "k3": 1.0,
+  "r1": 1.0,
+  "r2": 1.0,
+  "beta_c": 0.2746530721670271,
+  "beta_c_sigma": 2.2701277446416883,
+  "production_beta": 0.2746530721670271,
+  "production_beta_sigma": 2.2701277446416883,
+  "production_beta_source": "taylor2_continuum",
+  "finite_size_beta_c": 0.27465307216702745,
+  "finite_size_beta_c_sigma": 0.0,
+  "chi_peak": NaN,
+  "scan_betas": [],
+  "scan_chis": [],
+  "scan_chi_errs": [],
+  "beta_find_wall_seconds": 0.0,
+  "production_wall_seconds": 0.5443809032440186,
+  "mc": {
+    "n_traj": 2000,
+    "n_skip": 10,
+    "n_therm": 1500
+  },
+  "beta_finder": {
+    "mode": "exact_triangular_sinh_rule",
+    "critical_equation": "sinh(2 beta k1) sinh(2 beta k2) + sinh(2 beta k2) sinh(2 beta k3) + sinh(2 beta k3) sinh(2 beta k1) = 1"
+  },
+  "all_to_all_file": "/workspaces/newQFE/K_from_continuum/results/iso111_distinguishabilityK_20260522/_mc_scratch/test_data/test_L24_r11.000000_r21.000000/prod/24x24_t0x0_k1000_1000_1000_500/two_point_all_to_all.dat",
+  "beta_extrapolation": {
+    "method": "taylor2_continuum",
+    "ansatz": "beta_c(L) = beta_c(infinity) + a1/L + a2/L^2",
+    "weighted": false,
+    "parameters": {
+      "beta_c": 0.2746530721670271,
+      "linear": 2.5352709774242103e-15,
+      "quadratic": -4.3663712820861585e-14
+    },
+    "L_values": [
+      12,
+      24,
+      36,
+      48,
+      60
+    ],
+    "beta_values": [
+      0.27465307216702745,
+      0.27465307216702745,
+      0.27465307216702745,
+      0.27465307216702745,
+      0.27465307216702745
+    ],
+    "sigma_values": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "beta_fit_values": [
+      0.27465307216702706,
+      0.27465307216702717,
+      0.2746530721670271,
+      0.27465307216702717,
+      0.27465307216702717
+    ],
+    "residual_values": [
+      3.885780586188048e-16,
+      2.7755575615628914e-16,
+      3.3306690738754696e-16,
+      2.7755575615628914e-16,
+      2.7755575615628914e-16
+    ],
+    "beta_c_continuum": 0.2746530721670271,
+    "beta_c_continuum_sigma": 2.2701277446416883,
+    "rms_residual": 3.1401849173675503e-16,
+    "n_points": 5,
+    "lmin": 12,
+    "lmax": 60
+  }
+}

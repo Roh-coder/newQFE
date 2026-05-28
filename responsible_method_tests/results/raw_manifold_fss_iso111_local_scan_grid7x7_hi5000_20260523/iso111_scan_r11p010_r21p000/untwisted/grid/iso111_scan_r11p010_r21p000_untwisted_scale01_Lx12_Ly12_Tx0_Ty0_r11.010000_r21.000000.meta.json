@@ -1,0 +1,31 @@
+{
+  "label": "iso111_scan_r11p010_r21p000_untwisted_scale01",
+  "created_at": "2026-05-23 02:18:07",
+  "benchmark_id": "iso111_scan_r11p010_r21p000",
+  "method": "untwisted",
+  "scale": 1,
+  "family_size": 12,
+  "L": 12,
+  "Lx": 12,
+  "Ly": 12,
+  "Tx": 0,
+  "Ty": 0,
+  "k1": 1.01,
+  "k2": 1.0,
+  "k3": 1.0,
+  "r1": 1.01,
+  "r2": 1.0,
+  "beta_c": 0.27374143383085503,
+  "beta_c_sigma": 0.0,
+  "production_beta": 0.27374143383085503,
+  "production_beta_source": "exact_critical",
+  "critical_source": "exact anisotropic triangular critical point",
+  "production_wall_seconds": 0.25798797607421875,
+  "mc": {
+    "n_traj": 5000,
+    "n_skip": 10,
+    "n_therm": 1500
+  },
+  "all_to_all_file": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/iso111_scan_r11p010_r21p000/untwisted/grid/iso111_scan_r11p010_r21p000_untwisted_scale01_Lx12_Ly12_Tx0_Ty0_r11.010000_r21.000000.dat",
+  "source_all_to_all_file": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_local_scan_grid7x7_hi5000_20260523/_mc_scratch/iso111_scan_r11p010_r21p000/untwisted/iso111_scan_r11p010_r21p000_untwisted_scale01/prod/12x12_t0x0_k1010_1000_1000_500/two_point_all_to_all.dat"
+}

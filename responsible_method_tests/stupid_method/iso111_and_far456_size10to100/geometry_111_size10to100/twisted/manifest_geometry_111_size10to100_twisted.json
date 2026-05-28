@@ -1,0 +1,160 @@
+{
+  "created_at": "2026-05-25 03:42:46",
+  "benchmark_id": "geometry_111_size10to100",
+  "benchmark_description": "Fresh 1-1-1 control with untwisted and twisted square families over sizes 10..100.",
+  "method": "twisted",
+  "target_geometry": [
+    10,
+    10,
+    0,
+    0
+  ],
+  "target_tau": {
+    "real": 0.5,
+    "imag": 0.8660254037844386
+  },
+  "critical_source": "exact isotropic triangular critical point",
+  "beta": 0.274653072167027,
+  "couplings": {
+    "k3": 1.0,
+    "r1": 1.0,
+    "r2": 1.0,
+    "k1": 1.0,
+    "k2": 1.0
+  },
+  "embedding_cycles": [
+    0,
+    1
+  ],
+  "resume": true,
+  "payloads": [
+    {
+      "scale": 1,
+      "family_size": 10,
+      "lattice": [
+        10,
+        10,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale01_Lx10_Ly10_Tx0_Ty0_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale01_Lx10_Ly10_Tx0_Ty0_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 2,
+      "family_size": 20,
+      "lattice": [
+        20,
+        20,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale02_Lx20_Ly20_Tx0_Ty0_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale02_Lx20_Ly20_Tx0_Ty0_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 3,
+      "family_size": 30,
+      "lattice": [
+        30,
+        30,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale03_Lx30_Ly30_Tx0_Ty0_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale03_Lx30_Ly30_Tx0_Ty0_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 4,
+      "family_size": 40,
+      "lattice": [
+        40,
+        40,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale04_Lx40_Ly40_Tx0_Ty0_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale04_Lx40_Ly40_Tx0_Ty0_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 5,
+      "family_size": 50,
+      "lattice": [
+        50,
+        50,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale05_Lx50_Ly50_Tx0_Ty0_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale05_Lx50_Ly50_Tx0_Ty0_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 6,
+      "family_size": 60,
+      "lattice": [
+        60,
+        60,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale06_Lx60_Ly60_Tx0_Ty0_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale06_Lx60_Ly60_Tx0_Ty0_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 7,
+      "family_size": 70,
+      "lattice": [
+        70,
+        70,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale07_Lx70_Ly70_Tx0_Ty0_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale07_Lx70_Ly70_Tx0_Ty0_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 8,
+      "family_size": 80,
+      "lattice": [
+        80,
+        80,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale08_Lx80_Ly80_Tx0_Ty0_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale08_Lx80_Ly80_Tx0_Ty0_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 9,
+      "family_size": 90,
+      "lattice": [
+        90,
+        90,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale09_Lx90_Ly90_Tx0_Ty0_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale09_Lx90_Ly90_Tx0_Ty0_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 10,
+      "family_size": 100,
+      "lattice": [
+        100,
+        100,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale10_Lx100_Ly100_Tx0_Ty0_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/grid/geometry_111_size10to100_twisted_scale10_Lx100_Ly100_Tx0_Ty0_r11.000000_r21.000000.meta.json"
+    }
+  ],
+  "smallest_point_count": 100,
+  "comparable_point_count": 99,
+  "smallest_lattice_points": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/smallest_lattice_points.dat",
+  "pointwise_raw": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/pointwise_raw.dat",
+  "pointwise_continuum": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/pointwise_continuum.dat",
+  "modular_raw": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/modular_raw.dat",
+  "modular_aligned": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/modular_aligned.dat",
+  "modular_alignment": "/workspaces/newQFE/responsible_method_tests/stupid_method/iso111_and_far456_size10to100/geometry_111_size10to100/twisted/modular_alignment.json"
+}

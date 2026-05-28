@@ -25,6 +25,8 @@ import numpy as np
 from scipy.interpolate import LinearNDInterpolator
 from scipy.optimize import curve_fit, minimize_scalar
 
+from cost import paired_boundary_paths
+
 
 # ===================================================================
 # Parsing helpers
@@ -659,15 +661,17 @@ def boundary_slices_normed(ref_data, test_data,
     iref_err = _tile_interp_field(ref_data, rLx, rLy, rTx, rTy, copies, "conn_err")
     itest_err = _tile_interp_field(test_data, Lx, Ly, Tx, Ty, copies, "conn_err")
 
-    ref_paths = _boundary_paths(rLx, rLy, rTx, rTy)
-    test_paths = _boundary_paths(Lx, Ly, Tx, Ty)
+    paired_paths = paired_boundary_paths(
+        (rLx, rLy, rTx, rTy),
+        (Lx, Ly, Tx, Ty),
+    )
 
     sqrt3_2 = math.sqrt(3.0) / 2.0
     n_valid = 0
-    dir_labels = ["v", "u", "w"]
+    dir_labels = [str(role) for role, *_ in paired_paths]
     per_dir = []
     t = np.linspace(0.0, 1.0, n_samples)
-    for idx, ((rdm, rdn), (tdm, tdn)) in enumerate(zip(ref_paths, test_paths)):
+    for _, _, (rdm, rdn), _, (tdm, tdn) in paired_paths:
         rex = rdm + 0.5 * rdn;  rey = sqrt3_2 * rdn
         pts_ref = np.column_stack([t * rex, t * rey])
         tex = tdm + 0.5 * tdn;  tey = sqrt3_2 * tdn
@@ -714,15 +718,17 @@ def boundary_slices_quartic(ref_data, test_data,
     iref_err = _tile_interp_field(ref_data, rLx, rLy, rTx, rTy, copies, "conn_err")
     itest_err = _tile_interp_field(test_data, Lx, Ly, Tx, Ty, copies, "conn_err")
 
-    ref_paths = _boundary_paths(rLx, rLy, rTx, rTy)
-    test_paths = _boundary_paths(Lx, Ly, Tx, Ty)
+    paired_paths = paired_boundary_paths(
+        (rLx, rLy, rTx, rTy),
+        (Lx, Ly, Tx, Ty),
+    )
 
     sqrt3_2 = math.sqrt(3.0) / 2.0
     n_valid = 0
-    dir_labels = ["v", "u", "w"]
+    dir_labels = [str(role) for role, *_ in paired_paths]
     per_dir = []
     t = np.linspace(0.0, 1.0, n_samples)
-    for idx, ((rdm, rdn), (tdm, tdn)) in enumerate(zip(ref_paths, test_paths)):
+    for _, _, (rdm, rdn), _, (tdm, tdn) in paired_paths:
         rex = rdm + 0.5 * rdn;  rey = sqrt3_2 * rdn
         pts_ref = np.column_stack([t * rex, t * rey])
         tex = tdm + 0.5 * tdn;  tey = sqrt3_2 * tdn
@@ -767,14 +773,15 @@ def extract_boundary_slices(ref_data, test_data, Lx, Ly, Tx, Ty,
     iref_err = _tile_interp_field(ref_data, rLx, rLy, rTx, rTy, copies, "conn_err")
     itest_err = _tile_interp_field(test_data, Lx, Ly, Tx, Ty, copies, "conn_err")
 
-    ref_paths = _boundary_paths(rLx, rLy, rTx, rTy)
-    test_paths = _boundary_paths(Lx, Ly, Tx, Ty)
+    paired_paths = paired_boundary_paths(
+        (rLx, rLy, rTx, rTy),
+        (Lx, Ly, Tx, Ty),
+    )
 
     sqrt3_2 = math.sqrt(3.0) / 2.0
-    labels = ["v", "u", "w"]
     slices = []
     t = np.linspace(0.0, 1.0, n_samples)
-    for i, ((rdm, rdn), (tdm, tdn)) in enumerate(zip(ref_paths, test_paths)):
+    for role, _, (rdm, rdn), _, (tdm, tdn) in paired_paths:
         rex = rdm + 0.5 * rdn;  rey = sqrt3_2 * rdn
         pts_ref = np.column_stack([t * rex, t * rey])
         tex = tdm + 0.5 * tdn;  tey = sqrt3_2 * tdn
@@ -793,6 +800,6 @@ def extract_boundary_slices(ref_data, test_data, Lx, Ly, Tx, Ty,
             "g_test": cc_test[mask],
             "diff": cc_test[mask] - cc_ref[mask],
             "diff_err": np.sqrt(ee_ref[mask]**2 + ee_test[mask]**2),
-            "label": labels[i],
+            "label": str(role),
         })
     return slices

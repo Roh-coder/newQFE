@@ -1,0 +1,160 @@
+{
+  "created_at": "2026-05-22 18:44:03",
+  "benchmark_id": "geometry_acute_567_matched_volume",
+  "benchmark_description": "Acute integer-ratio target 5-6-7 with approximately matched base volumes above 100. Twisted base is [12,15,6,9] with volume 234, untwisted base is square [15,15,0,0] with volume 225, and both families run integer scales 1..10.",
+  "method": "twisted",
+  "target_geometry": [
+    12,
+    15,
+    6,
+    9
+  ],
+  "target_tau": {
+    "real": 0.3783783783783784,
+    "imag": 0.6085583918485244
+  },
+  "critical_source": "exact isotropic triangular critical point",
+  "beta": 0.274653072167027,
+  "couplings": {
+    "k3": 1.0,
+    "r1": 1.0,
+    "r2": 1.0,
+    "k1": 1.0,
+    "k2": 1.0
+  },
+  "embedding_cycles": [
+    0,
+    1
+  ],
+  "resume": true,
+  "payloads": [
+    {
+      "scale": 1,
+      "family_size": 1,
+      "lattice": [
+        12,
+        15,
+        6,
+        9
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale01_Lx12_Ly15_Tx6_Ty9_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale01_Lx12_Ly15_Tx6_Ty9_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 2,
+      "family_size": 2,
+      "lattice": [
+        24,
+        30,
+        12,
+        18
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale02_Lx24_Ly30_Tx12_Ty18_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale02_Lx24_Ly30_Tx12_Ty18_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 3,
+      "family_size": 3,
+      "lattice": [
+        36,
+        45,
+        18,
+        27
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale03_Lx36_Ly45_Tx18_Ty27_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale03_Lx36_Ly45_Tx18_Ty27_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 4,
+      "family_size": 4,
+      "lattice": [
+        48,
+        60,
+        24,
+        36
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale04_Lx48_Ly60_Tx24_Ty36_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale04_Lx48_Ly60_Tx24_Ty36_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 5,
+      "family_size": 5,
+      "lattice": [
+        60,
+        75,
+        30,
+        45
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale05_Lx60_Ly75_Tx30_Ty45_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale05_Lx60_Ly75_Tx30_Ty45_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 6,
+      "family_size": 6,
+      "lattice": [
+        72,
+        90,
+        36,
+        54
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale06_Lx72_Ly90_Tx36_Ty54_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale06_Lx72_Ly90_Tx36_Ty54_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 7,
+      "family_size": 7,
+      "lattice": [
+        84,
+        105,
+        42,
+        63
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale07_Lx84_Ly105_Tx42_Ty63_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale07_Lx84_Ly105_Tx42_Ty63_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 8,
+      "family_size": 8,
+      "lattice": [
+        96,
+        120,
+        48,
+        72
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale08_Lx96_Ly120_Tx48_Ty72_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale08_Lx96_Ly120_Tx48_Ty72_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 9,
+      "family_size": 9,
+      "lattice": [
+        108,
+        135,
+        54,
+        81
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale09_Lx108_Ly135_Tx54_Ty81_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale09_Lx108_Ly135_Tx54_Ty81_r11.000000_r21.000000.meta.json"
+    },
+    {
+      "scale": 10,
+      "family_size": 10,
+      "lattice": [
+        120,
+        150,
+        60,
+        90
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale10_Lx120_Ly150_Tx60_Ty90_r11.000000_r21.000000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/grid/geometry_acute_567_matched_volume_twisted_scale10_Lx120_Ly150_Tx60_Ty90_r11.000000_r21.000000.meta.json"
+    }
+  ],
+  "smallest_point_count": 234,
+  "comparable_point_count": 233,
+  "smallest_lattice_points": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/smallest_lattice_points.dat",
+  "pointwise_raw": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/pointwise_raw.dat",
+  "pointwise_continuum": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/pointwise_continuum.dat",
+  "modular_raw": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/modular_raw.dat",
+  "modular_aligned": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/modular_aligned.dat",
+  "modular_alignment": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_acute_567_matched_volume_20260522/geometry_acute_567_matched_volume/twisted/modular_alignment.json"
+}

@@ -1,0 +1,9 @@
+{
+  "created_at": "2026-05-25 03:04:28",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_far_456_vs_iso111_20260525.json",
+  "run_tag": "far_456_vs_iso111",
+  "run_root": "/workspaces/newQFE/responsible_method_tests/stupid_method/far_456_vs_iso111",
+  "benchmark_manifests": [
+    "/workspaces/newQFE/responsible_method_tests/stupid_method/far_456_vs_iso111/manifest_iso111_scan_r15p065_r27p743.json"
+  ]
+}

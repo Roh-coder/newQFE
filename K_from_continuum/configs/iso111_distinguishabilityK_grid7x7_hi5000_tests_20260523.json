@@ -1,0 +1,56 @@
+{
+  "run": {
+    "tag": "iso111_distK_grid7x7_hi5000_20260523"
+  },
+  "paths": {
+    "results_root": "results",
+    "resume": true
+  },
+  "execution": {
+    "n_workers": 4,
+    "exe": null,
+    "auto_build": true,
+    "force_rebuild": false,
+    "build_command": ["make"],
+    "build_timeout_s": 600
+  },
+  "test_family": {
+    "sizes": [12, 24, 36, 48, 60],
+    "geometry_defaults": {
+      "Lx_mult": 1.0,
+      "Ly_mult": 1.0,
+      "Tx_frac": 0.0,
+      "Ty_frac": 0.0
+    }
+  },
+  "couplings": {
+    "k3": 1.0,
+    "k1_over_k3_values": [0.99, 0.995, 1.0, 1.005, 1.01, 1.015, 1.02],
+    "k2_over_k3_values": [0.99, 0.995, 1.0, 1.005, 1.01, 1.015, 1.02]
+  },
+  "beta_strategy": {
+    "mode": "taylor2_continuum",
+    "weighted": false,
+    "exponent_initial": 1.0,
+    "exponent_min": 0.05,
+    "exponent_max": 3.0
+  },
+  "beta_finder": {
+    "mode": "exact_triangular_sinh_rule",
+    "beta_lo": 0.05,
+    "beta_hi": 0.40,
+    "n_coarse": 11,
+    "n_refine": 5,
+    "n_refine2": 5,
+    "n_refine3": 5,
+    "n_traj_coarse": 80,
+    "n_traj_fine": 160,
+    "max_shifts": 4,
+    "jackknife": false
+  },
+  "mc": {
+    "n_traj": 5000,
+    "n_skip": 10,
+    "n_therm": 1500
+  }
+}

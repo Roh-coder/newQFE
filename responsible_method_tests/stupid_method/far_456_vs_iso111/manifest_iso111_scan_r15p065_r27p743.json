@@ -1,0 +1,16 @@
+{
+  "created_at": "2026-05-25 03:04:28",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_far_456_vs_iso111_20260525.json",
+  "run_tag": "far_456_vs_iso111",
+  "benchmark_id": "iso111_scan_r15p065_r27p743",
+  "description": "Far-away equilateral test point using the exact untwisted 4-5-6 couplings, to be compared against the fresh twisted 1-1-1 reference.",
+  "target_geometry": [
+    12,
+    12,
+    0,
+    0
+  ],
+  "methods": {
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/stupid_method/far_456_vs_iso111/iso111_scan_r15p065_r27p743/untwisted/manifest_iso111_scan_r15p065_r27p743_untwisted.json"
+  }
+}

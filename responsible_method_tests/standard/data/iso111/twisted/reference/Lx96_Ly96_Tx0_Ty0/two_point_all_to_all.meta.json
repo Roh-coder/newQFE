@@ -1,0 +1,31 @@
+{
+  "label": "iso111_twisted_L96",
+  "created_at": "2026-05-28T02:23:30+00:00",
+  "campaign": "responsible_method_tests/standard/custom_twisted_targets_20260528",
+  "family": "iso111",
+  "description": "Custom smaller iso111 twisted target",
+  "Lx": 96,
+  "Ly": 96,
+  "Tx": 0,
+  "Ty": 0,
+  "volume": 9216,
+  "k1": 1.0,
+  "k2": 1.0,
+  "k3": 1.0,
+  "r1": 1.0,
+  "r2": 1.0,
+  "beta_c": 0.27465307216702745,
+  "beta_c_sigma": 0.0,
+  "production_beta": 0.27465307216702745,
+  "production_beta_source": "exact_triangular_sinh_rule",
+  "critical_source": "exact_triangular_sinh_rule",
+  "mc": {
+    "n_traj": 20000,
+    "n_skip": 10,
+    "n_therm": 2000
+  },
+  "all_to_all_file": "/workspaces/newQFE/responsible_method_tests/standard/data/iso111/twisted/reference/Lx96_Ly96_Tx0_Ty0/two_point_all_to_all.dat",
+  "source_all_to_all_file": "/workspaces/newQFE/responsible_method_tests/standard/_manual/custom_twisted_targets_20260528/iso111_Lx96_Ly96_Tx0_Ty0/96x96_t0x0_k1000_1000_1000_500/two_point_all_to_all.dat",
+  "stdout_log": "/workspaces/newQFE/responsible_method_tests/standard/_manual/custom_twisted_targets_20260528/iso111_Lx96_Ly96_Tx0_Ty0/stdout.log",
+  "stderr_log": "/workspaces/newQFE/responsible_method_tests/standard/_manual/custom_twisted_targets_20260528/iso111_Lx96_Ly96_Tx0_Ty0/stderr.log"
+}

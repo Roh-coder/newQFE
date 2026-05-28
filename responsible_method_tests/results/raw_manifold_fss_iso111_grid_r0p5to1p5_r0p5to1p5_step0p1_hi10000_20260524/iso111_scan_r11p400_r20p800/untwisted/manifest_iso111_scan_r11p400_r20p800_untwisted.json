@@ -1,0 +1,100 @@
+{
+  "created_at": "2026-05-25 00:45:57",
+  "benchmark_id": "iso111_scan_r11p400_r20p800",
+  "benchmark_description": "Equilateral responsible wide scan candidate r1=1.400, r2=0.800.",
+  "method": "untwisted",
+  "target_geometry": [
+    12,
+    12,
+    0,
+    0
+  ],
+  "target_tau": {
+    "real": 0.5,
+    "imag": 0.8660254037844387
+  },
+  "critical_source": "exact anisotropic triangular critical point",
+  "beta": 0.2594790792764035,
+  "couplings": {
+    "k3": 1.0,
+    "r1": 1.4,
+    "r2": 0.8,
+    "k1": 1.4,
+    "k2": 0.8
+  },
+  "embedding_cycles": [
+    0,
+    1
+  ],
+  "resume": true,
+  "payloads": [
+    {
+      "scale": 1,
+      "family_size": 12,
+      "lattice": [
+        12,
+        12,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/grid/iso111_scan_r11p400_r20p800_untwisted_scale01_Lx12_Ly12_Tx0_Ty0_r11.400000_r20.800000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/grid/iso111_scan_r11p400_r20p800_untwisted_scale01_Lx12_Ly12_Tx0_Ty0_r11.400000_r20.800000.meta.json"
+    },
+    {
+      "scale": 2,
+      "family_size": 24,
+      "lattice": [
+        24,
+        24,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/grid/iso111_scan_r11p400_r20p800_untwisted_scale02_Lx24_Ly24_Tx0_Ty0_r11.400000_r20.800000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/grid/iso111_scan_r11p400_r20p800_untwisted_scale02_Lx24_Ly24_Tx0_Ty0_r11.400000_r20.800000.meta.json"
+    },
+    {
+      "scale": 3,
+      "family_size": 36,
+      "lattice": [
+        36,
+        36,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/grid/iso111_scan_r11p400_r20p800_untwisted_scale03_Lx36_Ly36_Tx0_Ty0_r11.400000_r20.800000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/grid/iso111_scan_r11p400_r20p800_untwisted_scale03_Lx36_Ly36_Tx0_Ty0_r11.400000_r20.800000.meta.json"
+    },
+    {
+      "scale": 4,
+      "family_size": 48,
+      "lattice": [
+        48,
+        48,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/grid/iso111_scan_r11p400_r20p800_untwisted_scale04_Lx48_Ly48_Tx0_Ty0_r11.400000_r20.800000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/grid/iso111_scan_r11p400_r20p800_untwisted_scale04_Lx48_Ly48_Tx0_Ty0_r11.400000_r20.800000.meta.json"
+    },
+    {
+      "scale": 5,
+      "family_size": 60,
+      "lattice": [
+        60,
+        60,
+        0,
+        0
+      ],
+      "data_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/grid/iso111_scan_r11p400_r20p800_untwisted_scale05_Lx60_Ly60_Tx0_Ty0_r11.400000_r20.800000.dat",
+      "metadata_path": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/grid/iso111_scan_r11p400_r20p800_untwisted_scale05_Lx60_Ly60_Tx0_Ty0_r11.400000_r20.800000.meta.json"
+    }
+  ],
+  "smallest_point_count": 144,
+  "comparable_point_count": 143,
+  "smallest_lattice_points": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/smallest_lattice_points.dat",
+  "pointwise_raw": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/pointwise_raw.dat",
+  "pointwise_continuum": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/pointwise_continuum.dat",
+  "modular_raw": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/modular_raw.dat",
+  "modular_aligned": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/modular_aligned.dat",
+  "modular_alignment": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_iso111_grid_r0p5to1p5_r0p5to1p5_step0p1_hi10000_20260524/iso111_scan_r11p400_r20p800/untwisted/modular_alignment.json"
+}

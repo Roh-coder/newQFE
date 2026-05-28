@@ -157,6 +157,41 @@ def _normalize_positive_int_sequence(values: Any, field_name: str) -> list[int]:
 
 
 def _build_family_entries(method_cfg: dict[str, Any]) -> list[dict[str, Any]]:
+    if "entries" in method_cfg:
+        raw_entries = list(method_cfg["entries"])
+        if len(raw_entries) == 0:
+            raise ValueError("entries must not be empty")
+        entries = []
+        seen_scales: set[int] = set()
+        seen_family_sizes: set[int] = set()
+        for entry in raw_entries:
+            if not isinstance(entry, dict):
+                raise ValueError("each entries item must be an object")
+            _check_required_keys(entry, "entry", ["scale", "lattice"])
+            scale = int(entry["scale"])
+            family_size = int(entry.get("family_size", scale))
+            lattice = tuple(int(v) for v in entry["lattice"])
+            if scale <= 0:
+                raise ValueError("entry scale must be positive")
+            if family_size <= 0:
+                raise ValueError("entry family_size must be positive")
+            if len(lattice) != 4:
+                raise ValueError("entry lattice must contain 4 integers")
+            if scale in seen_scales:
+                raise ValueError("entries must not contain duplicate scales")
+            if family_size in seen_family_sizes:
+                raise ValueError("entries must not contain duplicate family sizes")
+            seen_scales.add(scale)
+            seen_family_sizes.add(family_size)
+            entries.append(
+                {
+                    "scale": scale,
+                    "family_size": family_size,
+                    "lattice": lattice,
+                }
+            )
+        return sorted(entries, key=lambda item: int(item["scale"]))
+
     if "base_geometry" in method_cfg:
         _check_required_keys(method_cfg, "method", ["base_geometry", "scales"])
         base = tuple(int(v) for v in method_cfg["base_geometry"])
@@ -176,7 +211,7 @@ def _build_family_entries(method_cfg: dict[str, Any]) -> list[dict[str, Any]]:
         return entries
 
     if "sizes" not in method_cfg:
-        raise ValueError("method must provide either base_geometry/scales or sizes/geometry_defaults")
+        raise ValueError("method must provide entries, base_geometry/scales, or sizes/geometry_defaults")
     geometry_map = build_test_geometry_map(method_cfg)
     sizes = _normalize_positive_int_sequence(method_cfg["sizes"], "sizes")
     smallest = geometry_map[sizes[0]]

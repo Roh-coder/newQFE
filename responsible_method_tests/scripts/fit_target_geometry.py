@@ -107,7 +107,15 @@ def _build_rows(
     return rows
 
 
-def _plot_scan(rows: list[dict[str, Any]], *, output_path: str, title: str, truth_r1: float | None, truth_r2: float | None) -> str:
+def _plot_scan(
+    rows: list[dict[str, Any]],
+    *,
+    output_path: str,
+    title: str,
+    truth_r1: float | None,
+    truth_r2: float | None,
+    annotate_points: bool,
+) -> str:
     r1 = np.asarray([float(row["r1"]) for row in rows], dtype=float)
     r2 = np.asarray([float(row["r2"]) for row in rows], dtype=float)
     score = np.asarray([float(row["score"]) for row in rows], dtype=float)
@@ -121,8 +129,9 @@ def _plot_scan(rows: list[dict[str, Any]], *, output_path: str, title: str, trut
     axes[0].scatter([best["r1"]], [best["r2"]], marker="*", s=260, color="red", edgecolors="black", linewidths=0.8)
     if truth_r1 is not None and truth_r2 is not None:
         axes[0].scatter([truth_r1], [truth_r2], marker="x", s=120, color="black", linewidths=2.0)
-    for row in rows:
-        axes[0].text(float(row["r1"]) + 0.01, float(row["r2"]) + 0.01, row["candidate_label"].split()[0], fontsize=8)
+    if annotate_points:
+        for row in rows:
+            axes[0].text(float(row["r1"]) + 0.01, float(row["r2"]) + 0.01, row["candidate_label"].split()[0], fontsize=8)
     axes[0].set_title("max directional RMS z")
     axes[0].set_xlabel("r1 = k1 / k3")
     axes[0].set_ylabel("r2 = k2 / k3")
@@ -190,6 +199,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--grid-size", type=int, default=180, help="Interpolation grid size used by pairwise comparison")
     parser.add_argument("--truth-r1", type=float, default=None, help="Optional known target r1 for plotting")
     parser.add_argument("--truth-r2", type=float, default=None, help="Optional known target r2 for plotting")
+    parser.add_argument(
+        "--annotate-points",
+        action="store_true",
+        help="Overlay candidate labels on the score panel",
+    )
     return parser.parse_args()
 
 
@@ -230,6 +244,7 @@ def main() -> None:
         title=title,
         truth_r1=args.truth_r1,
         truth_r2=args.truth_r2,
+        annotate_points=args.annotate_points,
     )
 
     print(f"wrote {json_path}")

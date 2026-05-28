@@ -91,7 +91,7 @@ def display_inline(png_path: str, *, replace: bool = True) -> None:  # noqa: D40
     return
 
 from mc_engine import _gram_charlier  # re-use the exact fit formula
-from cost import boundary_paths, _tile_interp, _triangular_xy
+from cost import boundary_paths, paired_boundary_paths, _tile_interp, _triangular_xy
 
 
 # ---------------------------------------------------------------------------
@@ -654,8 +654,10 @@ def _render_curve_collapse(ax, test_data, sigma_cost,
             ref_geom = (Lx, Ly, Tx, Ty)
         rLx, rLy, rTx, rTy = ref_geom
         try:
-            test_dirs = boundary_paths(Lx, Ly, Tx, Ty)
-            ref_dirs  = boundary_paths(rLx, rLy, rTx, rTy)
+            paired_dirs = paired_boundary_paths(
+                (rLx, rLy, rTx, rTy),
+                (Lx, Ly, Tx, Ty),
+            )
         except Exception as exc:
             ax.text(0.5, 0.5, f"(boundary_paths error: {exc})",
                     ha="center", va="center", transform=ax.transAxes,
@@ -663,7 +665,7 @@ def _render_curve_collapse(ax, test_data, sigma_cost,
             ax.set_axis_off()
             return
 
-        colors = {"v": "C0", "u": "C1", "w": "C2"}
+        palette = ["C0", "C1", "C2"]
         try:
             g_ref = _tile_interp(ref_data, rLx, rLy,
                                  rTx, rTy, "conn",
@@ -678,7 +680,6 @@ def _render_curve_collapse(ax, test_data, sigma_cost,
             ax.set_axis_off()
             return
 
-        names = ["v", "u", "w"]
         n_samples = 64
         # Periodic sampling: t ∈ [0, 1) avoids the LinearNDInterpolator
         # convex-hull spike at t=1 (see cost.py).  We close the loop for
@@ -687,7 +688,7 @@ def _render_curve_collapse(ax, test_data, sigma_cost,
         t_plot = np.concatenate([t, [1.0]])
         ax.axhline(0.0, color="black", lw=0.9, ls="--", alpha=0.5,
                    label="zero (perfect match)")
-        for name, (rdm, rdn), (tdm, tdn) in zip(names, ref_dirs, test_dirs):
+        for color, (role, _, (rdm, rdn), _, (tdm, tdn)) in zip(palette, paired_dirs):
             try:
                 rxs, rys = _triangular_xy(t * rdm, t * rdn)
                 txs, tys = _triangular_xy(t * tdm, t * tdn)
@@ -701,8 +702,9 @@ def _render_curve_collapse(ax, test_data, sigma_cost,
                 return
             diff = test_vals - ref_vals
             diff_plot = np.concatenate([diff, diff[:1]])
-            ax.plot(t_plot, diff_plot, "-", color=colors[name], lw=1.3,
-                    label=f"Δ{name}")
+            label = str(role)
+            ax.plot(t_plot, diff_plot, "-", color=color, lw=1.3,
+                    label=f"Δ{label}")
             # Ribbon: ±per-point noise estimate following the curve.
             # Derived from sigma_cost: if sigma_cost is the MC error on the
             # total integrated L² cost, a rough per-point noise scale per
@@ -713,7 +715,7 @@ def _render_curve_collapse(ax, test_data, sigma_cost,
                 # Fallback: use RMS of the residual itself.
                 noise = float(np.sqrt(np.nanmean(diff_plot**2)))
             ax.fill_between(t_plot, diff_plot - noise, diff_plot + noise,
-                            color=colors[name], alpha=0.18)
+                            color=color, alpha=0.18)
 
         ax.set_xlabel("path parameter  t")
         ax.set_ylabel("G_test − G_ref")

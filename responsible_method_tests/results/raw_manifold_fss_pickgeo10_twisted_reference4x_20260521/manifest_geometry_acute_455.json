@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-05-21 18:43:44",
+  "config_path": "/workspaces/newQFE/responsible_method_tests/configs/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521.json",
+  "run_tag": "raw_manifold_fss_pickgeo10_twisted_reference4x_20260521",
+  "benchmark_id": "geometry_acute_455",
+  "description": "Acute integer-ratio target 4-5-5 with twisted reference base volume 432, the nearest integer multiple to 4x the untwisted 12x12 base.",
+  "target_geometry": [
+    18,
+    24,
+    3,
+    0
+  ],
+  "methods": {
+    "twisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/geometry_acute_455/twisted/manifest_geometry_acute_455_twisted.json",
+    "untwisted": "/workspaces/newQFE/responsible_method_tests/results/raw_manifold_fss_pickgeo10_twisted_reference4x_20260521/geometry_acute_455/untwisted/manifest_geometry_acute_455_untwisted.json"
+  }
+}
