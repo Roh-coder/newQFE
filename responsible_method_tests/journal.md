@@ -1,5 +1,570 @@
 # Journal
 
+## 2026-06-04: Nearest-Donor Histogram Reweighting Does Not Yet Preserve The Iso111 Geometry-Match Grid
+
+### Goal
+
+Check whether the nearby-coupling histogram-reweighting machinery is already good enough
+to interpolate a small geometry-matching search grid, so that a coarse set of directly-run
+donor points could stand in for a denser direct scan.
+
+The concrete question here was narrower than the full production problem:
+
+- target geometry fixed at iso111 `(r1, r2) = (1.0, 1.0)`
+- compare a direct `5 x 5` local score surface against a `3 x 3` donor grid
+- use nearest-donor reweighting to predict the missing fine-grid points
+- ask whether the final geometry-match proxy score is preserved well enough to keep the same valley/minimum structure
+
+### Test Script
+
+I added
+
+- `responsible_method_tests/scripts/test_geometry_match_grid_interpolation.py`
+
+which runs the selected-observable bundles on a local coupling grid, builds both
+
+- the **direct** finite-size family for each fine-grid point, and
+- the **reweighted** family obtained from the nearest donor point,
+
+then compares the two after the same blind finite-size extrapolation to a `32 x 32`
+target holdout.
+
+### Setup
+
+- fine grid: `r1, r2 in {0.99, 0.995, 1.0, 1.005, 1.01}`
+- donor grid: `r1, r2 in {0.99, 1.0, 1.01}`
+- fit sizes: `L in {8, 12, 16, 24}`
+- target holdout size: `L = 32`
+- statistics at every run point: `n_traj = 20000`, `n_therm = 2000`, `n_skip = 10`
+- observables stored per trajectory:
+	- midpoint `v, u, w`
+	- quarter-point `v, u, w`
+	- anchor `(0, -1)`
+- score panels built from those observables:
+	- midpoint-to-anchor: `v/a`, `u/a`, `w/a`
+	- midpoint ratios: `v/u`, `w/u`
+	- quarter-to-anchor: `v/a`, `u/a`, `w/a`
+	- quarter ratios: `v/u`, `w/u`
+- total proxy score: `z2_sum = sum(panel_z^2)` against the `L=32`, `(1,1)` target
+
+Output tree:
+
+- `responsible_method_tests/results/geometry_match_reweight_interp_iso111_grid5x5_donor3x3_sizes8_12_16_24_target32_20260604/`
+
+Key files:
+
+- `summary.json`
+- `grid_scores.tsv`
+- `geometry_match_grid_interpolation.png`
+
+### Main Result
+
+The raw histogram overlap stayed excellent everywhere, but the **interpolated score surface did not**.
+
+Across all reweighted panel fits, the minimum reported effective sample-size fraction stayed above
+
+- `N_eff / N > 0.99985`
+
+so this is **not** a simple overlap-collapse failure.
+
+At donor points themselves, direct and reweighted scores agree essentially exactly, as they should.
+
+But away from donor points, the final geometry-match proxy can shift a lot after the ratio-building
+and finite-size fit stages:
+
+- RMS difference over the `5 x 5` grid: `delta_z2_sum_rmse = 4.116`
+- worst absolute discrepancy: `max |delta_z2_sum| = 13.680`
+
+The direct and reweighted best points on the same `5 x 5` surface were:
+
+| surface | best point `(r1, r2)` | score |
+| --- | --- | ---: |
+| direct | `(0.99, 1.00)` | `0.5691` |
+| reweighted | `(0.995, 1.00)` | `0.5355` |
+
+So even in this tiny local control window, the minimum moved by one half-step in `r1`.
+
+More importantly, some individual cells changed by an amount large enough to completely alter the local ranking. The clearest failure in this pilot was
+
+- point `(0.99, 1.005)` using donor `(0.99, 1.00)`
+- direct `z2_sum = 14.2847`
+- reweighted `z2_sum = 0.6050`
+- `delta_z2_sum = -13.6797`
+
+despite the same point still having
+
+- `N_eff / N = 0.999861...`
+
+on every reweighted panel.
+
+### Interpretation
+
+This sharply limits what can be concluded from the earlier nearby-correlator control.
+
+That earlier test showed that a **single selected correlator** can be reweighted reliably between
+very nearby coupling points. This new test shows that this is **not yet enough** to guarantee a stable
+interpolation of the downstream geometry-match objective.
+
+The failure is happening after several nonlinear steps are composed:
+
+- connected-correlator subtraction
+- ratio formation
+- multi-panel comparison to the target
+- blind finite-size extrapolation on each panel
+- final aggregation into `z2_sum`
+
+So excellent histogram overlap at the observable level does not automatically imply that the
+derived score landscape is preserved.
+
+### Takeaway
+
+Nearest-donor histogram reweighting is **not yet safe as a drop-in interpolant for the geometry-matching grid search**, even in this small iso111 control box.
+
+The current result supports a narrower statement instead:
+
+- nearby observable reweighting works as a local measurement tool
+- nearest-donor patch interpolation does not yet preserve the fine-grid score ranking
+
+If this idea is pursued further, the next thing to test should be something stricter than nearest-donor patching, for example a multidonor blend or a more local direct-vs-reweighted validation rule before trusting any interpolated minimum.
+
+## 2026-06-04: Three-Point Nearby-Coupling Correlator Reweighting Control Works At 32x32
+
+### Goal
+
+Test whether a single selected correlator can be reweighted between nearby points in
+`(r1, r2)` space, rather than only in `beta`, and check that the reweighted predictions
+agree with direct Monte Carlo runs.
+
+### What Had To Change
+
+The existing Ferrenberg-Swendsen trace dump in
+
+- `K_from_continuum/src/ising_tri_twisted_parallelogram.cc`
+
+already wrote per-measurement
+
+- `E_per_site`
+- `abs_m`
+- `m^2`
+
+which is enough for susceptibility reweighting in `beta`, but not enough for
+reweighting a correlator across nearby coupling points.
+
+For this test, the existing single-displacement sample dump was extended so that when
+
+- `--single_disp_m`
+- `--single_disp_n`
+- `--single_disp_samples_name`
+
+are used, the per-measurement sample file now also records the uncoupled directional
+bond energies per site:
+
+- `e1_per_site`
+- `e2_per_site`
+- `e2me1_per_site`
+
+with
+
+$$
+E_{\mathrm{site}} = K_1 e_1 + K_2 e_2 + K_3 e_{2-e1}.
+$$
+
+This is enough to reweight a selected correlator between nearby `(r1, r2)` points at
+their exact triangular critical `beta` values.
+
+### Test Script
+
+I added
+
+- `responsible_method_tests/scripts/test_correlator_reweight_nearby.py`
+
+which runs three nearby points directly, loads the selected-displacement trace file,
+and compares direct connected-correlator estimates against all pairwise reweighted
+predictions.
+
+### Setup
+
+- lattice: `(Lx, Ly, Tx, Ty) = (32, 32, 0, 0)`
+- selected displacement: `(m, n) = (8, 0)`
+- statistics: `n_traj = 100000`, `n_therm = 10000`, `n_skip = 10`
+- three nearby coupling points:
+	- `center = (1.000, 1.000)`
+	- `r1_plus_0p01 = (1.010, 1.000)`
+	- `r2_plus_0p01 = (1.000, 1.010)`
+- exact critical `beta` values from the triangular sinh-rule:
+	- center: `0.274653072167`
+	- both anisotropic neighbors: `0.273741433831`
+
+Output tree:
+
+- `responsible_method_tests/results/correlator_reweight_nearby_iso111_L32_hi100k_20260604/`
+
+Key files:
+
+- `summary.json`
+- `reweight_vs_direct.tsv`
+
+### Direct Results
+
+The direct connected correlator at `(8,0)` was:
+
+| point | connected | sigma | wall time |
+| --- | ---: | ---: | ---: |
+| center | `0.4521014` | `0.0017147` | `36.34 s` |
+| `r1 + 0.01` | `0.4508243` | `0.0017368` | `33.76 s` |
+| `r2 + 0.01` | `0.4500686` | `0.0017325` | `35.93 s` |
+
+So the nearby anisotropic points really do move the correlator by a measurable but small
+amount, of order `1e-3` to `2e-3`.
+
+### Reweighting Result
+
+All off-diagonal reweight predictions agreed with the direct target run within `1 sigma`.
+
+Off-diagonal `z = (prediction - direct) / sigma_combined` values were:
+
+| source -> target | `z` | `N_eff / N` |
+| --- | ---: | ---: |
+| center -> `r1 + 0.01` | `+0.584` | `0.9990` |
+| center -> `r2 + 0.01` | `+0.833` | `0.9990` |
+| `r1 + 0.01` -> center | `-0.480` | `0.9990` |
+| `r1 + 0.01` -> `r2 + 0.01` | `+0.183` | `0.9970` |
+| `r2 + 0.01` -> center | `-0.938` | `0.9990` |
+| `r2 + 0.01` -> `r1 + 0.01` | `-0.258` | `0.9970` |
+
+The worst discrepancy was still only about `0.94 sigma`, and all effective sample-size
+fractions remained above `0.9969`.
+
+### Interpretation
+
+This is a clean positive control for **nearby-coupling correlator reweighting**.
+
+At least for this `32x32`, `100k` iso111 control test and this selected displacement,
+the direct runs and the reweighted predictions are statistically consistent. So the
+basic parameter-space reweighting idea is not blocked at the first sanity-check level.
+
+The test does **not** yet establish that this will remain valid for:
+
+- larger coupling moves
+- sharper anisotropies
+- larger lattices
+- multi-observable score panels
+- full all-to-all or boundary-quarter selected sets
+
+but it does show that the minimal nearby-point version is working.
+
+### Takeaway
+
+The next sensible step is not a full dense production grid yet. It is a slightly larger
+pilot using the same reweighting idea on a small selected observable set, for example the
+quarter-boundary `v`, `u`, `w`, and anchor observables, to see how rapidly the reweight
+agreement degrades as the move in `(r1, r2)` grows.
+
+## 2026-05-29: Iso111 Modular-Analogue Ratio Trough Directions Split Away From Quarter Point
+
+### Goal
+
+Check the precise meaning of the apparent ratio-sector trough in the iso111 modular-analogue control scans.
+
+The narrow question was not whether the `v/u` and `w/u` panels both have low-score regions, but whether those low-score regions point in the **same direction in `(r1, r2)` space**.
+
+### Setup
+
+I used the exact modular anchored-ratio r-grid script
+
+- `modular analogue/plot_modular_anchored_ratio_rgrid_heatmaps.py`
+
+for the iso111 control case
+
+- target geometry `(12, 12, 0, 0)`
+- truth `(r1, r2) = (1.0, 1.0)`
+- scan box `r1, r2 in [0.6, 1.4]`
+
+at four sample fractions along the correlator direction:
+
+- `1/8`
+- `1/4`
+- `3/8`
+- `1/2`
+
+To define the trough direction, I took the low-score region of each ratio surface and fit its principal axis in `(r1, r2)` space. Using the lowest `2%`, `5%`, and `10%` of each score surface gave essentially the same answer, so the direction estimate is stable.
+
+### Main Result
+
+The `v/u` trough direction is stable and diagonal, but the `w/u` trough direction is **not**.
+
+At the `5%` low-score level, the fitted trough slopes are:
+
+| fraction | `v/u` trough slope | `w/u` trough slope |
+| --- | ---: | ---: |
+| `1/8` | `1.000` | `1.539` |
+| `1/4` | `1.000` | `1.005` |
+| `3/8` | `1.000` | `0.288` |
+| `1/2` | `1.000` | `0.000` |
+
+So the correct statement is:
+
+- `v/u` always prefers the near-diagonal family `r2 ~ r1`
+- `w/u` aligns with that diagonal only near the quarter point
+- away from quarter point, `w/u` rotates strongly
+
+By `1/2`, the `w/u` trough is essentially horizontal, i.e. much closer to `r2 ~ const` than to `r2 ~ r1`.
+
+### Interpretation
+
+This sharpens the earlier aggregate-trough observation.
+
+The combined ratio sector and total score can still show a common soft valley through `(1,1)`, but that does **not** mean the two constituent ratio observables are probing the same geometric direction.
+
+What is really happening is:
+
+- `v/u` supplies a robust diagonal trough across all four fractions
+- `w/u` agrees with it at `1/4`
+- `w/u` becomes a different directional probe at `3/8` and especially at `1/2`
+
+So quarter point is special here: it is the point where the two ratio sectors are closest to sharing the same parameter-space trough direction.
+
+### Takeaway
+
+For the iso111 modular-analogue control, it is wrong to say that `v/u` and `w/u` generically have the same trough direction.
+
+The more accurate statement is:
+
+- they are directionally aligned at `1/4`
+- they are already different at `1/8`
+- they clearly split by `3/8`
+- by `1/2`, `w/u` is nearly horizontal while `v/u` remains diagonal
+
+## 2026-05-29: Sigma-Operator Normalization Control Via `G_conn / <sigma>^2`
+
+### Idea
+
+There is another clean way to control for the arbitrary lattice normalization of the spin operator.
+
+If the lattice spin field is related to the continuum operator by
+
+$$
+\sigma_{\mathrm{lat}} = Z_\sigma \, \sigma_{\mathrm{cont}},
+$$
+
+then:
+
+- the one-point function scales like
+
+$$
+\langle \sigma_{\mathrm{lat}} \rangle = Z_\sigma \, \langle \sigma_{\mathrm{cont}} \rangle,
+$$
+
+- while the connected two-point function scales like
+
+$$
+G_{\mathrm{conn,lat}}(x,y)
+=
+\langle \sigma_{\mathrm{lat}}(x) \sigma_{\mathrm{lat}}(y) \rangle_c
+=
+Z_\sigma^2 \, G_{\mathrm{conn,cont}}(x,y).
+$$
+
+Therefore the ratio
+
+$$
+\frac{G_{\mathrm{conn,lat}}(x,y)}{\langle \sigma_{\mathrm{lat}} \rangle^2}
+$$
+
+is independent of the unknown multiplicative normalization `Z_sigma`.
+
+### Why This Is Useful
+
+This gives a second normalization-control strategy, distinct from anchor-ratio normalization.
+
+- anchor-ratio normalization divides one two-point observable by another two-point observable
+- this alternative divides the connected two-point function by the square of a one-point function
+
+So it removes any implicit overall scale in the lattice sigma operator without referring to a separate anchor displacement.
+
+Operationally, this could provide a more amplitude-aware normalization control than the current anchored-ratio construction, because it ties the two-point amplitude directly to the one-point normalization of the same operator.
+
+### Main Caveat
+
+This only makes sense when the one-point function is actually nonzero and under control.
+
+On a finite torus in a symmetry-preserving ensemble, the plain one-point function usually vanishes by symmetry, so this ratio would be undefined or dominated by noise.
+
+So this method is only viable in a setting where at least one of the following is true:
+
+- the ensemble has an explicitly nonzero one-point function
+- the symmetry is broken or fixed by boundary conditions
+- a consistent substitute for the one-point amplitude is defined and measured with good precision
+
+If those conditions are met, then plotting
+
+$$
+G_{\mathrm{conn}} / \langle \sigma \rangle^2
+$$
+
+is a principled way to remove the normalization ambiguity of the lattice sigma operator.
+
+### Status
+
+This is now recorded as an available normalization-control idea for future score construction.
+
+It is potentially useful exactly because it is not just another reweighting of the existing anchored-ratio panels, so it may offer a genuinely more independent comparison surface if a reliable nonzero one-point function is available.
+
+## 2026-05-29: Why The Acute456 Anchor-Ratio Landscape Shows A Trough
+
+### Goal
+
+Understand why the acute456 anchor-ratio scores form a clean diagonal trough that passes near the story target
+
+- `(r1, r2) = (4.702783, 7.353910)`
+
+and decide whether a mixed correlator-plus-ratio score can provide a genuinely independent crossing surface.
+
+### Main Observation
+
+The acute456 anchor-ratio landscape is not just a noisy set of isolated low cells. It has a real soft direction.
+
+From the full `5 x 5` orbit-reduced pointwise anchor-ratio table
+
+- `responsible_method_tests/standard/acute456_pointwise_score_landscape_anchor_ratio.tsv`
+
+the top six candidates are:
+
+| rank | `(r1, r2)` | orbit RMS z |
+| --- | --- | ---: |
+| 1 | `(3.762226, 6.618519)` | `0.1603` |
+| 2 | `(4.702783, 7.353910)` | `0.1918` |
+| 3 | `(5.173061, 8.089301)` | `0.3374` |
+| 4 | `(5.643339, 8.089301)` | `0.3376` |
+| 5 | `(5.643339, 8.824692)` | `0.3548` |
+| 6 | `(5.173061, 7.353910)` | `0.3608` |
+
+This is already the signature of a trough rather than a single isolated minimum: the low-score points march roughly along the direction where both `r1` and `r2` increase together.
+
+### Local Evidence Around The True Point
+
+The target is a genuine local minimum on the coarse `5 x 5` grid, but it sits inside a soft diagonal valley rather than at the bottom of a sharply isolated bowl.
+
+Target score:
+
+- `(4.702783, 7.353910)` -> orbit RMS z = `0.1918`
+
+Immediate neighbors:
+
+- left `(4.232505, 7.353910)` -> `0.7024`
+- right `(5.173061, 7.353910)` -> `0.3608`
+- down `(4.702783, 6.618519)` -> `0.4348`
+- up `(4.702783, 8.089301)` -> `1.3304`
+- up-right `(5.173061, 8.089301)` -> `0.3374`
+- down-left `(4.232505, 6.618519)` -> `0.7154`
+
+So the truth is not being bypassed by the trough. The trough really does intersect the true point on this coarse grid. The soft direction is just visibly tilted: moving up-right or down-left hurts the score much less than moving purely left/right/up/down, especially much less than moving upward in `r2` alone.
+
+### Quarter-Point Boundary Ratios Show The Same Direction
+
+The same pattern shows up in the quarter-point small-target boundary ratio sector
+
+- `responsible_method_tests/standard/acute456_boundary_quarter_fss_sweep_anchor_ratio/acute456_boundary_quarter_fss_anchor_ratio_small_target_zscores.tsv`
+
+If the ratio-sector minimum in each `r1` row is listed, the best `r2` values march upward with `r1`:
+
+| fixed `r1` | best `r2` in `ratio_chi2` | ratio chi^2 |
+| --- | --- | ---: |
+| `3.762226` | `6.618519` | `0.2924` |
+| `4.232505` | `7.353910` | `0.2302` |
+| `4.702783` | `8.089301` | `0.0584` |
+| `5.173061` | `8.824692` | `0.0624` |
+| `5.643339` | `8.824692` | `0.9195` |
+
+Column minima show the same diagonal drift:
+
+| fixed `r2` | best `r1` in `ratio_chi2` | ratio chi^2 |
+| --- | --- | ---: |
+| `6.618519` | `3.762226` | `0.2924` |
+| `7.353910` | `4.232505` | `0.2302` |
+| `8.089301` | `4.702783` | `0.0584` |
+| `8.824692` | `5.173061` | `0.0624` |
+
+So the trough direction is not an artifact of the full pointwise scorer. The boundary ratio sector by itself already prefers the same rising diagonal family.
+
+### Interpretation
+
+The trough makes physical sense once the anchor-ratio construction is viewed as a projection.
+
+What anchor-ratio normalization does is:
+
+- divide out a common amplitude factor by comparing each sampled point to the same anchor point
+- suppress finite-target common-mode normalization drift
+- emphasize relative directional shape rather than absolute correlator magnitude
+
+At criticality, with `beta_c` re-tuned at every candidate, that means the score is mostly probing the shape of the emergent anisotropic metric seen by the sampled points, not the absolute overall scale of the correlator.
+
+That naturally creates a soft direction. A whole one-parameter family of nearby couplings can preserve almost the same relative distances from the anchor to the sampled quarter/boundary points, even while the absolute correlator amplitudes move noticeably. In other words:
+
+- the anchor-ratio observables strongly constrain one combination of anisotropy deformations
+- they are softer along the combination that looks more like a common rescaling of the sampled geometry after the exact `beta_c(r1, r2)` retuning has absorbed part of the overall scale change
+
+On the current grid, that soft combination is the approximate down-left / up-right diagonal.
+
+This is also why varying only one coupling at fixed partner is expensive. Pure horizontal or vertical moves spoil the relative directional balance quickly, while coordinated moves in both couplings can keep the anchor-normalized pattern more nearly intact.
+
+### Why The Trough Passes Near The Truth
+
+The truth should lie on the trough if the trough is really encoding the target geometry, because the true couplings are one member of the family that reproduces the right relative shape.
+
+The fact that the truth is a local minimum but not always the global minimum on the coarse grid is then naturally explained by the remaining nuisance effects:
+
+- finite target size
+- anchor choice `(m, n) = (0, -1)`
+- limited observable set (all built from the same anchor-normalized family)
+- current MC noise / coarse `5 x 5` resolution
+
+So the right picture is not
+
+- “the trough is wrong and should disappear”
+
+but rather
+
+- “the trough is the structural geometry signal, and the remaining task is to find another observable family that cuts across it.”
+
+### Mixed-Score Follow-Up: Not Independent Enough
+
+I tested five mixed correlator-plus-ratio candidates built from the same quarter-point small-target TSV and wrote the artifacts under
+
+- `responsible_method_tests/standard/mixed_scores/`
+
+with summary table
+
+- `responsible_method_tests/standard/mixed_scores/acute456_boundary_quarter_fss_anchor_ratio_small_target_zscores_mixed_score_best_points.tsv`
+
+All five mixed candidates chose the same minimum:
+
+- `(r1, r2) = (5.173061, 8.824692)`
+
+That is strong evidence that these mixtures are **not** an independent second metric. They only reweight the same underlying anchored-correlator and ratio residuals, so they inherit the same diagonal trough instead of producing a new crossing trough.
+
+### What A Genuinely Independent Second Trough Should Use
+
+If the goal is a second trough that intersects the anchor-ratio trough near the truth, the second score should not be another recombination of the same anchor-normalized panels.
+
+It should retain information that the anchor-ratio construction intentionally throws away, for example:
+
+- an absolute-amplitude channel tied to the anchor itself
+- a different spatial fraction or a different point set, not the same quarter-point family
+- an observable family with a different continuum projection, such as a fit-based amplitude, local slope, or another nonredundant shape descriptor
+
+The present mixed scores are useful as diagnostics, but not as independent geometry measurements.
+
+### Current Takeaway
+
+- the acute456 anchor-ratio trough is structural, not a plotting accident
+- it reflects the fact that anchor-ratio scoring largely projects onto relative-shape information and quotients out common amplitude information
+- the trough intersects the true point, which is exactly what we would want from a real geometry signal
+- the remaining miss of the global minimum is likely a finite-target / anchor / observable-set issue, not evidence that the trough itself is meaningless
+- mixed scores built from the same anchored panels do not produce a second independent crossing surface
+
+So the next real scoring improvement should aim for a deliberately different observable class, not just a different weighting of the current anchored-ratio ingredients.
+
 ## 2026-05-27: Acute456 Full 5x5 Anchor-Ratio Landscape
 
 ### Goal

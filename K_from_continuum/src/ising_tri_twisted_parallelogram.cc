@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -35,11 +36,35 @@ struct TwistedMap {
   std::vector<int> disp_m;
   std::vector<int> disp_n;
   std::vector<int> add_table;
-  std::vector<int> add_single;
+  std::vector<int> add_selected;
+  std::vector<int> selected_disp_ids;
+  std::vector<int> selected_disp_m;
+  std::vector<int> selected_disp_n;
   int single_disp_id = -1;
   int single_disp_m = 0;
   int single_disp_n = 0;
 };
+
+std::vector<Coord> ParseSelectedDispList(const std::string& raw) {
+  std::vector<Coord> selected;
+  if (raw.empty()) return selected;
+
+  std::stringstream stream(raw);
+  std::string token;
+  while (std::getline(stream, token, ',')) {
+    if (token.empty()) continue;
+    size_t sep = token.find(':');
+    if (sep == std::string::npos) {
+      fprintf(stderr, "ERROR: invalid selected displacement token '%s' (expected m:n)\n", token.c_str());
+      exit(1);
+    }
+    Coord coord;
+    coord.m = std::atoi(token.substr(0, sep).c_str());
+    coord.n = std::atoi(token.substr(sep + 1).c_str());
+    selected.push_back(coord);
+  }
+  return selected;
+}
 
 int Mod(int a, int n) {
   int r = a % n;
@@ -77,9 +102,8 @@ void InitTriangleTwistedParallelogram(QfeLattice* lattice,
                                       int Lx, int Ly, int Tx, int Ty,
                                       double K1, double K2, double K3,
                                       TwistedMap* map_out,
-                                      bool single_disp_only,
-                                      int single_disp_m,
-                                      int single_disp_n) {
+                                      bool selected_disp_only,
+                                      const std::vector<Coord>& selected_disps) {
   const int Ncell = Lx * Ly + Tx * Ty;
   assert(Ncell > 0);
 
@@ -154,12 +178,15 @@ void InitTriangleTwistedParallelogram(QfeLattice* lattice,
     map_out->disp_m.assign(Ncell, 0);
     map_out->disp_n.assign(Ncell, 0);
     map_out->add_table.clear();
-    map_out->add_single.clear();
+    map_out->add_selected.clear();
+    map_out->selected_disp_ids.clear();
+    map_out->selected_disp_m.clear();
+    map_out->selected_disp_n.clear();
     map_out->single_disp_id = -1;
-    map_out->single_disp_m = single_disp_m;
-    map_out->single_disp_n = single_disp_n;
-    if (single_disp_only) {
-      map_out->add_single.assign(Ncell, -1);
+    map_out->single_disp_m = 0;
+    map_out->single_disp_n = 0;
+    if (selected_disp_only) {
+      map_out->add_selected.assign(Ncell * int(selected_disps.size()), -1);
     } else {
       map_out->add_table.assign(Ncell * Ncell, -1);
     }
@@ -187,20 +214,33 @@ void InitTriangleTwistedParallelogram(QfeLattice* lattice,
   }
 
   if (map_out != nullptr) {
-    if (single_disp_only) {
-      int64_t single_key = CosetKey(single_disp_m, single_disp_n, Lx, Ly, Tx, Ty, Ncell);
-      auto single_it = key_to_id.find(single_key);
-      assert(single_it != key_to_id.end());
-      map_out->single_disp_id = single_it->second;
-      map_out->single_disp_m = reps[map_out->single_disp_id].m;
-      map_out->single_disp_n = reps[map_out->single_disp_id].n;
+    if (selected_disp_only) {
+      map_out->selected_disp_ids.reserve(selected_disps.size());
+      map_out->selected_disp_m.reserve(selected_disps.size());
+      map_out->selected_disp_n.reserve(selected_disps.size());
 
-      for (int s = 0; s < Ncell; s++) {
-        Coord c = reps[s];
-        int64_t k = CosetKey(c.m + single_disp_m, c.n + single_disp_n, Lx, Ly, Tx, Ty, Ncell);
-        auto it = key_to_id.find(k);
-        assert(it != key_to_id.end());
-        map_out->add_single[s] = it->second;
+      for (size_t d = 0; d < selected_disps.size(); d++) {
+        const Coord& coord = selected_disps[d];
+        int64_t selected_key = CosetKey(coord.m, coord.n, Lx, Ly, Tx, Ty, Ncell);
+        auto selected_it = key_to_id.find(selected_key);
+        assert(selected_it != key_to_id.end());
+        const int selected_id = selected_it->second;
+        map_out->selected_disp_ids.push_back(selected_id);
+        map_out->selected_disp_m.push_back(reps[selected_id].m);
+        map_out->selected_disp_n.push_back(reps[selected_id].n);
+        if (d == 0) {
+          map_out->single_disp_id = selected_id;
+          map_out->single_disp_m = reps[selected_id].m;
+          map_out->single_disp_n = reps[selected_id].n;
+        }
+
+        for (int s = 0; s < Ncell; s++) {
+          Coord c = reps[s];
+          int64_t k = CosetKey(c.m + coord.m, c.n + coord.n, Lx, Ly, Tx, Ty, Ncell);
+          auto it = key_to_id.find(k);
+          assert(it != key_to_id.end());
+          map_out->add_selected[s * int(selected_disps.size()) + int(d)] = it->second;
+        }
       }
     } else {
       for (int s = 0; s < Ncell; s++) {
@@ -299,6 +339,8 @@ int main(int argc, char* argv[]) {
   bool have_single_disp_m = false;
   bool have_single_disp_n = false;
   std::string single_disp_samples_name;
+  std::string selected_disp_list_raw;
+  std::string selected_disp_bundle_name;
   // Speedup 4 (FS reweighting): when nonzero, dump one (E_per_site, |m|, m^2)
   // line per accepted trajectory to <subdir>/traces_<seed>.dat so the Python
   // side can reweight chi(beta) over a window without rerunning MC.
@@ -331,10 +373,12 @@ int main(int argc, char* argv[]) {
       {"single_disp_m", required_argument, 0, 'm'},
       {"single_disp_n", required_argument, 0, 'n'},
       {"single_disp_samples_name", required_argument, 0, 'J'},
+        {"selected_disp_list", required_argument, 0, 'M'},
+        {"selected_disp_bundle_name", required_argument, 0, 'K'},
       {"dump_traces", required_argument, 0, 'D'},
       {0, 0, 0, 0}};
 
-  const char* short_options = "X:Y:P:Q:Z:a:b:c:g:B:S:h:t:s:w:e:W:d:p:f:m:n:J:D:";
+      const char* short_options = "X:Y:P:Q:Z:a:b:c:g:B:S:h:t:s:w:e:W:d:p:f:m:n:J:M:K:D:";
 
   while (true) {
     int o = 0;
@@ -365,6 +409,8 @@ int main(int argc, char* argv[]) {
       case 'm': single_disp_m = atoi(optarg); have_single_disp_m = true; break;
       case 'n': single_disp_n = atoi(optarg); have_single_disp_n = true; break;
       case 'J': single_disp_samples_name = optarg; break;
+      case 'M': selected_disp_list_raw = optarg; break;
+      case 'K': selected_disp_bundle_name = optarg; break;
       case 'D': dump_traces = atoi(optarg); break;
       default: break;
     }
@@ -374,9 +420,33 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "ERROR: --single_disp_m and --single_disp_n must be provided together\n");
     return 1;
   }
-  const bool single_disp_only = have_single_disp_m && have_single_disp_n;
-  if (!single_disp_only && !single_disp_samples_name.empty()) {
+  if (!selected_disp_list_raw.empty() && (have_single_disp_m || have_single_disp_n)) {
+    fprintf(stderr, "ERROR: choose either --single_disp_m/--single_disp_n or --selected_disp_list, not both\n");
+    return 1;
+  }
+
+  std::vector<Coord> selected_disps;
+  if (have_single_disp_m && have_single_disp_n) {
+    selected_disps.push_back({single_disp_m, single_disp_n});
+  } else {
+    selected_disps = ParseSelectedDispList(selected_disp_list_raw);
+  }
+
+  const bool selected_disp_only = !selected_disps.empty();
+  if (!selected_disp_only && !single_disp_samples_name.empty()) {
     fprintf(stderr, "ERROR: --single_disp_samples_name requires --single_disp_m and --single_disp_n\n");
+    return 1;
+  }
+  if (!selected_disp_only && !selected_disp_bundle_name.empty()) {
+    fprintf(stderr, "ERROR: --selected_disp_bundle_name requires --selected_disp_list\n");
+    return 1;
+  }
+  if (!single_disp_samples_name.empty() && !selected_disp_bundle_name.empty()) {
+    fprintf(stderr, "ERROR: choose either --single_disp_samples_name or --selected_disp_bundle_name\n");
+    return 1;
+  }
+  if (selected_disp_only && selected_disps.size() > 1 && !single_disp_samples_name.empty()) {
+    fprintf(stderr, "ERROR: --single_disp_samples_name supports exactly one selected displacement\n");
     return 1;
   }
 
@@ -407,11 +477,16 @@ int main(int argc, char* argv[]) {
   printf("data_dir: %s\n", data_dir.c_str());
   printf("two_point_name: %s\n", two_point_name.c_str());
   printf("full_two_point_name: %s\n", full_two_point_name.c_str());
-  if (single_disp_only) {
-    printf("single_disp: (%d, %d)\n", single_disp_m, single_disp_n);
+  if (selected_disp_only) {
+    for (size_t d = 0; d < selected_disps.size(); d++) {
+      printf("selected_disp[%zu]: (%d, %d)\n", d, selected_disps[d].m, selected_disps[d].n);
+    }
   }
   if (!single_disp_samples_name.empty()) {
     printf("single_disp_samples_name: %s\n", single_disp_samples_name.c_str());
+  }
+  if (!selected_disp_bundle_name.empty()) {
+    printf("selected_disp_bundle_name: %s\n", selected_disp_bundle_name.c_str());
   }
 
   QfeLattice lattice;
@@ -419,9 +494,8 @@ int main(int argc, char* argv[]) {
   lattice.SeedRng(seed);
   InitTriangleTwistedParallelogram(&lattice, L_x, L_y, T_x, T_y, K1, K2, K3,
                                    &twisted_map,
-                                   single_disp_only,
-                                   single_disp_m,
-                                   single_disp_n);
+                                   selected_disp_only,
+                                   selected_disps);
 
   if (N_t > 1) {
     lattice.AddDimension(N_t);
@@ -442,7 +516,8 @@ int main(int argc, char* argv[]) {
   const int p_e1 = OrbitPeriod(twisted_map.next_e1);
   const int p_e2 = OrbitPeriod(twisted_map.next_e2);
   const int p_e2me1 = OrbitPeriod(twisted_map.next_e2me1);
-  const bool compute_typed_corr = !single_disp_only;
+  const bool compute_typed_corr = !selected_disp_only;
+  const int n_selected_disp = selected_disp_only ? int(selected_disps.size()) : 0;
   printf("periods e1/e2/e2-e1: %d %d %d\n", p_e1, p_e2, p_e2me1);
 
   QfeMeasReal mag;
@@ -453,15 +528,18 @@ int main(int argc, char* argv[]) {
   std::vector<QfeMeasReal> corr_e1(compute_typed_corr ? p_e1 : 0);
   std::vector<QfeMeasReal> corr_e2(compute_typed_corr ? p_e2 : 0);
   std::vector<QfeMeasReal> corr_e2me1(compute_typed_corr ? p_e2me1 : 0);
-  std::vector<QfeMeasReal> corr_all(single_disp_only ? 1 : N_cell);
+  std::vector<QfeMeasReal> corr_all(selected_disp_only ? n_selected_disp : N_cell);
   std::vector<std::vector<double>> corr_e1_samples(compute_typed_corr ? p_e1 : 0);
   std::vector<std::vector<double>> corr_e2_samples(compute_typed_corr ? p_e2 : 0);
   std::vector<std::vector<double>> corr_e2me1_samples(compute_typed_corr ? p_e2me1 : 0);
-  std::vector<std::vector<double>> corr_all_samples(single_disp_only ? 1 : N_cell);
+  std::vector<std::vector<double>> corr_all_samples(selected_disp_only ? n_selected_disp : N_cell);
   std::vector<double> mag_samples;
   std::vector<double> abs_mag_samples;
   std::vector<double> m2_samples;
   std::vector<double> e_samples;   // Speedup 4: per-traj energy/site for FS reweighting
+  std::vector<double> e1_samples;  // Per-traj directional energy/site for K1 links.
+  std::vector<double> e2_samples;  // Per-traj directional energy/site for K2 links.
+  std::vector<double> e3_samples;  // Per-traj directional energy/site for K3 links.
   QfeMeasReal cluster_size;
   QfeMeasReal accept_metropolis;
 
@@ -507,13 +585,20 @@ int main(int argc, char* argv[]) {
     std::vector<double> corr_sum_e1(compute_typed_corr ? p_e1 : 0, 0.0);
     std::vector<double> corr_sum_e2(compute_typed_corr ? p_e2 : 0, 0.0);
     std::vector<double> corr_sum_e2me1(compute_typed_corr ? p_e2me1 : 0, 0.0);
-    std::vector<double> corr_sum_all(single_disp_only ? 1 : N_cell, 0.0);
+    std::vector<double> corr_sum_all(selected_disp_only ? n_selected_disp : N_cell, 0.0);
+    double bond_sum_e1 = 0.0;
+    double bond_sum_e2 = 0.0;
+    double bond_sum_e3 = 0.0;
 
     for (int t0 = 0; t0 < N_t; t0++) {
       int t_offset = t0 * N_cell;
       for (int s2 = 0; s2 < N_cell; s2++) {
         int s = t_offset + s2;
         double spin_s = field.spin[s];
+
+        bond_sum_e1 += spin_s * field.spin[t_offset + twisted_map.next_e1[s2]];
+        bond_sum_e2 += spin_s * field.spin[t_offset + twisted_map.next_e2[s2]];
+        bond_sum_e3 += spin_s * field.spin[t_offset + twisted_map.next_e2me1[s2]];
 
         if (compute_typed_corr) {
           int u = s2;
@@ -535,9 +620,12 @@ int main(int argc, char* argv[]) {
           }
         }
 
-        if (single_disp_only) {
-          int u_all = twisted_map.add_single[s2];
-          corr_sum_all[0] += spin_s * field.spin[t_offset + u_all];
+        if (selected_disp_only) {
+          int add_base = s2 * n_selected_disp;
+          for (int d = 0; d < n_selected_disp; d++) {
+            int u_all = twisted_map.add_selected[add_base + d];
+            corr_sum_all[d] += spin_s * field.spin[t_offset + u_all];
+          }
         } else {
           int add_base = s2 * N_cell;
           for (int d = 0; d < N_cell; d++) {
@@ -549,6 +637,12 @@ int main(int argc, char* argv[]) {
     }
 
     const double norm = double(lattice.n_sites);
+    double bond_e1 = -bond_sum_e1 / norm;
+    double bond_e2 = -bond_sum_e2 / norm;
+    double bond_e3 = -bond_sum_e3 / norm;
+    e1_samples.push_back(bond_e1);
+    e2_samples.push_back(bond_e2);
+    e3_samples.push_back(bond_e3);
     if (compute_typed_corr) {
       for (int r = 0; r < p_e1; r++) {
         double c = corr_sum_e1[r] / norm;
@@ -566,10 +660,12 @@ int main(int argc, char* argv[]) {
         corr_e2me1_samples[r].push_back(c);
       }
     }
-    if (single_disp_only) {
-      double c = corr_sum_all[0] / norm;
-      corr_all[0].Measure(c);
-      corr_all_samples[0].push_back(c);
+    if (selected_disp_only) {
+      for (int d = 0; d < n_selected_disp; d++) {
+        double c = corr_sum_all[d] / norm;
+        corr_all[d].Measure(c);
+        corr_all_samples[d].push_back(c);
+      }
     } else {
       for (int d = 0; d < N_cell; d++) {
         double c = corr_sum_all[d] / norm;
@@ -717,19 +813,21 @@ int main(int argc, char* argv[]) {
   assert(full_file != nullptr);
   fprintf(full_file, "# Equal-time spatial all-to-all average over all time slices.\n");
   fprintf(full_file, "# d m n corr err corr_conn err_conn\n");
-  if (single_disp_only) {
-    double cconn = 0.0;
-    double econn = 0.0;
-    JackknifeConnectedCorr(corr_all_samples[0], mag_samples, &cconn, &econn);
-    int d = twisted_map.single_disp_id;
-    fprintf(full_file, "%d %d %d %.16e %.16e %.16e %.16e\n",
-            d,
-            twisted_map.disp_m[d],
-            twisted_map.disp_n[d],
-            corr_all[0].Mean(),
-            corr_all[0].Error(),
-            cconn,
-            econn);
+  if (selected_disp_only) {
+    for (int idx = 0; idx < n_selected_disp; idx++) {
+      double cconn = 0.0;
+      double econn = 0.0;
+      JackknifeConnectedCorr(corr_all_samples[idx], mag_samples, &cconn, &econn);
+      int d = twisted_map.selected_disp_ids[idx];
+      fprintf(full_file, "%d %d %d %.16e %.16e %.16e %.16e\n",
+              d,
+              twisted_map.selected_disp_m[idx],
+              twisted_map.selected_disp_n[idx],
+              corr_all[idx].Mean(),
+              corr_all[idx].Error(),
+              cconn,
+              econn);
+    }
   } else {
     for (int d = 0; d < N_cell; d++) {
       double cconn = 0.0;
@@ -748,7 +846,7 @@ int main(int argc, char* argv[]) {
   fclose(full_file);
   printf("wrote: %s\n", full_two_point_path.c_str());
 
-  if (single_disp_only && !single_disp_samples_name.empty()) {
+  if (selected_disp_only && !single_disp_samples_name.empty()) {
     std::string sample_path = subdir + "/" + single_disp_samples_name;
     FILE* sample_file = fopen(sample_path.c_str(), "w");
     if (sample_file == nullptr) {
@@ -774,12 +872,68 @@ int main(int argc, char* argv[]) {
       fprintf(sample_file, "# d %d\n", d);
       fprintf(sample_file, "# m %d\n", twisted_map.disp_m[d]);
       fprintf(sample_file, "# n %d\n", twisted_map.disp_n[d]);
-      fprintf(sample_file, "# columns: sample corr mag\n");
+      fprintf(sample_file, "# columns: sample corr mag e1_per_site e2_per_site e3_per_site\n");
       for (size_t i = 0; i < corr_samples.size(); i++) {
-        fprintf(sample_file, "%zu %.16e %.16e\n", i, corr_samples[i], mag_samples[i]);
+        fprintf(sample_file, "%zu %.16e %.16e %.16e %.16e %.16e\n",
+                i,
+                corr_samples[i],
+                mag_samples[i],
+                e1_samples[i],
+                e2_samples[i],
+                e3_samples[i]);
       }
       fclose(sample_file);
       printf("wrote: %s\n", sample_path.c_str());
+    }
+  }
+
+  if (selected_disp_only && !selected_disp_bundle_name.empty()) {
+    std::string bundle_path = subdir + "/" + selected_disp_bundle_name;
+    FILE* bundle_file = fopen(bundle_path.c_str(), "w");
+    if (bundle_file == nullptr) {
+      fprintf(stderr, "WARNING: could not open selected-disp bundle file: %s\n", bundle_path.c_str());
+    } else {
+      fprintf(bundle_file, "# selected-displacement correlator samples for local geometry-match reweighting\n");
+      fprintf(bundle_file, "# seed %u\n", seed);
+      fprintf(bundle_file, "# L_x %d\n", L_x);
+      fprintf(bundle_file, "# L_y %d\n", L_y);
+      fprintf(bundle_file, "# T_x %d\n", T_x);
+      fprintf(bundle_file, "# T_y %d\n", T_y);
+      fprintf(bundle_file, "# K1 %.16e\n", K1);
+      fprintf(bundle_file, "# K2 %.16e\n", K2);
+      fprintf(bundle_file, "# K3 %.16e\n", K3);
+      fprintf(bundle_file, "# Kt %.16e\n", Kt);
+      fprintf(bundle_file, "# beta %.16e\n", beta);
+      fprintf(bundle_file, "# n_therm %d\n", n_therm);
+      fprintf(bundle_file, "# n_traj %d\n", n_traj);
+      fprintf(bundle_file, "# n_skip %d\n", n_skip);
+      fprintf(bundle_file, "# n_selected %d\n", n_selected_disp);
+      for (int idx = 0; idx < n_selected_disp; idx++) {
+        fprintf(bundle_file, "# selected_disp %d %d %d %d\n",
+                idx,
+                twisted_map.selected_disp_ids[idx],
+                twisted_map.selected_disp_m[idx],
+                twisted_map.selected_disp_n[idx]);
+      }
+      fprintf(bundle_file, "# columns: sample");
+      for (int idx = 0; idx < n_selected_disp; idx++) {
+        fprintf(bundle_file, " corr_%d", idx);
+      }
+      fprintf(bundle_file, " mag e1_per_site e2_per_site e3_per_site\n");
+      const size_t n_samples = mag_samples.size();
+      for (size_t i = 0; i < n_samples; i++) {
+        fprintf(bundle_file, "%zu", i);
+        for (int idx = 0; idx < n_selected_disp; idx++) {
+          fprintf(bundle_file, " %.16e", corr_all_samples[idx][i]);
+        }
+        fprintf(bundle_file, " %.16e %.16e %.16e %.16e\n",
+                mag_samples[i],
+                e1_samples[i],
+                e2_samples[i],
+                e3_samples[i]);
+      }
+      fclose(bundle_file);
+      printf("wrote: %s\n", bundle_path.c_str());
     }
   }
 

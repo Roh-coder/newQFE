@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-05-26 18:51:42",
-  "job_count": 302,
-  "completed": 302,
-  "skipped": 1,
+  "updated_at": "2026-06-04 17:40:58",
+  "job_count": 688,
+  "completed": 445,
+  "skipped": 197,
   "failed": 0,
-  "pending": 0
+  "pending": 243
 }

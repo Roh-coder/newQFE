@@ -26,8 +26,10 @@ from plot_standard_acute456_center_fss import (
     _load_dat_rows,
     _sqrt_volume,
     JACKKNIFE_CACHE_ROOT,
+    _find_point_by_mn,
     _load_json,
     _meta_path_for_dat,
+    _normalization_target_label,
     _parse_run_id,
     _single_disp_sample_name,
 )
@@ -40,6 +42,9 @@ DEFAULT_UNTWISTED_DIR = os.path.join(
     "untwisted",
     "r1_1p000000__r2_1p000000",
 )
+DEFAULT_NORMALIZATION_MODE = "raw"
+DEFAULT_ANCHOR_M = 0
+DEFAULT_ANCHOR_N = -1
 DEFAULT_FRACTION = 0.5
 DEFAULT_TWISTED_DAT = os.path.join(
     STANDARD_ROOT,
@@ -125,12 +130,22 @@ def _fraction_slug(fraction: float) -> str:
     return f"frac_{fraction:.3f}".replace(".", "p")
 
 
-def _default_output_path(fraction: float) -> str:
-    return os.path.join(STANDARD_ROOT, f"iso111_boundary_{_fraction_slug(fraction)}_fss.png")
+def _normalization_suffix(normalization_mode: str) -> str:
+    return "" if normalization_mode == "raw" else f"_{str(normalization_mode)}"
 
 
-def _default_table_output_path(fraction: float) -> str:
-    return os.path.join(STANDARD_ROOT, f"iso111_boundary_{_fraction_slug(fraction)}_fss.tsv")
+def _default_output_path(fraction: float, normalization_mode: str) -> str:
+    return os.path.join(
+        STANDARD_ROOT,
+        f"iso111_boundary_{_fraction_slug(fraction)}_fss{_normalization_suffix(normalization_mode)}.png",
+    )
+
+
+def _default_table_output_path(fraction: float, normalization_mode: str) -> str:
+    return os.path.join(
+        STANDARD_ROOT,
+        f"iso111_boundary_{_fraction_slug(fraction)}_fss{_normalization_suffix(normalization_mode)}.tsv",
+    )
 
 
 def _boundary_point_specs(fraction: float) -> list[dict[str, Any]]:
@@ -187,6 +202,45 @@ def _boundary_ratio_series(fraction: float) -> list[dict[str, str]]:
 def _untwisted_dat_path(root: str, lattice: tuple[int, int, int, int]) -> str:
     lx, ly, tx, ty = lattice
     return os.path.join(root, f"Lx{lx}_Ly{ly}_Tx{tx}_Ty{ty}", "two_point_all_to_all.dat")
+
+
+def _resolve_untwisted_lattices(
+    size_values: list[int] | None,
+) -> tuple[tuple[int, int, int, int], ...]:
+    if size_values is None:
+        return tuple(tuple(int(value) for value in lattice) for lattice in UNTWISTED_LATTICES)
+
+    if not size_values:
+        raise ValueError("untwisted size list cannot be empty")
+
+    seen: set[int] = set()
+    lattices: list[tuple[int, int, int, int]] = []
+    for raw_size in size_values:
+        size = int(raw_size)
+        if size <= 0:
+            raise ValueError(f"untwisted sizes must be positive, got {size}")
+        if size in seen:
+            raise ValueError(f"untwisted sizes must not contain duplicates, got {size}")
+        seen.add(size)
+        lattices.append((size, size, 0, 0))
+    return tuple(lattices)
+
+
+def _format_untwisted_sizes(untwisted_lattices: tuple[tuple[int, int, int, int], ...]) -> str:
+    return ",".join(str(int(lattice[0])) for lattice in untwisted_lattices)
+
+
+def _untwisted_wrap_tolerance(
+    lattice: tuple[int, int, int, int],
+    nearest_tolerance: float | None,
+) -> float:
+    base_size = min(abs(int(lattice[0])), abs(int(lattice[1])))
+    if base_size <= 0:
+        raise ValueError(f"invalid untwisted lattice for wrap tolerance: {lattice}")
+    lattice_tolerance = math.sqrt(2.0) / (2.0 * float(base_size))
+    if nearest_tolerance is None:
+        return lattice_tolerance
+    return max(float(nearest_tolerance), lattice_tolerance)
 
 
 def _require_point(
@@ -371,8 +425,13 @@ def _build_series(
     *,
     point_specs: list[dict[str, Any]],
     untwisted_dir: str,
+    untwisted_lattices: tuple[tuple[int, int, int, int], ...] = UNTWISTED_LATTICES,
     twisted_dat: str,
     twisted_lattice: tuple[int, int, int, int],
+    target_label: str = "large twisted target",
+    normalization_mode: str = DEFAULT_NORMALIZATION_MODE,
+    anchor_m: int = DEFAULT_ANCHOR_M,
+    anchor_n: int = DEFAULT_ANCHOR_N,
     nearest_tolerance: float | None = None,
     sample_cache: dict[tuple[str, int, int], dict[str, np.ndarray]] | None = None,
     value_cache: dict[tuple[str, int, int], tuple[float, float]] | None = None,
@@ -381,8 +440,13 @@ def _build_series(
     return _build_point_payloads(
         point_specs=point_specs,
         untwisted_dir=untwisted_dir,
+        untwisted_lattices=untwisted_lattices,
         twisted_dat=twisted_dat,
         twisted_lattice=twisted_lattice,
+        target_label=target_label,
+        normalization_mode=normalization_mode,
+        anchor_m=anchor_m,
+        anchor_n=anchor_n,
         nearest_tolerance=nearest_tolerance,
         sample_cache=sample_cache,
         value_cache=value_cache,
@@ -394,8 +458,13 @@ def _build_point_payloads(
     *,
     point_specs: list[dict[str, Any]],
     untwisted_dir: str,
+    untwisted_lattices: tuple[tuple[int, int, int, int], ...] = UNTWISTED_LATTICES,
     twisted_dat: str,
     twisted_lattice: tuple[int, int, int, int],
+    target_label: str = "large twisted target",
+    normalization_mode: str = DEFAULT_NORMALIZATION_MODE,
+    anchor_m: int = DEFAULT_ANCHOR_M,
+    anchor_n: int = DEFAULT_ANCHOR_N,
     nearest_tolerance: float | None = None,
     sample_cache: dict[tuple[str, int, int], dict[str, np.ndarray]] | None = None,
     value_cache: dict[tuple[str, int, int], tuple[float, float]] | None = None,
@@ -403,14 +472,30 @@ def _build_point_payloads(
 ) -> list[dict[str, Any]]:
     sample_cache = {} if sample_cache is None else sample_cache
     value_cache = {} if value_cache is None else value_cache
+    normalization_mode = str(normalization_mode).strip().lower()
+    if normalization_mode not in {"raw", "anchor_ratio"}:
+        raise ValueError(f"unsupported normalization mode: {normalization_mode}")
     untwisted_maps: dict[tuple[int, int, int, int], dict[tuple[float, float], dict[str, Any]]] = {}
-    for lattice in UNTWISTED_LATTICES:
+    for lattice in untwisted_lattices:
         dat_path = _untwisted_dat_path(untwisted_dir, lattice)
         untwisted_maps[lattice] = _aggregate_by_fraction(
             _load_dat_rows(dat_path),
             lattice,
             embedding_cycles=(0, 1),
         )
+
+    anchor_key: tuple[float, float] | None = None
+    if normalization_mode == "anchor_ratio":
+        smallest_lattice = untwisted_lattices[0]
+        smallest_rows = _load_dat_rows(_untwisted_dat_path(untwisted_dir, smallest_lattice))
+        anchor_point = _find_point_by_mn(
+            smallest_rows,
+            smallest_lattice,
+            embedding_cycles=(0, 1),
+            target_m=int(anchor_m),
+            target_n=int(anchor_n),
+        )
+        anchor_key = (round(float(anchor_point["a_wrap"]), 12), round(float(anchor_point["b_wrap"]), 12))
 
     twisted_rows = _load_dat_rows(twisted_dat)
     twisted_map = _aggregate_by_fraction(twisted_rows, twisted_lattice, embedding_cycles=(0, 1))
@@ -420,12 +505,20 @@ def _build_point_payloads(
         x_values: list[float] = []
         y_values: list[float] = []
         sigma_values: list[float] = []
+        raw_y_values: list[float] = []
+        raw_sigma_values: list[float] = []
         lattice_labels: list[str] = []
         lattice_points: list[dict[str, Any]] = []
         representative_payload: dict[str, Any] | None = None
-        for lattice in UNTWISTED_LATTICES:
+        for lattice in untwisted_lattices:
             dat_path = _untwisted_dat_path(untwisted_dir, lattice)
-            payload = _require_point(untwisted_maps[lattice], key=point_spec["key"], dat_path=dat_path)
+            untwisted_tolerance = _untwisted_wrap_tolerance(lattice, nearest_tolerance)
+            payload = _require_point(
+                untwisted_maps[lattice],
+                key=point_spec["key"],
+                dat_path=dat_path,
+                nearest_tolerance=untwisted_tolerance,
+            )
             if representative_payload is None:
                 representative_payload = payload
             conn_value, conn_sigma = _connected_value_with_true_jackknife(
@@ -438,8 +531,36 @@ def _build_point_payloads(
                 fallback_value=(float(payload["value"]), float(payload["sigma"])),
             )
             x_values.append(1.0 / _sqrt_volume(lattice))
-            y_values.append(float(conn_value))
-            sigma_values.append(float(conn_sigma))
+            raw_y_values.append(float(conn_value))
+            raw_sigma_values.append(float(conn_sigma))
+            plot_value = float(conn_value)
+            plot_sigma = float(conn_sigma)
+            if normalization_mode == "anchor_ratio":
+                if anchor_key is None:
+                    raise RuntimeError("anchor normalization state was not initialized")
+                anchor_payload = _require_point(
+                    untwisted_maps[lattice],
+                    key=anchor_key,
+                    dat_path=dat_path,
+                    nearest_tolerance=untwisted_tolerance,
+                )
+                plot_value, plot_sigma = _connected_ratio(
+                    dat_path=dat_path,
+                    point_m=int(payload["m"]),
+                    point_n=int(payload["n"]),
+                    anchor_m=int(anchor_payload["m"]),
+                    anchor_n=int(anchor_payload["n"]),
+                    point_value=float(conn_value),
+                    point_sigma=float(conn_sigma),
+                    anchor_value=float(anchor_payload["value"]),
+                    anchor_sigma=float(anchor_payload["sigma"]),
+                    sample_cache=sample_cache,
+                    value_cache=value_cache,
+                    ratio_cache={},
+                    allow_regeneration=allow_regeneration,
+                )
+            y_values.append(float(plot_value))
+            sigma_values.append(float(plot_sigma))
             lattice_labels.append(f"L={int(lattice[0])}")
             lattice_points.append(
                 {
@@ -465,6 +586,34 @@ def _build_point_payloads(
             allow_regeneration=allow_regeneration,
             fallback_value=(float(twisted_payload["value"]), float(twisted_payload["sigma"])),
         )
+        raw_twisted_value = float(twisted_value)
+        raw_twisted_sigma = float(twisted_sigma)
+        plot_twisted_value = float(twisted_value)
+        plot_twisted_sigma = float(twisted_sigma)
+        if normalization_mode == "anchor_ratio":
+            if anchor_key is None:
+                raise RuntimeError("anchor normalization state was not initialized")
+            twisted_anchor_payload = _require_point(
+                twisted_map,
+                key=anchor_key,
+                dat_path=twisted_dat,
+                nearest_tolerance=nearest_tolerance,
+            )
+            plot_twisted_value, plot_twisted_sigma = _connected_ratio(
+                dat_path=twisted_dat,
+                point_m=int(twisted_payload["m"]),
+                point_n=int(twisted_payload["n"]),
+                anchor_m=int(twisted_anchor_payload["m"]),
+                anchor_n=int(twisted_anchor_payload["n"]),
+                point_value=float(raw_twisted_value),
+                point_sigma=float(raw_twisted_sigma),
+                anchor_value=float(twisted_anchor_payload["value"]),
+                anchor_sigma=float(twisted_anchor_payload["sigma"]),
+                sample_cache=sample_cache,
+                value_cache=value_cache,
+                ratio_cache={},
+                allow_regeneration=allow_regeneration,
+            )
         fit_payload = _fit_blind_power_model(
             np.asarray(x_values, dtype=float),
             np.asarray(y_values, dtype=float),
@@ -478,6 +627,8 @@ def _build_point_payloads(
                 "x": np.asarray(x_values, dtype=float),
                 "y": np.asarray(y_values, dtype=float),
                 "sigma": np.asarray(sigma_values, dtype=float),
+                "raw_y": np.asarray(raw_y_values, dtype=float),
+                "raw_sigma": np.asarray(raw_sigma_values, dtype=float),
                 "lattice_labels": lattice_labels,
                 "lattice_points": lattice_points,
                 "m": int(point_spec.get("m", representative_payload["m"])),
@@ -485,12 +636,20 @@ def _build_point_payloads(
                 "a_wrap": float(point_spec.get("a_wrap", representative_payload["a_wrap"])),
                 "b_wrap": float(point_spec.get("b_wrap", representative_payload["b_wrap"])),
                 "twisted_x": 1.0 / _sqrt_volume(twisted_lattice),
-                "twisted_y": float(twisted_value),
-                "twisted_sigma": float(twisted_sigma),
+                "twisted_y": float(plot_twisted_value),
+                "twisted_sigma": float(plot_twisted_sigma),
+                "twisted_raw_y": float(raw_twisted_value),
+                "twisted_raw_sigma": float(raw_twisted_sigma),
+                "twisted_label": _normalization_target_label(str(target_label), normalization_mode),
                 "twisted_dat_path": twisted_dat,
                 "twisted_m": int(twisted_payload["m"]),
                 "twisted_n": int(twisted_payload["n"]),
-                "y_axis_label": str(point_spec.get("y_axis_label", "Connected correlator")),
+                "y_axis_label": str(
+                    point_spec.get(
+                        "y_axis_label",
+                        "Anchored correlator ratio" if normalization_mode == "anchor_ratio" else "Connected correlator",
+                    )
+                ),
                 "fit": fit_payload,
             }
         )
@@ -563,10 +722,10 @@ def _build_ratio_payloads(
                 point_n=int(numerator_point["n"]),
                 anchor_m=int(denominator_point["m"]),
                 anchor_n=int(denominator_point["n"]),
-                point_value=float(numerator["y"][len(y_values)]),
-                point_sigma=float(numerator["sigma"][len(y_values)]),
-                anchor_value=float(denominator["y"][len(y_values)]),
-                anchor_sigma=float(denominator["sigma"][len(y_values)]),
+                point_value=float(np.asarray(numerator.get("raw_y", numerator["y"]), dtype=float)[len(y_values)]),
+                point_sigma=float(np.asarray(numerator.get("raw_sigma", numerator["sigma"]), dtype=float)[len(y_values)]),
+                anchor_value=float(np.asarray(denominator.get("raw_y", denominator["y"]), dtype=float)[len(y_values)]),
+                anchor_sigma=float(np.asarray(denominator.get("raw_sigma", denominator["sigma"]), dtype=float)[len(y_values)]),
                 sample_cache=sample_cache,
                 value_cache=value_cache,
                 ratio_cache=ratio_cache,
@@ -587,10 +746,10 @@ def _build_ratio_payloads(
             point_n=int(numerator["twisted_n"]),
             anchor_m=int(denominator["twisted_m"]),
             anchor_n=int(denominator["twisted_n"]),
-            point_value=float(numerator["twisted_y"]),
-            point_sigma=float(numerator["twisted_sigma"]),
-            anchor_value=float(denominator["twisted_y"]),
-            anchor_sigma=float(denominator["twisted_sigma"]),
+            point_value=float(numerator.get("twisted_raw_y", numerator["twisted_y"])),
+            point_sigma=float(numerator.get("twisted_raw_sigma", numerator["twisted_sigma"])),
+            anchor_value=float(denominator.get("twisted_raw_y", denominator["twisted_y"])),
+            anchor_sigma=float(denominator.get("twisted_raw_sigma", denominator["twisted_sigma"])),
             sample_cache=sample_cache,
             value_cache=value_cache,
             ratio_cache=ratio_cache,
@@ -884,7 +1043,7 @@ def _render_panel(axis: plt.Axes, *, payload: dict[str, Any]) -> None:
         markeredgewidth=0.8,
         linewidth=1.1,
         zorder=4,
-        label="large twisted target",
+        label=str(payload.get("twisted_label", "large twisted target")),
     )
     if secondary_twisted_x is not None:
         axis.errorbar(
@@ -966,11 +1125,12 @@ def _group_point_payloads(point_payloads: list[dict[str, Any]]) -> list[list[dic
 def _write_all_point_panels(
     *,
     untwisted_dir: str,
+    untwisted_lattices: tuple[tuple[int, int, int, int], ...],
     twisted_dat: str,
     twisted_lattice: tuple[int, int, int, int],
     output_dir: str,
 ) -> list[str]:
-    smallest_lattice = UNTWISTED_LATTICES[0]
+    smallest_lattice = untwisted_lattices[0]
     smallest_map = _aggregate_by_fraction(
         _load_dat_rows(_untwisted_dat_path(untwisted_dir, smallest_lattice)),
         smallest_lattice,
@@ -980,11 +1140,13 @@ def _write_all_point_panels(
     point_payloads = _build_point_payloads(
         point_specs=point_specs,
         untwisted_dir=untwisted_dir,
+        untwisted_lattices=untwisted_lattices,
         twisted_dat=twisted_dat,
         twisted_lattice=twisted_lattice,
     )
     grouped_payloads = _group_point_payloads(point_payloads)
     family_label = _infer_family_label(untwisted_dir)
+    size_text = _format_untwisted_sizes(untwisted_lattices)
     os.makedirs(output_dir, exist_ok=True)
     for name in os.listdir(output_dir):
         if name.startswith("iso111_") and name.endswith(".png"):
@@ -1001,8 +1163,8 @@ def _write_all_point_panels(
             0.5,
             0.945,
             (
-                f"{family_label}: row {index}/5 with b={row_b_wrap:.3f}, n={row_n_value}; "
-                f"untwisted L=8,16,24,32,48,64; target {twisted_lattice}"
+                f"{family_label}: row {index}/{len(grouped_payloads)} with b={row_b_wrap:.3f}, n={row_n_value}; "
+                f"untwisted L={size_text}; target {twisted_lattice}"
             ),
             ha="center",
             va="top",
@@ -1022,7 +1184,10 @@ def _write_all_point_panels(
     return written_paths
 
 
-def _discover_sweep_dirs(untwisted_root: str) -> list[str]:
+def _discover_sweep_dirs(
+    untwisted_root: str,
+    untwisted_lattices: tuple[tuple[int, int, int, int], ...],
+) -> list[str]:
     if not os.path.isdir(untwisted_root):
         raise FileNotFoundError(f"untwisted sweep root not found: {untwisted_root}")
 
@@ -1033,7 +1198,7 @@ def _discover_sweep_dirs(untwisted_root: str) -> list[str]:
         candidate_dir = os.path.join(untwisted_root, name)
         if not os.path.isdir(candidate_dir):
             continue
-        if os.path.isfile(_untwisted_dat_path(candidate_dir, UNTWISTED_LATTICES[0])):
+        if os.path.isfile(_untwisted_dat_path(candidate_dir, untwisted_lattices[0])):
             sweep_dirs.append(candidate_dir)
 
     if not sweep_dirs:
@@ -1051,16 +1216,23 @@ def _dataset_slug_from_untwisted_dir(path: str) -> str:
     return os.path.basename(os.path.dirname(os.path.dirname(normalized)))
 
 
-def _sweep_output_stem(untwisted_dir: str, *, fraction: float) -> str:
+def _sweep_output_stem(untwisted_dir: str, *, fraction: float, normalization_mode: str) -> str:
     coupling_tag = os.path.basename(os.path.normpath(untwisted_dir)).replace("__", "_")
     dataset_slug = _dataset_slug_from_untwisted_dir(untwisted_dir)
-    return f"{dataset_slug}_{coupling_tag}_boundary_{_fraction_slug(fraction)}_fss"
+    return (
+        f"{dataset_slug}_{coupling_tag}_boundary_{_fraction_slug(fraction)}_fss"
+        f"{_normalization_suffix(normalization_mode)}"
+    )
 
 
 def _write_sweep_plots(
     *,
     fraction: float,
+    normalization_mode: str,
+    anchor_m: int,
+    anchor_n: int,
     untwisted_root: str,
+    untwisted_lattices: tuple[tuple[int, int, int, int], ...],
     twisted_dat: str,
     twisted_lattice: tuple[int, int, int, int],
     secondary_twisted_dat: str | None,
@@ -1074,11 +1246,15 @@ def _write_sweep_plots(
     summary_rows: list[dict[str, Any]] = []
     secondary_summary_rows: list[dict[str, Any]] = []
     summary_panel_order: list[str] | None = None
-    for untwisted_dir in _discover_sweep_dirs(untwisted_root):
-        stem = _sweep_output_stem(untwisted_dir, fraction=fraction)
+    for untwisted_dir in _discover_sweep_dirs(untwisted_root, untwisted_lattices):
+        stem = _sweep_output_stem(untwisted_dir, fraction=fraction, normalization_mode=normalization_mode)
         plot_result = _plot(
             fraction=fraction,
+            normalization_mode=normalization_mode,
+            anchor_m=anchor_m,
+            anchor_n=anchor_n,
             untwisted_dir=untwisted_dir,
+            untwisted_lattices=untwisted_lattices,
             twisted_dat=twisted_dat,
             twisted_lattice=twisted_lattice,
             secondary_twisted_dat=secondary_twisted_dat,
@@ -1101,7 +1277,7 @@ def _write_sweep_plots(
     dataset_slug = _dataset_slug_from_untwisted_dir(untwisted_root)
     summary_output_path = os.path.join(
         output_dir,
-        f"{dataset_slug}_boundary_{_fraction_slug(fraction)}_fss_zscores.tsv",
+        f"{dataset_slug}_boundary_{_fraction_slug(fraction)}_fss{_normalization_suffix(normalization_mode)}_zscores.tsv",
     )
     _write_sweep_summary_table(
         output_path=summary_output_path,
@@ -1110,7 +1286,10 @@ def _write_sweep_plots(
     )
     primary_target_output_path = os.path.join(
         output_dir,
-        f"{dataset_slug}_boundary_{_fraction_slug(fraction)}_fss_large_target_zscores.tsv",
+        (
+            f"{dataset_slug}_boundary_{_fraction_slug(fraction)}_fss"
+            f"{_normalization_suffix(normalization_mode)}_large_target_zscores.tsv"
+        ),
     )
     _write_sweep_summary_table(
         output_path=primary_target_output_path,
@@ -1121,7 +1300,10 @@ def _write_sweep_plots(
     if secondary_summary_rows:
         secondary_target_output_path = os.path.join(
             output_dir,
-            f"{dataset_slug}_boundary_{_fraction_slug(fraction)}_fss_small_target_zscores.tsv",
+            (
+                f"{dataset_slug}_boundary_{_fraction_slug(fraction)}_fss"
+                f"{_normalization_suffix(normalization_mode)}_small_target_zscores.tsv"
+            ),
         )
         _write_sweep_summary_table(
             output_path=secondary_target_output_path,
@@ -1137,7 +1319,11 @@ def _write_sweep_plots(
 def _plot(
     *,
     fraction: float,
+    normalization_mode: str,
+    anchor_m: int,
+    anchor_n: int,
     untwisted_dir: str,
+    untwisted_lattices: tuple[tuple[int, int, int, int], ...] = UNTWISTED_LATTICES,
     twisted_dat: str,
     twisted_lattice: tuple[int, int, int, int],
     secondary_twisted_dat: str | None,
@@ -1147,6 +1333,9 @@ def _plot(
     table_output_path: str,
     allow_regeneration: bool = True,
 ) -> dict[str, Any]:
+    normalization_mode = str(normalization_mode).strip().lower()
+    if normalization_mode not in {"raw", "anchor_ratio"}:
+        raise ValueError(f"unsupported normalization mode: {normalization_mode}")
     family_label = _infer_family_label(untwisted_dir)
     point_specs = _boundary_point_specs(fraction)
     ratio_series = _boundary_ratio_series(fraction)
@@ -1156,8 +1345,13 @@ def _plot(
     midpoint_payloads = _build_series(
         point_specs=point_specs,
         untwisted_dir=untwisted_dir,
+        untwisted_lattices=untwisted_lattices,
         twisted_dat=twisted_dat,
         twisted_lattice=twisted_lattice,
+        target_label="large twisted target",
+        normalization_mode=normalization_mode,
+        anchor_m=anchor_m,
+        anchor_n=anchor_n,
         sample_cache=sample_cache,
         value_cache=value_cache,
         allow_regeneration=allow_regeneration,
@@ -1174,8 +1368,13 @@ def _plot(
         secondary_midpoint_payloads = _build_series(
             point_specs=point_specs,
             untwisted_dir=untwisted_dir,
+            untwisted_lattices=untwisted_lattices,
             twisted_dat=secondary_twisted_dat,
             twisted_lattice=secondary_twisted_lattice,
+            target_label=str(secondary_twisted_label or "smaller twisted target"),
+            normalization_mode=normalization_mode,
+            anchor_m=anchor_m,
+            anchor_n=anchor_n,
             nearest_tolerance=0.02,
             sample_cache=sample_cache,
             value_cache=value_cache,
@@ -1199,24 +1398,40 @@ def _plot(
             payload["secondary_twisted_x"] = float(secondary_payload["twisted_x"])
             payload["secondary_twisted_y"] = float(secondary_payload["twisted_y"])
             payload["secondary_twisted_sigma"] = float(secondary_payload["twisted_sigma"])
-            payload["secondary_twisted_label"] = str(secondary_twisted_label or "smaller twisted target")
+            payload["secondary_twisted_label"] = str(
+                secondary_payload.get(
+                    "twisted_label",
+                    _normalization_target_label(
+                        str(secondary_twisted_label or "smaller twisted target"),
+                        normalization_mode,
+                    ),
+                )
+            )
     _write_table(table_output_path, all_payloads)
 
     dataset_slug = _dataset_slug_from_untwisted_dir(untwisted_dir)
+    size_text = _format_untwisted_sizes(untwisted_lattices)
     fig, axes = plt.subplots(2, 3, figsize=(18, 9.8), squeeze=False)
     axes_flat = list(axes.ravel())
-    fig.suptitle(f"{dataset_slug.capitalize()} {point_label} correlator and ratio FSS", fontsize=15, y=0.98)
+    if normalization_mode == "anchor_ratio":
+        fig.suptitle(f"{dataset_slug.capitalize()} {point_label} anchored-ratio and ratio FSS", fontsize=15, y=0.98)
+        top_row_label = f"top row = {point_label} anchored correlator ratios to anchor"
+        anchor_label = f"; anchor=(m,n)=({int(anchor_m)},{int(anchor_n)})"
+    else:
+        fig.suptitle(f"{dataset_slug.capitalize()} {point_label} correlator and ratio FSS", fontsize=15, y=0.98)
+        top_row_label = f"top row = {point_label} correlators"
+        anchor_label = ""
     fig.text(
         0.5,
         0.945,
         (
-            f"standard {family_label}: untwisted L=8,16,24,32,48,64 with primary twisted target at {twisted_lattice}"
+            f"standard {family_label}: untwisted L={size_text} with primary twisted target at {twisted_lattice}"
             + (
                 f" and secondary target at {secondary_twisted_lattice}; "
                 if secondary_twisted_dat is not None and secondary_twisted_lattice is not None
                 else "; "
             )
-            + f"top row = {point_label} correlators, bottom row = {point_label} ratios; "
+            + f"{top_row_label}, bottom row = {point_label} ratios{anchor_label}; "
             + ", ".join(
                 f"{spec['short_label']}=({float(spec['key'][0]):.3f},{float(spec['key'][1]):.3f})"
                 for spec in point_specs
@@ -1272,6 +1487,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--untwisted-dir", default=DEFAULT_UNTWISTED_DIR)
     parser.add_argument(
+        "--untwisted-sizes",
+        nargs="+",
+        type=int,
+        default=None,
+        help=(
+            "Explicit untwisted square sizes to use from each coupling directory. "
+            f"Defaults to {_format_untwisted_sizes(tuple(tuple(int(value) for value in lattice) for lattice in UNTWISTED_LATTICES))}."
+        ),
+    )
+    parser.add_argument(
         "--sweep-root",
         default=DEFAULT_SWEEP_ROOT,
         help="Root containing the r1_*__r2_* untwisted sweep directories.",
@@ -1281,6 +1506,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--secondary-twisted-dat", default=None)
     parser.add_argument("--secondary-twisted-lattice", nargs=4, type=int, default=None)
     parser.add_argument("--secondary-twisted-label", default=None)
+    parser.add_argument("--normalization-mode", choices=["raw", "anchor_ratio"], default=DEFAULT_NORMALIZATION_MODE)
+    parser.add_argument("--anchor-m", type=int, default=DEFAULT_ANCHOR_M)
+    parser.add_argument("--anchor-n", type=int, default=DEFAULT_ANCHOR_N)
     parser.add_argument("--output", default=None)
     parser.add_argument("--table-output", default=None)
     parser.add_argument(
@@ -1311,6 +1539,7 @@ def main() -> None:
     fraction = float(args.fraction)
     untwisted_dir = os.path.abspath(args.untwisted_dir)
     sweep_root = os.path.abspath(args.sweep_root)
+    untwisted_lattices = _resolve_untwisted_lattices(args.untwisted_sizes)
     twisted_dat = os.path.abspath(args.twisted_dat)
     twisted_lattice = (
         int(args.twisted_lattice[0]),
@@ -1332,7 +1561,11 @@ def main() -> None:
     if args.sweep_output_dir:
         _write_sweep_plots(
             fraction=fraction,
+            normalization_mode=str(args.normalization_mode),
+            anchor_m=int(args.anchor_m),
+            anchor_n=int(args.anchor_n),
             untwisted_root=sweep_root,
+            untwisted_lattices=untwisted_lattices,
             twisted_dat=twisted_dat,
             twisted_lattice=twisted_lattice,
             secondary_twisted_dat=secondary_twisted_dat,
@@ -1346,6 +1579,7 @@ def main() -> None:
     if args.all_points_output_dir:
         _write_all_point_panels(
             untwisted_dir=untwisted_dir,
+            untwisted_lattices=untwisted_lattices,
             twisted_dat=twisted_dat,
             twisted_lattice=twisted_lattice,
             output_dir=os.path.abspath(args.all_points_output_dir),
@@ -1354,14 +1588,18 @@ def main() -> None:
 
     _plot(
         fraction=fraction,
+        normalization_mode=str(args.normalization_mode),
+        anchor_m=int(args.anchor_m),
+        anchor_n=int(args.anchor_n),
         untwisted_dir=untwisted_dir,
+        untwisted_lattices=untwisted_lattices,
         twisted_dat=twisted_dat,
         twisted_lattice=twisted_lattice,
         secondary_twisted_dat=secondary_twisted_dat,
         secondary_twisted_lattice=secondary_twisted_lattice,
         secondary_twisted_label=(str(args.secondary_twisted_label) if args.secondary_twisted_label else None),
-        output_path=os.path.abspath(args.output or _default_output_path(fraction)),
-        table_output_path=os.path.abspath(args.table_output or _default_table_output_path(fraction)),
+        output_path=os.path.abspath(args.output or _default_output_path(fraction, str(args.normalization_mode))),
+        table_output_path=os.path.abspath(args.table_output or _default_table_output_path(fraction, str(args.normalization_mode))),
     )
 
 

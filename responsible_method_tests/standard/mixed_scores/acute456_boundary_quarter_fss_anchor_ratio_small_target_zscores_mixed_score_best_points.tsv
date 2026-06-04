@@ -1,0 +1,6 @@
+key	title	best_r1	best_r2	best_score	formula	description
+sector_balanced_rms	Balanced sectors	5.1730610000	8.8246920000	0.2618830209	sqrt(0.50*corr_chi2/3 + 0.50*ratio_chi2/2)	Equal weight to anchored-correlator and pure-ratio sectors after per-panel normalization.
+ratio_tilted_rms	Ratio-tilted	5.1730610000	8.8246920000	0.2395211424	sqrt(0.35*corr_chi2/3 + 0.65*ratio_chi2/2)	Favors direction-shape agreement while still keeping some anchored-correlator information.
+corr_tilted_rms	Correlator-tilted	5.1730610000	8.8246920000	0.2824801862	sqrt(0.65*corr_chi2/3 + 0.35*ratio_chi2/2)	Favors the anchored-correlator sector while still penalizing directional-ratio mismatches.
+anchor_shape_rms	Anchor + shape	5.1730610000	8.8246920000	0.2516715467	sqrt(0.50*u/4_chi2 + 0.25*(v/u)_chi2 + 0.25*(w/u)_chi2)	A nonredundant-ish amplitude-plus-shape blend: one anchored amplitude channel plus two shape ratios.
+sector_guard_rms	Sector guard	5.1730610000	8.8246920000	0.3255106447	max(sqrt(corr_chi2/3), sqrt(ratio_chi2/2))	A conservative guard metric that only looks good when both sectors look good.

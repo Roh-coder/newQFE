@@ -1,0 +1,157 @@
+{
+  "direct": [
+    {
+      "beta": 0.27465307216702745,
+      "connected": 0.4521014252923584,
+      "label": "center",
+      "n_samples": 10000,
+      "r1": 1.0,
+      "r2": 1.0,
+      "sigma": 0.001714655360857879,
+      "wall_seconds": 36.338969707489014
+    },
+    {
+      "beta": 0.27374143383085503,
+      "connected": 0.4508242939935303,
+      "label": "r1_plus_0p01",
+      "n_samples": 10000,
+      "r1": 1.01,
+      "r2": 1.0,
+      "sigma": 0.0017368287464111388,
+      "wall_seconds": 33.76288080215454
+    },
+    {
+      "beta": 0.27374143383085503,
+      "connected": 0.45006861531734466,
+      "label": "r2_plus_0p01",
+      "n_samples": 10000,
+      "r1": 1.0,
+      "r2": 1.01,
+      "sigma": 0.0017325172766063965,
+      "wall_seconds": 35.92980122566223
+    }
+  ],
+  "displacement": {
+    "m": 8,
+    "n": 0
+  },
+  "lattice": {
+    "Lx": 32,
+    "Ly": 32,
+    "Tx": 0,
+    "Ty": 0
+  },
+  "n_skip": 10,
+  "n_therm": 10000,
+  "n_traj": 100000,
+  "reweight": [
+    {
+      "delta": 0.0,
+      "n_eff": 10000.0,
+      "n_eff_fraction": 1.0,
+      "predicted_connected": 0.4521014252923584,
+      "predicted_sigma": 0.0016648855455387473,
+      "source": "center",
+      "target": "center",
+      "target_connected": 0.4521014252923584,
+      "target_sigma": 0.001714655360857879,
+      "z": 0.0
+    },
+    {
+      "delta": 0.0014046697765409677,
+      "n_eff": 9990.339416850476,
+      "n_eff_fraction": 0.9990339416850477,
+      "predicted_connected": 0.45222896377007127,
+      "predicted_sigma": 0.001666174475501859,
+      "source": "center",
+      "target": "r1_plus_0p01",
+      "target_connected": 0.4508242939935303,
+      "target_sigma": 0.0017368287464111388,
+      "z": 0.5836241967205401
+    },
+    {
+      "delta": 0.00199578441879511,
+      "n_eff": 9990.117392016626,
+      "n_eff_fraction": 0.9990117392016625,
+      "predicted_connected": 0.45206439973613977,
+      "predicted_sigma": 0.0016540604456941894,
+      "source": "center",
+      "target": "r2_plus_0p01",
+      "target_connected": 0.45006861531734466,
+      "target_sigma": 0.0017325172766063965,
+      "z": 0.8332034598089763
+    },
+    {
+      "delta": -0.00138249634473947,
+      "n_eff": 9990.000148947185,
+      "n_eff_fraction": 0.9990000148947186,
+      "predicted_connected": 0.45071892894761895,
+      "predicted_sigma": 0.0023158412368231625,
+      "source": "r1_plus_0p01",
+      "target": "center",
+      "target_connected": 0.4521014252923584,
+      "target_sigma": 0.001714655360857879,
+      "z": -0.47978005857518147
+    },
+    {
+      "delta": 0.0,
+      "n_eff": 10000.0,
+      "n_eff_fraction": 1.0,
+      "predicted_connected": 0.4508242939935303,
+      "predicted_sigma": 0.002308811859973745,
+      "source": "r1_plus_0p01",
+      "target": "r1_plus_0p01",
+      "target_connected": 0.4508242939935303,
+      "target_sigma": 0.0017368287464111388,
+      "z": 0.0
+    },
+    {
+      "delta": 0.0005297627287398909,
+      "n_eff": 9970.119434870072,
+      "n_eff_fraction": 0.9970119434870072,
+      "predicted_connected": 0.45059837804608455,
+      "predicted_sigma": 0.0023096341283223437,
+      "source": "r1_plus_0p01",
+      "target": "r2_plus_0p01",
+      "target_connected": 0.45006861531734466,
+      "target_sigma": 0.0017325172766063965,
+      "z": 0.183485551770894
+    },
+    {
+      "delta": -0.0019632683755196334,
+      "n_eff": 9989.96981954869,
+      "n_eff_fraction": 0.9989969819548691,
+      "predicted_connected": 0.4501381569168388,
+      "predicted_sigma": 0.0012016539711839217,
+      "source": "r2_plus_0p01",
+      "target": "center",
+      "target_connected": 0.4521014252923584,
+      "target_sigma": 0.001714655360857879,
+      "z": -0.9376562261951854
+    },
+    {
+      "delta": -0.0005439135117248917,
+      "n_eff": 9969.599901215659,
+      "n_eff_fraction": 0.9969599901215659,
+      "predicted_connected": 0.4502803804818054,
+      "predicted_sigma": 0.0011887150793598894,
+      "source": "r2_plus_0p01",
+      "target": "r1_plus_0p01",
+      "target_connected": 0.4508242939935303,
+      "target_sigma": 0.0017368287464111388,
+      "z": -0.2584322613794451
+    },
+    {
+      "delta": 5.551115123125783e-17,
+      "n_eff": 10000.0,
+      "n_eff_fraction": 1.0,
+      "predicted_connected": 0.4500686153173447,
+      "predicted_sigma": 0.001219247035803092,
+      "source": "r2_plus_0p01",
+      "target": "r2_plus_0p01",
+      "target_connected": 0.45006861531734466,
+      "target_sigma": 0.0017325172766063965,
+      "z": 2.6202644687942187e-14
+    }
+  ]
+}

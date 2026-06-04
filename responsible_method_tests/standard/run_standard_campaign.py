@@ -30,7 +30,7 @@ from workflow_common import (  # noqa: E402
 )
 
 
-MULTIPLIERS = (0.8, 0.9, 1.0, 1.1, 1.2)
+DEFAULT_MULTIPLIERS = (0.8, 0.9, 1.0, 1.1, 1.2)
 SIZES = (8, 16, 24, 32, 48, 64)
 DEFAULT_MC = {
     "n_traj": 20000,
@@ -87,7 +87,52 @@ def _couplings(r1: float, r2: float) -> dict[str, float]:
     }
 
 
-def _build_job_plan(root: Path) -> list[dict[str, Any]]:
+def _resolve_multipliers(values: list[float] | None) -> tuple[float, ...]:
+    raw_values = DEFAULT_MULTIPLIERS if values is None else tuple(float(value) for value in values)
+    if not raw_values:
+        raise ValueError("multiplier stencil cannot be empty")
+    for value in raw_values:
+        if value <= 0.0:
+            raise ValueError(f"multipliers must be positive, got {value}")
+    return tuple(float(value) for value in raw_values)
+
+
+def _resolve_sizes(values: list[int] | None) -> tuple[int, ...]:
+    raw_values = SIZES if values is None else tuple(int(value) for value in values)
+    if not raw_values:
+        raise ValueError("size list cannot be empty")
+    seen: set[int] = set()
+    resolved: list[int] = []
+    for value in raw_values:
+        if value <= 0:
+            raise ValueError(f"sizes must be positive, got {value}")
+        if value in seen:
+            raise ValueError(f"sizes must not contain duplicates, got {value}")
+        seen.add(value)
+        resolved.append(int(value))
+    return tuple(resolved)
+
+
+def _resolve_mc(
+    n_traj: int | None,
+    n_skip: int | None,
+    n_therm: int | None,
+) -> dict[str, int]:
+    resolved = {
+        "n_traj": int(DEFAULT_MC["n_traj"] if n_traj is None else n_traj),
+        "n_skip": int(DEFAULT_MC["n_skip"] if n_skip is None else n_skip),
+        "n_therm": int(DEFAULT_MC["n_therm"] if n_therm is None else n_therm),
+    }
+    if resolved["n_traj"] <= 0:
+        raise ValueError(f"n_traj must be positive, got {resolved['n_traj']}")
+    if resolved["n_skip"] <= 0:
+        raise ValueError(f"n_skip must be positive, got {resolved['n_skip']}")
+    if resolved["n_therm"] < 0:
+        raise ValueError(f"n_therm must be non-negative, got {resolved['n_therm']}")
+    return resolved
+
+
+def _build_job_plan(root: Path, multipliers: tuple[float, ...], sizes: tuple[int, ...]) -> list[dict[str, Any]]:
     jobs: list[dict[str, Any]] = []
     scratch_root = root / "_mc_scratch"
     data_root = root / "data"
@@ -125,8 +170,8 @@ def _build_job_plan(root: Path) -> list[dict[str, Any]]:
 
         center_r1 = float(geometry["center_r1"])
         center_r2 = float(geometry["center_r2"])
-        for mul_r1 in MULTIPLIERS:
-            for mul_r2 in MULTIPLIERS:
+        for mul_r1 in multipliers:
+            for mul_r2 in multipliers:
                 r1 = center_r1 * mul_r1
                 r2 = center_r2 * mul_r2
                 couplings = _couplings(r1, r2)
@@ -134,7 +179,7 @@ def _build_job_plan(root: Path) -> list[dict[str, Any]]:
                 candidate_dir = data_root / geometry_id / "untwisted" / (
                     f"r1_{_ratio_token(r1)}__r2_{_ratio_token(r2)}"
                 )
-                for size in SIZES:
+                for size in sizes:
                     lattice = (int(size), int(size), 0, 0)
                     lattice_dir = candidate_dir / f"Lx{size}_Ly{size}_Tx0_Ty0"
                     jobs.append(
@@ -292,16 +337,24 @@ def _latest_logged_status(root: Path) -> dict[str, str]:
     return latest
 
 
-def _write_plan(root: Path, all_jobs: list[dict[str, Any]], selected_jobs: list[dict[str, Any]], workers: int) -> None:
+def _write_plan(
+    root: Path,
+    all_jobs: list[dict[str, Any]],
+    selected_jobs: list[dict[str, Any]],
+    workers: int,
+    multipliers: tuple[float, ...],
+    sizes: tuple[int, ...],
+    mc_cfg: dict[str, int],
+) -> None:
     payload = {
         "campaign": "responsible_method_tests/standard",
         "created_at": timestamp(),
         "root": str(root),
-        "mc": DEFAULT_MC,
+        "mc": dict(mc_cfg),
         "workers_requested": int(workers),
         "geometries": GEOMETRIES,
-        "sizes": list(SIZES),
-        "multipliers": list(MULTIPLIERS),
+        "sizes": list(sizes),
+        "multipliers": list(multipliers),
         "job_count": len(all_jobs),
         "jobs": all_jobs,
     }
@@ -342,7 +395,13 @@ def _write_summary(root: Path, jobs: list[dict[str, Any]]) -> None:
     save_json(str(root / "status_summary.json"), payload)
 
 
-def _import_manual_job(root: Path, jobs: list[dict[str, Any]], job_id: str, source_dir: Path) -> dict[str, Any]:
+def _import_manual_job(
+    root: Path,
+    jobs: list[dict[str, Any]],
+    job_id: str,
+    source_dir: Path,
+    mc_cfg: dict[str, int],
+) -> dict[str, Any]:
     job = next((candidate for candidate in jobs if str(candidate["job_id"]) == job_id), None)
     if job is None:
         raise ValueError(f"unknown job id: {job_id}")
@@ -394,7 +453,7 @@ def _import_manual_job(root: Path, jobs: list[dict[str, Any]], job_id: str, sour
         "production_wall_seconds": _manual_wall_seconds(source_dir, all_to_all_file),
         "stdout_tail": stdout_tail,
         "stderr_tail": stderr_tail,
-        "mc": dict(DEFAULT_MC),
+        "mc": dict(mc_cfg),
         "all_to_all_file": str(data_path),
         "source_all_to_all_file": str(all_to_all_file),
     }
@@ -413,7 +472,7 @@ def _import_manual_job(root: Path, jobs: list[dict[str, Any]], job_id: str, sour
     return result
 
 
-def _run_one_job(job: dict[str, Any], exe: str) -> dict[str, Any]:
+def _run_one_job(job: dict[str, Any], exe: str, mc_cfg: dict[str, int]) -> dict[str, Any]:
     try:
         data_path = Path(job["data_path"])
         meta_path = Path(job["meta_path"])
@@ -435,7 +494,7 @@ def _run_one_job(job: dict[str, Any], exe: str) -> dict[str, Any]:
             lattice=lattice,
             couplings=couplings,
             beta=float(job["beta"]),
-            mc_cfg=DEFAULT_MC,
+            mc_cfg=mc_cfg,
             scratch_root=str(job["scratch_root"]),
             label=str(job["job_id"]),
         )
@@ -518,6 +577,53 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--workers", type=int, default=2, help="Parallel workers for independent jobs")
     parser.add_argument(
+        "--run-root",
+        type=str,
+        default=None,
+        help="Optional alternate campaign root. Defaults to responsible_method_tests/standard/.",
+    )
+    parser.add_argument(
+        "--multipliers",
+        nargs="+",
+        type=float,
+        default=None,
+        help=(
+            "Explicit symmetric multiplier stencil for both r1 and r2. "
+            f"Defaults to {' '.join(f'{value:.1f}' for value in DEFAULT_MULTIPLIERS)}."
+        ),
+    )
+    parser.add_argument(
+        "--sizes",
+        nargs="+",
+        type=int,
+        default=None,
+        help=(
+            "Explicit untwisted square sizes. "
+            f"Defaults to {' '.join(str(value) for value in SIZES)}."
+        ),
+    )
+    parser.add_argument(
+        "--n-traj",
+        dest="n_traj",
+        type=int,
+        default=None,
+        help=f"Production trajectories per job. Defaults to {DEFAULT_MC['n_traj']}.",
+    )
+    parser.add_argument(
+        "--n-skip",
+        dest="n_skip",
+        type=int,
+        default=None,
+        help=f"Measurements to skip between saved trajectories. Defaults to {DEFAULT_MC['n_skip']}.",
+    )
+    parser.add_argument(
+        "--n-therm",
+        dest="n_therm",
+        type=int,
+        default=None,
+        help=f"Thermalization trajectories per job. Defaults to {DEFAULT_MC['n_therm']}.",
+    )
+    parser.add_argument(
         "--geometry",
         action="append",
         choices=sorted(GEOMETRIES.keys()),
@@ -548,9 +654,12 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    root = HERE
+    root = Path(args.run_root).resolve() if args.run_root else HERE
     ensure_dir(str(root))
-    all_jobs = _build_job_plan(root)
+    multipliers = _resolve_multipliers(args.multipliers)
+    sizes = _resolve_sizes(args.sizes)
+    mc_cfg = _resolve_mc(args.n_traj, args.n_skip, args.n_therm)
+    all_jobs = _build_job_plan(root, multipliers, sizes)
 
     if args.import_manual_job is not None:
         if not args.manual_source_dir:
@@ -560,6 +669,7 @@ def main() -> None:
             all_jobs,
             str(args.import_manual_job),
             Path(args.manual_source_dir).resolve(),
+            mc_cfg,
         )
         print(json.dumps(result, sort_keys=True))
         return
@@ -570,9 +680,15 @@ def main() -> None:
         set(args.method) if args.method else None,
         args.max_jobs,
     )
-    _write_plan(root, all_jobs, jobs, max(int(args.workers), 1))
+    _write_plan(root, all_jobs, jobs, max(int(args.workers), 1), multipliers, sizes, mc_cfg)
 
     existing = sum(1 for job in jobs if _existing_result(job))
+    print("multipliers=" + ",".join(f"{value:.3f}" for value in multipliers))
+    print("sizes=" + ",".join(str(value) for value in sizes))
+    print(
+        "mc="
+        + f"n_traj:{mc_cfg['n_traj']},n_skip:{mc_cfg['n_skip']},n_therm:{mc_cfg['n_therm']}"
+    )
     print(f"planned_jobs={len(jobs)}")
     print(f"already_present={existing}")
     print(f"new_jobs={len(jobs) - existing}")
@@ -587,14 +703,14 @@ def main() -> None:
 
     if workers == 1:
         for index, job in enumerate(jobs, start=1):
-            result = _run_one_job(job, exe)
+            result = _run_one_job(job, exe, mc_cfg)
             _append_log(root, result)
             _write_summary(root, all_jobs)
             print(f"[{index}/{len(jobs)}] {result['job_id']} -> {result['status']}", flush=True)
         return
 
     with ProcessPoolExecutor(max_workers=workers) as executor:
-        future_map = {executor.submit(_run_one_job, job, exe): job for job in jobs}
+        future_map = {executor.submit(_run_one_job, job, exe, mc_cfg): job for job in jobs}
         for index, future in enumerate(as_completed(future_map), start=1):
             result = future.result()
             _append_log(root, result)
