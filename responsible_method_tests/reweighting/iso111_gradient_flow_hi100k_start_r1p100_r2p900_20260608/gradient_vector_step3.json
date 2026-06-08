@@ -1,0 +1,45 @@
+{
+  "gradient": {
+    "center_score": 1.859942260116527e-05,
+    "covariance": [
+      [
+        8.561669415098669e-08,
+        -8.041691960562166e-08
+      ],
+      [
+        -8.041691960562166e-08,
+        9.699346172389157e-08
+      ]
+    ],
+    "grad_norm": 0.0002266871368440123,
+    "grad_norm_sigma": 0.0004145179395872756,
+    "grad_norm_snr": 0.5468693033399679,
+    "grad_r1": 0.00015765126831408314,
+    "grad_r1_sigma": 0.00029260330509238387,
+    "grad_r1_snr": 0.5387884059078136,
+    "grad_r2": -0.00016288994938146712,
+    "grad_r2_sigma": 0.0003114377333013641,
+    "grad_r2_snr": 0.5230257350474804,
+    "r1_minus_score": 1.720134249706085e-05,
+    "r1_plus_score": 2.114262420491293e-05,
+    "r2_minus_score": 2.0953667451837002e-05,
+    "r2_plus_score": 1.6881418717300324e-05,
+    "vector_snr_mahalanobis": 0.548195230759782
+  },
+  "gradient_step": 0.0125,
+  "jackknife_replicas": 16,
+  "metric_key": "total_score",
+  "point": {
+    "point_tag": "r1_1p036080__r2_0p939009",
+    "r1": 1.0360798341,
+    "r2": 0.93900885
+  },
+  "source_run_root": "/workspaces/newQFE/responsible_method_tests/results/iso111_gradient_flow_hi100k_start_r1p100_r2p900_20260608",
+  "staged_output_dir": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_gradient_flow_hi100k_start_r1p100_r2p900_20260608",
+  "step_index": 3,
+  "trajectory_gradient": {
+    "grad_norm": 0.00022669577012,
+    "grad_r1": 0.00015762802419,
+    "grad_r2": -0.00016292445543
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "balance_mode": "none",
+  "base_values": [
+    0.9,
+    0.95,
+    1.0,
+    1.05,
+    1.1
+  ],
+  "best_total_like_row": {
+    "metric_key": "total_score",
+    "metric_value": 3.8003724700522394e-06,
+    "neighbor_tags": [
+      "r1_0p950000__r2_1p000000"
+    ],
+    "neighbor_weights": [
+      1.0
+    ],
+    "point_tag": "r1_0p950000__r2_1p000000",
+    "r1": 0.95,
+    "r2": 1.0,
+    "source_mode": "direct"
+  },
+  "chi2_scales": {
+    "mid_u_over_q_w_chi2": 1.0,
+    "mid_v_over_q_w_chi2": 1.0,
+    "mid_w_over_q_w_chi2": 1.0,
+    "q_u_over_q_w_chi2": 1.0,
+    "q_v_over_q_w_chi2": 1.0
+  },
+  "fit_sizes": [
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32
+  ],
+  "gradient_method": "local_reweight_central_difference",
+  "gradient_step": 0.012499999999999983,
+  "gradient_summary": {
+    "figure_path": {
+      "value": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_grid5x5_sizes32_28_24_20_16_12_8_4_hi100k_20260606/gradient_fields_target_L64_qw_norm_local_reweight/target_L64_qw_norm_local_reweight_aggregate_gradient_fields.png"
+    },
+    "midpoint_score": {
+      "max_grad_norm": 0.00041012688114082726,
+      "mean_grad_norm": 0.00019071359584545586
+    },
+    "quarter_score": {
+      "max_grad_norm": 0.0005006115558077811,
+      "mean_grad_norm": 0.0002020116436179229
+    },
+    "total_score": {
+      "max_grad_norm": 0.0008936188663985706,
+      "mean_grad_norm": 0.00035746797862107874
+    },
+    "tsv_path": {
+      "value": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_grid5x5_sizes32_28_24_20_16_12_8_4_hi100k_20260606/gradient_fields_target_L64_qw_norm_local_reweight/target_L64_qw_norm_local_reweight_aggregate_gradient_fields.tsv"
+    }
+  },
+  "output_root": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_grid5x5_sizes32_28_24_20_16_12_8_4_hi100k_20260606",
+  "refined_values": [
+    0.9,
+    0.925,
+    0.95,
+    0.975,
+    1.0,
+    1.025,
+    1.05,
+    1.0750000000000002,
+    1.1
+  ],
+  "target_point": {
+    "r1": 1.0,
+    "r2": 1.0
+  },
+  "target_root": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_target_L64_hi100k_20260606",
+  "target_size": 64
+}

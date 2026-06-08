@@ -166,6 +166,18 @@ def _unique_sorted(values: list[float]) -> list[float]:
     return sorted({round(float(value), 12) for value in values})
 
 
+def _unique_ints_preserve_order(values: list[int]) -> list[int]:
+    ordered: list[int] = []
+    seen: set[int] = set()
+    for raw_value in values:
+        value = int(raw_value)
+        if value in seen:
+            continue
+        seen.add(value)
+        ordered.append(value)
+    return ordered
+
+
 def _selected_specs_for_size(size: int) -> list[tuple[str, tuple[int, int]]]:
     if size % 4 != 0:
         raise ValueError(f"size must be divisible by 4 for quarter observables, got {size}")
@@ -524,6 +536,433 @@ def _save_plot(output_root: Path, rows: list[dict[str, Any]], donors: list[Coupl
     plt.close(fig)
 
 
+def _panel_fit_details(
+    family_rows: dict[int, dict[str, dict[str, float]]],
+    *,
+    fit_sizes: list[int],
+    target_x: float,
+    target_rows: dict[str, dict[str, float]],
+) -> dict[str, dict[str, Any]]:
+    details: dict[str, dict[str, Any]] = {}
+    x_values = np.asarray([1.0 / math.sqrt(float(size) * float(size)) for size in fit_sizes], dtype=float)
+    for panel in _panel_specs():
+        label = str(panel["label"])
+        y_values = np.asarray([float(family_rows[size][label]["value"]) for size in fit_sizes], dtype=float)
+        sigma_values = np.asarray([float(family_rows[size][label]["sigma"]) for size in fit_sizes], dtype=float)
+        fit_payload = _fit_blind_power_model(x_values, y_values, sigma_values)
+        pred_value, pred_sigma = _predict_at_target_x(fit_payload, target_x)
+        details[label] = {
+            "x_values": [float(value) for value in x_values],
+            "y_values": [float(value) for value in y_values],
+            "sigma_values": [float(value) for value in sigma_values],
+            "fit": {
+                "A": float(fit_payload["A"]),
+                "B": float(fit_payload["B"]),
+                "omega": float(fit_payload["omega"]),
+                "sigma_A": float(fit_payload["sigma_A"]),
+                "sigma_omega": float(fit_payload["sigma_omega"]),
+                "fit_mode": str(fit_payload["fit_mode"]),
+            },
+            "fit_payload": fit_payload,
+            "pred": {"value": float(pred_value), "sigma": float(pred_sigma)},
+            "target": {
+                "value": float(target_rows[label]["value"]),
+                "sigma": float(target_rows[label]["sigma"]),
+            },
+        }
+    return details
+
+
+def _predict_band(fit_payload: dict[str, Any], *, x_values: np.ndarray) -> np.ndarray:
+    x_array = np.asarray(x_values, dtype=float)
+    band_sigma = np.full_like(x_array, np.nan, dtype=float)
+    pcov = np.asarray(fit_payload.get("pcov"), dtype=float)
+    if pcov.shape != (3, 3) or not np.all(np.isfinite(pcov)):
+        return band_sigma
+
+    omega_value = float(fit_payload["omega"])
+    b_value = float(fit_payload["B"])
+    x_pow = np.power(x_array, omega_value)
+    grad = np.column_stack(
+        [
+            np.ones_like(x_array, dtype=float),
+            x_pow,
+            b_value * x_pow * np.log(x_array),
+        ]
+    )
+    pred_var = np.einsum("ij,jk,ik->i", grad, pcov, grad)
+    valid = np.isfinite(pred_var) & (pred_var >= 0.0)
+    band_sigma[valid] = np.sqrt(pred_var[valid])
+    return band_sigma
+
+
+def _prediction_delta_summary(detail: dict[str, Any]) -> dict[str, float]:
+    pred_value = float(detail["pred"]["value"])
+    pred_sigma = float(detail["pred"]["sigma"])
+    target_value = float(detail["target"]["value"])
+    target_sigma = float(detail["target"]["sigma"])
+    delta = pred_value - target_value
+    if np.isfinite(pred_sigma) and pred_sigma > 0.0 and np.isfinite(target_sigma):
+        denom = float(math.sqrt(pred_sigma**2 + target_sigma**2))
+    elif np.isfinite(target_sigma) and target_sigma > 0.0:
+        denom = float(target_sigma)
+    else:
+        denom = float("nan")
+    z_value = delta / denom if np.isfinite(denom) and denom > 0.0 else float("nan")
+    return {
+        "pred_target": pred_value,
+        "pred_target_sigma": pred_sigma,
+        "delta_target": delta,
+        "z_target": float(z_value),
+    }
+
+
+def _acute_style_panel_groups() -> list[dict[str, Any]]:
+    return [
+        {
+            "slug": "midpoint",
+            "title": "midpoint anchored-ratio and ratio FSS",
+            "panels": [
+                {"label": "mid_v_anchor", "title": "mid_v_anchor", "color": "#1d4ed8"},
+                {"label": "mid_u_anchor", "title": "mid_u_anchor", "color": "#047857"},
+                {"label": "mid_w_anchor", "title": "mid_w_anchor", "color": "#b45309"},
+                {"label": "mid_v_over_u", "title": "mid_v_over_u", "color": "#7c2d12"},
+                {"label": "mid_w_over_u", "title": "mid_w_over_u", "color": "#7c3aed"},
+            ],
+        },
+        {
+            "slug": "quarter",
+            "title": "quarter-point anchored-ratio and ratio FSS",
+            "panels": [
+                {"label": "q_v_anchor", "title": "q_v_anchor", "color": "#1d4ed8"},
+                {"label": "q_u_anchor", "title": "q_u_anchor", "color": "#047857"},
+                {"label": "q_w_anchor", "title": "q_w_anchor", "color": "#b45309"},
+                {"label": "q_v_over_u", "title": "q_v_over_u", "color": "#7c2d12"},
+                {"label": "q_w_over_u", "title": "q_w_over_u", "color": "#7c3aed"},
+            ],
+        },
+    ]
+
+
+def _render_acute_style_panel(
+    axis: plt.Axes,
+    *,
+    panel_meta: dict[str, Any],
+    direct_detail: dict[str, Any],
+    reweight_detail: dict[str, Any],
+    target_x: float,
+    target_size: int,
+    direct_z: float,
+    reweighted_z: float,
+    reweight_neff: float,
+) -> None:
+    color = str(panel_meta["color"])
+    direct_fit = direct_detail["fit"]
+    reweight_fit = reweight_detail["fit"]
+    direct_fit_payload = dict(direct_detail.get("fit_payload", direct_fit))
+    reweight_fit_payload = dict(reweight_detail.get("fit_payload", reweight_fit))
+    reweight_color = "#ea580c"
+    direct_summary = _prediction_delta_summary(direct_detail)
+    reweight_summary = _prediction_delta_summary(reweight_detail)
+
+    direct_x = np.asarray(direct_detail["x_values"], dtype=float)
+    direct_y = np.asarray(direct_detail["y_values"], dtype=float)
+    direct_sigma = np.asarray(direct_detail["sigma_values"], dtype=float)
+    reweight_x = np.asarray(reweight_detail["x_values"], dtype=float)
+    reweight_y = np.asarray(reweight_detail["y_values"], dtype=float)
+    reweight_sigma = np.asarray(reweight_detail["sigma_values"], dtype=float)
+
+    x_min = min(float(np.min(direct_x)), float(np.min(reweight_x)), float(target_x))
+    x_max = max(float(np.max(direct_x)), float(np.max(reweight_x)), float(target_x))
+    x_plot_min = max(x_min * 0.9, 1.0e-6)
+    x_plot_max = x_max * 1.08
+    x_fit = np.geomspace(x_plot_min, x_plot_max, 300)
+
+    direct_fit_y = _evaluate_power_model_on_x(x_fit, float(direct_fit["A"]), float(direct_fit["B"]), float(direct_fit["omega"]))
+    direct_fit_sigma = _predict_band(direct_fit_payload, x_values=x_fit)
+    reweight_fit_y = _evaluate_power_model_on_x(
+        x_fit,
+        float(reweight_fit["A"]),
+        float(reweight_fit["B"]),
+        float(reweight_fit["omega"]),
+    )
+    reweight_fit_sigma = _predict_band(reweight_fit_payload, x_values=x_fit)
+
+    if np.any(np.isfinite(direct_fit_sigma)):
+        valid = np.isfinite(direct_fit_sigma)
+        axis.fill_between(
+            x_fit[valid],
+            (direct_fit_y - direct_fit_sigma)[valid],
+            (direct_fit_y + direct_fit_sigma)[valid],
+            color=color,
+            alpha=0.16,
+            zorder=1,
+        )
+    if np.any(np.isfinite(reweight_fit_sigma)):
+        valid = np.isfinite(reweight_fit_sigma)
+        axis.fill_between(
+            x_fit[valid],
+            (reweight_fit_y - reweight_fit_sigma)[valid],
+            (reweight_fit_y + reweight_fit_sigma)[valid],
+            color=reweight_color,
+            alpha=0.10,
+            zorder=1,
+        )
+
+    axis.errorbar(
+        direct_x,
+        direct_y,
+        yerr=direct_sigma,
+        fmt="o",
+        color=color,
+        ecolor=color,
+        capsize=3,
+        markersize=5,
+        markeredgecolor="white",
+        markeredgewidth=0.8,
+        linewidth=1.0,
+        label="direct",
+        zorder=3,
+    )
+    axis.errorbar(
+        reweight_x,
+        reweight_y,
+        yerr=reweight_sigma,
+        fmt="s",
+        color=reweight_color,
+        ecolor=reweight_color,
+        capsize=3,
+        markersize=5,
+        markeredgecolor="white",
+        markeredgewidth=0.8,
+        linewidth=1.0,
+        linestyle="--",
+        label="reweighted",
+        zorder=4,
+    )
+    axis.plot(x_fit, direct_fit_y, color=color, linewidth=2.0, zorder=2)
+    axis.plot(x_fit, reweight_fit_y, color=reweight_color, linewidth=2.0, linestyle="--", zorder=2)
+
+    target = direct_detail["target"]
+    axis.errorbar(
+        [target_x],
+        [float(target["value"])],
+        yerr=[float(target["sigma"])],
+        fmt="*",
+        color="#dc2626",
+        ecolor="#dc2626",
+        capsize=3,
+        markersize=9,
+        markeredgecolor="white",
+        markeredgewidth=0.8,
+        linewidth=1.0,
+        label=f"target L={target_size}",
+        zorder=5,
+    )
+    axis.set_title(
+        f"{str(panel_meta['title'])}\nzd={float(direct_z):+.2f}  zrw={float(reweighted_z):+.2f}  min N_eff/N={float(reweight_neff):.3f}",
+        fontsize=9,
+    )
+    axis.text(
+        0.03,
+        0.97,
+        (
+            f"direct A = {float(direct_fit['A']):.6f} +/- {float(direct_fit.get('sigma_A', float('nan'))):.6f}\n"
+            f"direct omega = {float(direct_fit['omega']):.3f}\n"
+            f"direct pred@target = {float(direct_summary['pred_target']):.6f} +/- {float(direct_summary['pred_target_sigma']):.6f}  z = {float(direct_summary['z_target']):+.2f}\n"
+            f"rw A = {float(reweight_fit['A']):.6f} +/- {float(reweight_fit.get('sigma_A', float('nan'))):.6f}\n"
+            f"rw omega = {float(reweight_fit['omega']):.3f}\n"
+            f"rw pred@target = {float(reweight_summary['pred_target']):.6f} +/- {float(reweight_summary['pred_target_sigma']):.6f}  z = {float(reweight_summary['z_target']):+.2f}"
+        ),
+        transform=axis.transAxes,
+        ha="left",
+        va="top",
+        fontsize=8.0,
+        bbox={"facecolor": "white", "alpha": 0.82, "edgecolor": "none"},
+    )
+    axis.set_xlabel("1 / sqrt(lattice volume)")
+    axis.set_ylabel("Correlator ratio")
+    axis.set_xscale("log")
+    axis.set_xlim(x_plot_min, x_plot_max)
+    axis.grid(True, which="both", alpha=0.35)
+    axis.legend(loc="lower right", fontsize=7.5)
+
+
+def _save_acute_style_fss_sheet(
+    output_path: Path,
+    *,
+    title: str,
+    subtitle: str,
+    group_meta: dict[str, Any],
+    direct_details: dict[str, dict[str, Any]],
+    reweighted_details: dict[str, dict[str, Any]],
+    row: dict[str, Any],
+    target_x: float,
+    target_size: int,
+) -> None:
+    fig, axes = plt.subplots(2, 3, figsize=(18, 9.8), squeeze=False)
+    axes_flat = list(axes.ravel())
+    fig.suptitle(title, fontsize=15, y=0.98)
+    fig.text(0.5, 0.945, subtitle, ha="center", va="top", fontsize=9.5, color="#444444")
+
+    for axis, panel_meta in zip(axes_flat, list(group_meta["panels"])):
+        label = str(panel_meta["label"])
+        _render_acute_style_panel(
+            axis,
+            panel_meta=panel_meta,
+            direct_detail=direct_details[label],
+            reweight_detail=reweighted_details[label],
+            target_x=target_x,
+            target_size=target_size,
+            direct_z=float(row["direct_panel_z"][label]),
+            reweighted_z=float(row["reweighted_panel_z"][label]),
+            reweight_neff=float(row["reweighted_panel_min_neff_fraction"][label]),
+        )
+    for axis in axes_flat[len(group_meta["panels"]):]:
+        axis.axis("off")
+
+    fig.tight_layout(rect=[0.0, 0.0, 1.0, 0.92])
+    fig.savefig(output_path, dpi=180)
+    plt.close(fig)
+
+
+def _make_row_lookup(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    return {str(row["point_tag"]): row for row in rows}
+
+
+def _select_fss_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not rows:
+        return []
+    selected: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    def add(row: dict[str, Any] | None) -> None:
+        if row is None:
+            return
+        tag = str(row["point_tag"])
+        if tag in seen:
+            return
+        seen.add(tag)
+        selected.append(row)
+
+    row_lookup = _make_row_lookup(rows)
+    add(row_lookup.get("r1_1p000000__r2_1p000000"))
+    add(min(rows, key=lambda row: float(row["direct_z2_sum"])))
+    add(min(rows, key=lambda row: float(row["reweighted_z2_sum"])))
+    add(max(rows, key=lambda row: abs(float(row["delta_z2_sum"]))))
+    return selected
+
+
+def _save_fss_plots(
+    output_root: Path,
+    *,
+    rows: list[dict[str, Any]],
+    direct_family_by_tag: dict[str, dict[int, dict[str, dict[str, float]]]],
+    reweighted_family_by_tag: dict[str, dict[int, dict[str, dict[str, float]]]],
+    donor_by_tag: dict[str, CouplingPoint],
+    fit_sizes: list[int],
+    target_size: int,
+    target_x: float,
+    target_rows: dict[str, dict[str, float]],
+) -> None:
+    selected_rows = _select_fss_rows(rows)
+    if not selected_rows:
+        return
+
+    fss_dir = output_root / "fss_panels"
+    ensure_dir(str(fss_dir))
+    x_curve = np.linspace(0.0, max(1.0 / float(size) for size in fit_sizes) * 1.05, 300)
+    panel_specs = _panel_specs()
+    acute_style_groups = _acute_style_panel_groups()
+
+    for row in selected_rows:
+        point_tag = str(row["point_tag"])
+        direct_family = direct_family_by_tag[point_tag]
+        reweighted_family = reweighted_family_by_tag[point_tag]
+        direct_details = _panel_fit_details(direct_family, fit_sizes=fit_sizes, target_x=target_x, target_rows=target_rows)
+        reweighted_details = _panel_fit_details(reweighted_family, fit_sizes=fit_sizes, target_x=target_x, target_rows=target_rows)
+        donor = donor_by_tag[point_tag]
+
+        fig, axes = plt.subplots(5, 2, figsize=(13.5, 17.5), constrained_layout=True)
+        for axis, panel in zip(axes.ravel(), panel_specs):
+            label = str(panel["label"])
+            direct_detail = direct_details[label]
+            reweight_detail = reweighted_details[label]
+
+            direct_x = np.asarray(direct_detail["x_values"], dtype=float)
+            direct_y = np.asarray(direct_detail["y_values"], dtype=float)
+            direct_sigma = np.asarray(direct_detail["sigma_values"], dtype=float)
+            rw_x = np.asarray(reweight_detail["x_values"], dtype=float)
+            rw_y = np.asarray(reweight_detail["y_values"], dtype=float)
+            rw_sigma = np.asarray(reweight_detail["sigma_values"], dtype=float)
+
+            axis.errorbar(direct_x, direct_y, yerr=direct_sigma, fmt="o", color="#2563eb", label="direct", capsize=3)
+            axis.errorbar(rw_x, rw_y, yerr=rw_sigma, fmt="s", color="#ea580c", label="reweighted", capsize=3)
+
+            direct_fit = direct_detail["fit"]
+            rw_fit = reweight_detail["fit"]
+            axis.plot(
+                x_curve,
+                _evaluate_power_model_on_x(x_curve, direct_fit["A"], direct_fit["B"], direct_fit["omega"]),
+                color="#2563eb",
+                linewidth=1.5,
+            )
+            axis.plot(
+                x_curve,
+                _evaluate_power_model_on_x(x_curve, rw_fit["A"], rw_fit["B"], rw_fit["omega"]),
+                color="#ea580c",
+                linewidth=1.5,
+                linestyle="--",
+            )
+
+            target = direct_detail["target"]
+            axis.errorbar([target_x], [target["value"]], yerr=[target["sigma"]], fmt="*", color="#dc2626", markersize=10, label=f"target L={target_size}")
+
+            direct_z = float(row["direct_panel_z"][label])
+            reweighted_z = float(row["reweighted_panel_z"][label])
+            neff = float(row["reweighted_panel_min_neff_fraction"][label])
+            axis.set_title(f"{label}\nzd={direct_z:+.2f}  zrw={reweighted_z:+.2f}  min N_eff/N={neff:.3f}", fontsize=9)
+            axis.set_xlabel("1 / L")
+            axis.set_ylabel("ratio")
+            axis.grid(alpha=0.25)
+
+        handles, labels = axes[0, 0].get_legend_handles_labels()
+        if handles:
+            fig.legend(handles, labels, loc="upper center", ncol=3, frameon=False)
+
+        point_r1 = float(row["r1"])
+        point_r2 = float(row["r2"])
+        fig.suptitle(
+            (
+                f"FSS panels for point ({point_r1:.3f}, {point_r2:.3f}) using donor ({float(donor.r1):.3f}, {float(donor.r2):.3f})\n"
+                f"direct z2={float(row['direct_z2_sum']):.4f}  reweighted z2={float(row['reweighted_z2_sum']):.4f}  delta={float(row['delta_z2_sum']):+.4f}"
+            ),
+            fontsize=12,
+        )
+        fig.savefig(fss_dir / f"{point_tag}_fss.png", dpi=180)
+        plt.close(fig)
+
+        title_base = (
+            f"Point ({point_r1:.3f}, {point_r2:.3f}) using donor ({float(donor.r1):.3f}, {float(donor.r2):.3f})"
+        )
+        subtitle_base = (
+            f"direct z2={float(row['direct_z2_sum']):.4f}  reweighted z2={float(row['reweighted_z2_sum']):.4f}  delta={float(row['delta_z2_sum']):+.4f}; "
+            f"untwisted sizes={','.join(str(int(size)) for size in fit_sizes)}  target L={int(target_size)}"
+        )
+        for group_meta in acute_style_groups:
+            _save_acute_style_fss_sheet(
+                fss_dir / f"{point_tag}_{str(group_meta['slug'])}_acute_style.png",
+                title=f"{title_base} {str(group_meta['title'])}",
+                subtitle=subtitle_base,
+                group_meta=group_meta,
+                direct_details=direct_details,
+                reweighted_details=reweighted_details,
+                row=row,
+                target_x=target_x,
+                target_size=target_size,
+            )
+
+
 def main() -> None:
     args = parse_args()
     output_root = Path(args.output_root).resolve()
@@ -532,16 +971,18 @@ def main() -> None:
 
     grid_values = _unique_sorted(list(args.grid_values))
     donor_values = _unique_sorted(list(args.donor_values))
-    fit_sizes = sorted({int(value) for value in args.fit_sizes})
+    execution_sizes = _unique_ints_preserve_order(list(args.fit_sizes))
+    fit_sizes = sorted(set(execution_sizes))
     target_size = int(args.target_size)
     target_point = CouplingPoint(float(args.target_r1), float(args.target_r2))
+    scheduled_sizes = [*execution_sizes, *([] if target_size in execution_sizes else [target_size])]
 
     fine_points = [CouplingPoint(r1, r2) for r1 in grid_values for r2 in grid_values]
     donors = [CouplingPoint(r1, r2) for r1 in donor_values for r2 in donor_values]
     payloads: dict[tuple[int, str], dict[str, Any]] = {}
 
-    labels = [label for label, _ in _selected_specs_for_size(fit_sizes[0])]
-    for size_index, size in enumerate([*fit_sizes, target_size]):
+    labels = [label for label, _ in _selected_specs_for_size(execution_sizes[0])]
+    for size_index, size in enumerate(scheduled_sizes):
         points = fine_points if size in fit_sizes else [target_point]
         for point_index, point in enumerate(points):
             bundle_path = _run_point(
@@ -561,6 +1002,9 @@ def main() -> None:
 
     direct_panel_cache: dict[tuple[int, str], dict[str, dict[str, float]]] = {}
     reweighted_panel_cache: dict[tuple[int, str, str], dict[str, dict[str, float]]] = {}
+    direct_family_by_tag: dict[str, dict[int, dict[str, dict[str, float]]]] = {}
+    reweighted_family_by_tag: dict[str, dict[int, dict[str, dict[str, float]]]] = {}
+    donor_by_tag: dict[str, CouplingPoint] = {}
     rows: list[dict[str, Any]] = []
     for point in fine_points:
         donor = _nearest_donor(point, donors)
@@ -578,10 +1022,15 @@ def main() -> None:
                 reweighted_panel_cache[reweight_key] = _panel_values(payloads[(size, donor.tag)], target_point=point)
             reweighted_family[size] = reweighted_panel_cache[reweight_key]
 
+        direct_family_by_tag[point.tag] = dict(direct_family)
+        reweighted_family_by_tag[point.tag] = dict(reweighted_family)
+        donor_by_tag[point.tag] = donor
+
         direct_score = _score_family(direct_family, fit_sizes=fit_sizes, target_x=target_x, target_rows=target_rows)
         reweighted_score = _score_family(reweighted_family, fit_sizes=fit_sizes, target_x=target_x, target_rows=target_rows)
         rows.append(
             {
+                "point_tag": point.tag,
                 "r1": float(point.r1),
                 "r2": float(point.r2),
                 "donor_r1": float(donor.r1),
@@ -617,6 +1066,17 @@ def main() -> None:
     }
     _write_summary(output_root, rows, summary)
     _save_plot(output_root, rows, donors, target_point)
+    _save_fss_plots(
+        output_root,
+        rows=rows,
+        direct_family_by_tag=direct_family_by_tag,
+        reweighted_family_by_tag=reweighted_family_by_tag,
+        donor_by_tag=donor_by_tag,
+        fit_sizes=fit_sizes,
+        target_size=target_size,
+        target_x=target_x,
+        target_rows=target_rows,
+    )
     print(json.dumps(summary["summary"], indent=2, sort_keys=True))
 
 

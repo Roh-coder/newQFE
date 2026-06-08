@@ -38,6 +38,7 @@
       "direct_z2_sum": 6.942196701131865,
       "donor_r1": 0.99,
       "donor_r2": 0.99,
+      "point_tag": "r1_0p990000__r2_0p990000",
       "r1": 0.99,
       "r2": 0.99,
       "reweighted_panel_min_neff_fraction": {
@@ -83,6 +84,7 @@
       "direct_z2_sum": 8.591644811038204,
       "donor_r1": 0.99,
       "donor_r2": 0.99,
+      "point_tag": "r1_0p990000__r2_0p995000",
       "r1": 0.99,
       "r2": 0.995,
       "reweighted_panel_min_neff_fraction": {
@@ -128,6 +130,7 @@
       "direct_z2_sum": 0.5690947562045753,
       "donor_r1": 0.99,
       "donor_r2": 1.0,
+      "point_tag": "r1_0p990000__r2_1p000000",
       "r1": 0.99,
       "r2": 1.0,
       "reweighted_panel_min_neff_fraction": {
@@ -173,6 +176,7 @@
       "direct_z2_sum": 14.284745630477625,
       "donor_r1": 0.99,
       "donor_r2": 1.0,
+      "point_tag": "r1_0p990000__r2_1p005000",
       "r1": 0.99,
       "r2": 1.005,
       "reweighted_panel_min_neff_fraction": {
@@ -218,6 +222,7 @@
       "direct_z2_sum": 4.653002796324817,
       "donor_r1": 0.99,
       "donor_r2": 1.01,
+      "point_tag": "r1_0p990000__r2_1p010000",
       "r1": 0.99,
       "r2": 1.01,
       "reweighted_panel_min_neff_fraction": {
@@ -263,6 +268,7 @@
       "direct_z2_sum": 3.8840037176609106,
       "donor_r1": 0.99,
       "donor_r2": 0.99,
+      "point_tag": "r1_0p995000__r2_0p990000",
       "r1": 0.995,
       "r2": 0.99,
       "reweighted_panel_min_neff_fraction": {
@@ -308,6 +314,7 @@
       "direct_z2_sum": 1.117577632158382,
       "donor_r1": 0.99,
       "donor_r2": 0.99,
+      "point_tag": "r1_0p995000__r2_0p995000",
       "r1": 0.995,
       "r2": 0.995,
       "reweighted_panel_min_neff_fraction": {
@@ -353,6 +360,7 @@
       "direct_z2_sum": 4.074720993674645,
       "donor_r1": 0.99,
       "donor_r2": 1.0,
+      "point_tag": "r1_0p995000__r2_1p000000",
       "r1": 0.995,
       "r2": 1.0,
       "reweighted_panel_min_neff_fraction": {
@@ -398,6 +406,7 @@
       "direct_z2_sum": 2.2729550930612845,
       "donor_r1": 0.99,
       "donor_r2": 1.0,
+      "point_tag": "r1_0p995000__r2_1p005000",
       "r1": 0.995,
       "r2": 1.005,
       "reweighted_panel_min_neff_fraction": {
@@ -443,6 +452,7 @@
       "direct_z2_sum": 2.2238565604857103,
       "donor_r1": 0.99,
       "donor_r2": 1.01,
+      "point_tag": "r1_0p995000__r2_1p010000",
       "r1": 0.995,
       "r2": 1.01,
       "reweighted_panel_min_neff_fraction": {
@@ -488,6 +498,7 @@
       "direct_z2_sum": 5.347937195443576,
       "donor_r1": 1.0,
       "donor_r2": 0.99,
+      "point_tag": "r1_1p000000__r2_0p990000",
       "r1": 1.0,
       "r2": 0.99,
       "reweighted_panel_min_neff_fraction": {
@@ -533,6 +544,7 @@
       "direct_z2_sum": 8.089104022322472,
       "donor_r1": 1.0,
       "donor_r2": 0.99,
+      "point_tag": "r1_1p000000__r2_0p995000",
       "r1": 1.0,
       "r2": 0.995,
       "reweighted_panel_min_neff_fraction": {
@@ -578,6 +590,7 @@
       "direct_z2_sum": 7.0839883176175755,
       "donor_r1": 1.0,
       "donor_r2": 1.0,
+      "point_tag": "r1_1p000000__r2_1p000000",
       "r1": 1.0,
       "r2": 1.0,
       "reweighted_panel_min_neff_fraction": {
@@ -623,6 +636,7 @@
       "direct_z2_sum": 4.9811265170214005,
       "donor_r1": 1.0,
       "donor_r2": 1.0,
+      "point_tag": "r1_1p000000__r2_1p005000",
       "r1": 1.0,
       "r2": 1.005,
       "reweighted_panel_min_neff_fraction": {
@@ -668,6 +682,7 @@
       "direct_z2_sum": 16.55880942838767,
       "donor_r1": 1.0,
       "donor_r2": 1.01,
+      "point_tag": "r1_1p000000__r2_1p010000",
       "r1": 1.0,
       "r2": 1.01,
       "reweighted_panel_min_neff_fraction": {
@@ -713,6 +728,7 @@
       "direct_z2_sum": 6.759516420859319,
       "donor_r1": 1.0,
       "donor_r2": 0.99,
+      "point_tag": "r1_1p005000__r2_0p990000",
       "r1": 1.005,
       "r2": 0.99,
       "reweighted_panel_min_neff_fraction": {
@@ -758,6 +774,7 @@
       "direct_z2_sum": 11.612265452165085,
       "donor_r1": 1.0,
       "donor_r2": 0.99,
+      "point_tag": "r1_1p005000__r2_0p995000",
       "r1": 1.005,
       "r2": 0.995,
       "reweighted_panel_min_neff_fraction": {
@@ -803,6 +820,7 @@
       "direct_z2_sum": 3.788990551535752,
       "donor_r1": 1.0,
       "donor_r2": 1.0,
+      "point_tag": "r1_1p005000__r2_1p000000",
       "r1": 1.005,
       "r2": 1.0,
       "reweighted_panel_min_neff_fraction": {
@@ -848,6 +866,7 @@
       "direct_z2_sum": 5.681178210190911,
       "donor_r1": 1.0,
       "donor_r2": 1.0,
+      "point_tag": "r1_1p005000__r2_1p005000",
       "r1": 1.005,
       "r2": 1.005,
       "reweighted_panel_min_neff_fraction": {
@@ -893,6 +912,7 @@
       "direct_z2_sum": 7.455651104649021,
       "donor_r1": 1.0,
       "donor_r2": 1.01,
+      "point_tag": "r1_1p005000__r2_1p010000",
       "r1": 1.005,
       "r2": 1.01,
       "reweighted_panel_min_neff_fraction": {
@@ -938,6 +958,7 @@
       "direct_z2_sum": 0.781094947149106,
       "donor_r1": 1.01,
       "donor_r2": 0.99,
+      "point_tag": "r1_1p010000__r2_0p990000",
       "r1": 1.01,
       "r2": 0.99,
       "reweighted_panel_min_neff_fraction": {
@@ -983,6 +1004,7 @@
       "direct_z2_sum": 4.747010304276461,
       "donor_r1": 1.01,
       "donor_r2": 0.99,
+      "point_tag": "r1_1p010000__r2_0p995000",
       "r1": 1.01,
       "r2": 0.995,
       "reweighted_panel_min_neff_fraction": {
@@ -1028,6 +1050,7 @@
       "direct_z2_sum": 7.002411714608903,
       "donor_r1": 1.01,
       "donor_r2": 1.0,
+      "point_tag": "r1_1p010000__r2_1p000000",
       "r1": 1.01,
       "r2": 1.0,
       "reweighted_panel_min_neff_fraction": {
@@ -1073,6 +1096,7 @@
       "direct_z2_sum": 3.1530982958019385,
       "donor_r1": 1.01,
       "donor_r2": 1.0,
+      "point_tag": "r1_1p010000__r2_1p005000",
       "r1": 1.01,
       "r2": 1.005,
       "reweighted_panel_min_neff_fraction": {
@@ -1118,6 +1142,7 @@
       "direct_z2_sum": 3.464003727145396,
       "donor_r1": 1.01,
       "donor_r2": 1.01,
+      "point_tag": "r1_1p010000__r2_1p010000",
       "r1": 1.01,
       "r2": 1.01,
       "reweighted_panel_min_neff_fraction": {
@@ -1165,6 +1190,7 @@
       "direct_z2_sum": 0.5690947562045753,
       "donor_r1": 0.99,
       "donor_r2": 1.0,
+      "point_tag": "r1_0p990000__r2_1p000000",
       "r1": 0.99,
       "r2": 1.0,
       "reweighted_panel_min_neff_fraction": {
@@ -1210,6 +1236,7 @@
       "direct_z2_sum": 4.074720993674645,
       "donor_r1": 0.99,
       "donor_r2": 1.0,
+      "point_tag": "r1_0p995000__r2_1p000000",
       "r1": 0.995,
       "r2": 1.0,
       "reweighted_panel_min_neff_fraction": {

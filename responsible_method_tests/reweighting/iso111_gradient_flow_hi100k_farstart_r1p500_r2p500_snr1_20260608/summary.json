@@ -1,0 +1,71 @@
+{
+  "args": {
+    "accept_rule": "gradient_only",
+    "adaptive_step_scale_max": 3.0,
+    "adaptive_step_scale_min": 0.5,
+    "adaptive_step_snr_reference": 3.0,
+    "balance_mode": "none",
+    "fit_sizes": [
+      32,
+      28,
+      24,
+      20,
+      16,
+      12,
+      8,
+      4
+    ],
+    "gradient_jackknife_blocks": 16,
+    "gradient_step": null,
+    "metric_key": null,
+    "min_gradient_snr": 1.0,
+    "n_skip": 10,
+    "n_therm": 10000,
+    "n_traj": 100000,
+    "num_steps": 17,
+    "output_root": "responsible_method_tests/reweighting/iso111_gradient_flow_hi100k_farstart_r1p500_r2p500_snr1_20260608",
+    "r1_max": 10.0,
+    "r1_min": 0.1,
+    "r2_max": 10.0,
+    "r2_min": 0.1,
+    "seed_base": 2026060801,
+    "start_r1": 1.5,
+    "start_r2": 0.5,
+    "step_adaptation": "fixed",
+    "step_mode": "normalized",
+    "step_size": 0.025,
+    "target_r1": 1.0,
+    "target_r2": 1.0,
+    "target_size": 64
+  },
+  "final_point": {
+    "r1": 1.17938059369093,
+    "r2": 0.7780419281183846
+  },
+  "final_reason": "completed_requested_steps",
+  "final_score": 0.00026563116593516416,
+  "fit_sizes": [
+    32,
+    28,
+    24,
+    20,
+    16,
+    12,
+    8,
+    4
+  ],
+  "gradient_step": 0.0125,
+  "metric_key": "total_score",
+  "n_accepted_steps": 17,
+  "n_attempted_steps": 17,
+  "start_point": {
+    "r1": 1.5,
+    "r2": 0.5
+  },
+  "target_point": {
+    "r1": 1.0,
+    "r2": 1.0
+  },
+  "trajectory_png": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_gradient_flow_hi100k_farstart_r1p500_r2p500_snr1_20260608/trajectory.png",
+  "trajectory_tsv": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_gradient_flow_hi100k_farstart_r1p500_r2p500_snr1_20260608/trajectory.tsv"
+}

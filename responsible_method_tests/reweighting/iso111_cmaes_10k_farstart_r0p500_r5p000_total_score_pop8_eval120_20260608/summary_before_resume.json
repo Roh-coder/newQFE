@@ -1,0 +1,102 @@
+{
+  "args": {
+    "accept_rule": "gradient_only",
+    "adaptive_step_scale_max": 3.0,
+    "adaptive_step_scale_min": 0.5,
+    "adaptive_step_snr_reference": 3.0,
+    "balance_mode": "none",
+    "cma_csigma": null,
+    "cma_dsigma": null,
+    "cma_seed": 2026060802,
+    "fit_sizes": [
+      32,
+      28,
+      24,
+      20,
+      16,
+      12,
+      8,
+      4
+    ],
+    "ghost_generations": 10,
+    "gradient_jackknife_blocks": 16,
+    "gradient_step": null,
+    "max_evals": 120,
+    "max_gens": 0,
+    "metric_key": "total_score",
+    "min_gradient_snr": 0.0,
+    "n_skip": 10,
+    "n_therm": 1000,
+    "n_traj": 10000,
+    "num_steps": 1,
+    "output_root": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_cmaes_10k_farstart_r0p500_r5p000_total_score_pop8_eval120_20260608",
+    "plot_every_gens": 1,
+    "popsize": 8,
+    "r1_max": 10.0,
+    "r1_min": 0.1,
+    "r2_max": 10.0,
+    "r2_min": 0.1,
+    "save_frames": true,
+    "seed_base": 2026060801,
+    "sigma0": 1.0,
+    "start_r1": 0.5,
+    "start_r2": 5.0,
+    "step_adaptation": "fixed",
+    "step_mode": "normalized",
+    "step_size": 0.025,
+    "target_r1": 1.0,
+    "target_r2": 1.0,
+    "target_size": 64,
+    "tolfun": 1e-06,
+    "tolx": 0.005
+  },
+  "best_eval_id": 91,
+  "best_point": {
+    "r1": 4.339072827435914,
+    "r2": 4.172406504258914
+  },
+  "best_score": 0.00044441459766,
+  "evals_tsv": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_cmaes_10k_farstart_r0p500_r5p000_total_score_pop8_eval120_20260608/evals.tsv",
+  "final_gaussian": {
+    "actual_covariance": [
+      [
+        0.6827028779762959,
+        0.5128526035980293
+      ],
+      [
+        0.5128526035980293,
+        0.6051208924670133
+      ]
+    ],
+    "mean": [
+      3.30829212930538,
+      3.1153852978291643
+    ],
+    "normalized_covariance": [
+      [
+        0.5452120132062225,
+        0.40956821701789103
+      ],
+      [
+        0.40956821701789103,
+        0.4832544151462351
+      ]
+    ],
+    "sigma": 1.1190079154209334
+  },
+  "frames_dir": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_cmaes_10k_farstart_r0p500_r5p000_total_score_pop8_eval120_20260608/frames_history",
+  "generations_tsv": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_cmaes_10k_farstart_r0p500_r5p000_total_score_pop8_eval120_20260608/generations.tsv",
+  "metric_key": "total_score",
+  "n_evals": 120,
+  "n_generations": 15,
+  "start_point": {
+    "r1": 0.5,
+    "r2": 5.0
+  },
+  "status": "completed",
+  "target_point": {
+    "r1": 1.0,
+    "r2": 1.0
+  },
+  "trajectory_png": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_cmaes_10k_farstart_r0p500_r5p000_total_score_pop8_eval120_20260608/trajectory.png"
+}

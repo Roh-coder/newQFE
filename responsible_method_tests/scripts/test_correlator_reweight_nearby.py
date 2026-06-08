@@ -39,6 +39,18 @@ class CouplingPoint:
     r2: float
 
 
+@dataclass(frozen=True)
+class FiniteDifferenceGradient:
+    value: float
+    sigma: float
+    plus_connected: float
+    minus_connected: float
+    plus_sigma: float
+    minus_sigma: float
+    n_eff_plus: float | None = None
+    n_eff_minus: float | None = None
+
+
 def _resolve_sizes(values: list[int] | None) -> list[int]:
     if not values:
         return []
@@ -76,6 +88,35 @@ def _run_id(lx: int, ly: int, tx: int, ty: int, k1: float, k2: float, k3: float,
 
 def _point_beta(point: CouplingPoint) -> float:
     return float(exact_triangular_ising_beta({"k1": point.r1, "k2": point.r2, "k3": 1.0}))
+
+
+def _format_delta_tag(delta: float) -> str:
+    text = f"{float(delta):.6f}".rstrip("0").rstrip(".")
+    return text.replace("-", "m").replace(".", "p")
+
+
+def _build_points(args: argparse.Namespace) -> list[CouplingPoint]:
+    center_r1 = float(args.center_r1)
+    center_r2 = float(args.center_r2)
+    delta = float(args.delta)
+    if delta <= 0.0:
+        raise ValueError(f"delta must be positive, got {delta}")
+    tag = _format_delta_tag(delta)
+    if args.point_mode == "nearby3":
+        return [
+            CouplingPoint("center", center_r1, center_r2),
+            CouplingPoint(f"r1_plus_{tag}", center_r1 + delta, center_r2),
+            CouplingPoint(f"r2_plus_{tag}", center_r1, center_r2 + delta),
+        ]
+    if args.point_mode == "gradient5":
+        return [
+            CouplingPoint("center", center_r1, center_r2),
+            CouplingPoint(f"r1_minus_{tag}", center_r1 - delta, center_r2),
+            CouplingPoint(f"r1_plus_{tag}", center_r1 + delta, center_r2),
+            CouplingPoint(f"r2_minus_{tag}", center_r1, center_r2 - delta),
+            CouplingPoint(f"r2_plus_{tag}", center_r1, center_r2 + delta),
+        ]
+    raise ValueError(f"unsupported point-mode: {args.point_mode}")
 
 
 def _parse_sample_file(path: Path) -> dict[str, Any]:
@@ -184,6 +225,77 @@ class CorrelatorReweighter:
             jk = np.asarray(leave_one_out, dtype=float)
             sigma = float(np.sqrt((jk.size - 1.0) / jk.size * np.sum((jk - np.mean(jk)) ** 2)))
         return {"connected": connected, "sigma": sigma, "n_eff": n_eff}
+
+    def finite_difference_gradient(
+        self,
+        beta_minus: float,
+        k_minus: tuple[float, float, float],
+        beta_plus: float,
+        k_plus: tuple[float, float, float],
+        delta: float,
+    ) -> FiniteDifferenceGradient:
+        log_w_minus = self._log_weights(beta_minus, k_minus)
+        log_w_plus = self._log_weights(beta_plus, k_plus)
+        w_minus = self._normalize(log_w_minus)
+        w_plus = self._normalize(log_w_plus)
+        n_eff_minus = self._n_eff(w_minus * self._n)
+        n_eff_plus = self._n_eff(w_plus * self._n)
+        connected_minus = self._connected_from_weights(w_minus, self._corr, self._mag)
+        connected_plus = self._connected_from_weights(w_plus, self._corr, self._mag)
+        gradient = (connected_plus - connected_minus) / (2.0 * float(delta))
+        if min(n_eff_minus, n_eff_plus) < self._n_eff_floor * self._n:
+            return FiniteDifferenceGradient(
+                value=float(gradient),
+                sigma=float("nan"),
+                plus_connected=float(connected_plus),
+                minus_connected=float(connected_minus),
+                plus_sigma=float("nan"),
+                minus_sigma=float("nan"),
+                n_eff_plus=float(n_eff_plus),
+                n_eff_minus=float(n_eff_minus),
+            )
+
+        block = self._n // self._n_blocks
+        leave_one_out: list[float] = []
+        plus_leave_one_out: list[float] = []
+        minus_leave_one_out: list[float] = []
+        for index in range(self._n_blocks):
+            lo = index * block
+            hi = (index + 1) * block if index < self._n_blocks - 1 else self._n
+            mask = np.ones(self._n, dtype=bool)
+            mask[lo:hi] = False
+            if np.count_nonzero(mask) < 8:
+                continue
+            w_sub_minus = self._normalize(log_w_minus[mask])
+            w_sub_plus = self._normalize(log_w_plus[mask])
+            connected_sub_minus = self._connected_from_weights(w_sub_minus, self._corr[mask], self._mag[mask])
+            connected_sub_plus = self._connected_from_weights(w_sub_plus, self._corr[mask], self._mag[mask])
+            plus_leave_one_out.append(connected_sub_plus)
+            minus_leave_one_out.append(connected_sub_minus)
+            leave_one_out.append((connected_sub_plus - connected_sub_minus) / (2.0 * float(delta)))
+
+        if len(leave_one_out) < 2:
+            sigma = float("nan")
+            plus_sigma = float("nan")
+            minus_sigma = float("nan")
+        else:
+            jk = np.asarray(leave_one_out, dtype=float)
+            sigma = float(np.sqrt((jk.size - 1.0) / jk.size * np.sum((jk - np.mean(jk)) ** 2)))
+            plus_jk = np.asarray(plus_leave_one_out, dtype=float)
+            plus_sigma = float(np.sqrt((plus_jk.size - 1.0) / plus_jk.size * np.sum((plus_jk - np.mean(plus_jk)) ** 2)))
+            minus_jk = np.asarray(minus_leave_one_out, dtype=float)
+            minus_sigma = float(np.sqrt((minus_jk.size - 1.0) / minus_jk.size * np.sum((minus_jk - np.mean(minus_jk)) ** 2)))
+
+        return FiniteDifferenceGradient(
+            value=float(gradient),
+            sigma=float(sigma),
+            plus_connected=float(connected_plus),
+            minus_connected=float(connected_minus),
+            plus_sigma=float(plus_sigma),
+            minus_sigma=float(minus_sigma),
+            n_eff_plus=float(n_eff_plus),
+            n_eff_minus=float(n_eff_minus),
+        )
 
 
 def _direct_connected(payload: dict[str, Any]) -> dict[str, float]:
@@ -322,6 +434,106 @@ def _build_reweight_rows(payloads: list[dict[str, Any]]) -> list[dict[str, Any]]
     return rows
 
 
+def _gradient_from_direct_rows(
+    direct_lookup: dict[str, dict[str, Any]],
+    minus_label: str,
+    plus_label: str,
+    delta: float,
+) -> FiniteDifferenceGradient:
+    minus_row = direct_lookup[minus_label]
+    plus_row = direct_lookup[plus_label]
+    value = (float(plus_row["connected"]) - float(minus_row["connected"])) / (2.0 * float(delta))
+    sigma = math.sqrt(float(plus_row["sigma"]) ** 2 + float(minus_row["sigma"]) ** 2) / (2.0 * float(delta))
+    return FiniteDifferenceGradient(
+        value=float(value),
+        sigma=float(sigma),
+        plus_connected=float(plus_row["connected"]),
+        minus_connected=float(minus_row["connected"]),
+        plus_sigma=float(plus_row["sigma"]),
+        minus_sigma=float(minus_row["sigma"]),
+    )
+
+
+def _maybe_build_gradient_summary(
+    payloads: list[dict[str, Any]],
+    direct_rows: list[dict[str, Any]],
+    args: argparse.Namespace,
+) -> dict[str, Any] | None:
+    if args.point_mode != "gradient5":
+        return None
+    center_payload = next((payload for payload in payloads if payload["label"] == "center"), None)
+    if center_payload is None:
+        raise ValueError("gradient5 mode requires a center payload")
+    direct_lookup = {str(row["label"]): row for row in direct_rows}
+    delta = float(args.delta)
+    direct_r1 = _gradient_from_direct_rows(direct_lookup, f"r1_minus_{_format_delta_tag(delta)}", f"r1_plus_{_format_delta_tag(delta)}", delta)
+    direct_r2 = _gradient_from_direct_rows(direct_lookup, f"r2_minus_{_format_delta_tag(delta)}", f"r2_plus_{_format_delta_tag(delta)}", delta)
+
+    center_rw = CorrelatorReweighter(center_payload)
+    rw_r1 = center_rw.finite_difference_gradient(
+        _point_beta(CouplingPoint("minus", float(args.center_r1) - delta, float(args.center_r2))),
+        (float(args.center_r1) - delta, float(args.center_r2), 1.0),
+        _point_beta(CouplingPoint("plus", float(args.center_r1) + delta, float(args.center_r2))),
+        (float(args.center_r1) + delta, float(args.center_r2), 1.0),
+        delta,
+    )
+    rw_r2 = center_rw.finite_difference_gradient(
+        _point_beta(CouplingPoint("minus", float(args.center_r1), float(args.center_r2) - delta)),
+        (float(args.center_r1), float(args.center_r2) - delta, 1.0),
+        _point_beta(CouplingPoint("plus", float(args.center_r1), float(args.center_r2) + delta)),
+        (float(args.center_r1), float(args.center_r2) + delta, 1.0),
+        delta,
+    )
+
+    def _serialize(name: str, direct_grad: FiniteDifferenceGradient, rw_grad: FiniteDifferenceGradient) -> dict[str, Any]:
+        sigma_combined = math.sqrt(
+            max(float(direct_grad.sigma) ** 2 if math.isfinite(float(direct_grad.sigma)) else 0.0, 0.0)
+            + max(float(rw_grad.sigma) ** 2 if math.isfinite(float(rw_grad.sigma)) else 0.0, 0.0)
+        )
+        delta_value = float(rw_grad.value) - float(direct_grad.value)
+        return {
+            "axis": name,
+            "delta": float(args.delta),
+            "direct": {
+                "value": float(direct_grad.value),
+                "sigma": float(direct_grad.sigma),
+                "plus_connected": float(direct_grad.plus_connected),
+                "minus_connected": float(direct_grad.minus_connected),
+                "plus_sigma": float(direct_grad.plus_sigma),
+                "minus_sigma": float(direct_grad.minus_sigma),
+            },
+            "center_reweight": {
+                "value": float(rw_grad.value),
+                "sigma": float(rw_grad.sigma),
+                "plus_connected": float(rw_grad.plus_connected),
+                "minus_connected": float(rw_grad.minus_connected),
+                "plus_sigma": float(rw_grad.plus_sigma),
+                "minus_sigma": float(rw_grad.minus_sigma),
+                "n_eff_plus": float(rw_grad.n_eff_plus) if rw_grad.n_eff_plus is not None else None,
+                "n_eff_minus": float(rw_grad.n_eff_minus) if rw_grad.n_eff_minus is not None else None,
+                "n_eff_fraction_plus": (
+                    float(rw_grad.n_eff_plus) / max(len(center_payload["corr"]), 1)
+                    if rw_grad.n_eff_plus is not None
+                    else None
+                ),
+                "n_eff_fraction_minus": (
+                    float(rw_grad.n_eff_minus) / max(len(center_payload["corr"]), 1)
+                    if rw_grad.n_eff_minus is not None
+                    else None
+                ),
+            },
+            "delta_value": delta_value,
+            "delta_z": (delta_value / sigma_combined if sigma_combined > 0.0 else float("nan")),
+        }
+
+    return {
+        "point_mode": str(args.point_mode),
+        "center": {"r1": float(args.center_r1), "r2": float(args.center_r2)},
+        "r1": _serialize("r1", direct_r1, rw_r1),
+        "r2": _serialize("r2", direct_r2, rw_r2),
+    }
+
+
 def _write_single_summary(
     output_root: Path,
     lattice: tuple[int, int, int, int],
@@ -329,16 +541,22 @@ def _write_single_summary(
     args: argparse.Namespace,
     direct_rows: list[dict[str, Any]],
     reweight_rows: list[dict[str, Any]],
+    gradient_summary: dict[str, Any] | None,
 ) -> None:
     summary = {
         "lattice": {"Lx": lattice[0], "Ly": lattice[1], "Tx": lattice[2], "Ty": lattice[3]},
         "displacement": {"m": disp[0], "n": disp[1]},
+        "point_mode": str(args.point_mode),
+        "center": {"r1": float(args.center_r1), "r2": float(args.center_r2)},
+        "delta": float(args.delta),
         "n_traj": int(args.n_traj),
         "n_therm": int(args.n_therm),
         "n_skip": int(args.n_skip),
         "direct": direct_rows,
         "reweight": reweight_rows,
     }
+    if gradient_summary is not None:
+        summary["gradient"] = gradient_summary
     (output_root / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")
 
     tsv_lines = [
@@ -362,6 +580,29 @@ def _write_single_summary(
             )
         )
     (output_root / "reweight_vs_direct.tsv").write_text("\n".join(tsv_lines) + "\n", encoding="utf-8")
+
+    if gradient_summary is not None:
+        gradient_lines = [
+            "axis\tdirect_value\tdirect_sigma\tcenter_reweight_value\tcenter_reweight_sigma\tdelta_value\tdelta_z\tn_eff_fraction_minus\tn_eff_fraction_plus"
+        ]
+        for axis in ("r1", "r2"):
+            row = gradient_summary[axis]
+            gradient_lines.append(
+                "\t".join(
+                    [
+                        str(axis),
+                        f"{row['direct']['value']:.16e}",
+                        f"{row['direct']['sigma']:.16e}",
+                        f"{row['center_reweight']['value']:.16e}",
+                        f"{row['center_reweight']['sigma']:.16e}",
+                        f"{row['delta_value']:.16e}",
+                        f"{row['delta_z']:.16e}",
+                        f"{row['center_reweight']['n_eff_fraction_minus']:.16e}",
+                        f"{row['center_reweight']['n_eff_fraction_plus']:.16e}",
+                    ]
+                )
+            )
+        (output_root / "gradient.tsv").write_text("\n".join(gradient_lines) + "\n", encoding="utf-8")
 
 
 def _write_multi_size_summary(
@@ -442,7 +683,7 @@ def _write_multi_size_summary(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run three nearby coupling points and test single-displacement correlator reweighting between them."
+        description="Run nearby coupling stencils and test single-displacement correlator reweighting between them."
     )
     parser.add_argument("--Lx", type=int, default=32)
     parser.add_argument("--Ly", type=int, default=32)
@@ -461,6 +702,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-therm", type=int, default=10000)
     parser.add_argument("--n-skip", type=int, default=10)
     parser.add_argument("--seed-base", type=int, default=2026060401)
+    parser.add_argument("--point-mode", choices=["nearby3", "gradient5"], default="nearby3")
+    parser.add_argument("--center-r1", type=float, default=1.0)
+    parser.add_argument("--center-r2", type=float, default=1.0)
+    parser.add_argument("--delta", type=float, default=0.01)
     parser.add_argument(
         "--output-root",
         default=str(RESPONSIBLE_ROOT / "results" / "correlator_reweight_nearby_iso111_L32_hi100k_20260604"),
@@ -474,11 +719,7 @@ def main() -> None:
     ensure_dir(str(output_root))
     exe = ensure_simulator(DEFAULT_EXECUTION)
     size_list = _resolve_sizes(args.sizes)
-    points = [
-        CouplingPoint("center", 1.000000, 1.000000),
-        CouplingPoint("r1_plus_0p01", 1.010000, 1.000000),
-        CouplingPoint("r2_plus_0p01", 1.000000, 1.010000),
-    ]
+    points = _build_points(args)
 
     lattices = (
         [(int(size), int(size), int(args.Tx), int(args.Ty)) for size in size_list]
@@ -512,6 +753,7 @@ def main() -> None:
 
         direct_rows = _build_direct_rows(payloads)
         reweight_rows = _build_reweight_rows(payloads)
+        gradient_summary = _maybe_build_gradient_summary(payloads, direct_rows, args)
         runs.append(
             {
                 "size": int(lattice[0]),
@@ -519,6 +761,7 @@ def main() -> None:
                 "displacement": {"m": disp[0], "n": disp[1]},
                 "direct": direct_rows,
                 "reweight": reweight_rows,
+                "gradient": gradient_summary,
             }
         )
 
@@ -531,17 +774,22 @@ def main() -> None:
             args,
             list(run["direct"]),
             list(run["reweight"]),
+            run.get("gradient"),
         )
         print(
             json.dumps(
                 {
                     "lattice": run["lattice"],
                     "displacement": run["displacement"],
+                    "point_mode": str(args.point_mode),
+                    "center": {"r1": float(args.center_r1), "r2": float(args.center_r2)},
+                    "delta": float(args.delta),
                     "n_traj": int(args.n_traj),
                     "n_therm": int(args.n_therm),
                     "n_skip": int(args.n_skip),
                     "direct": run["direct"],
                     "reweight": run["reweight"],
+                    "gradient": run.get("gradient"),
                 },
                 indent=2,
                 sort_keys=True,

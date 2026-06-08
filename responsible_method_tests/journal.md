@@ -1,5 +1,500 @@
 # Journal
 
+## 2026-06-08: Proposal For Reweight-Augmented CMA-ES With Local Curvature
+
+### Question
+
+Could histogram reweighting be used to accelerate CMA-ES by attaching a local gradient or Hessian estimate to each evaluated point?
+
+### Short Answer
+
+Yes, but only as a local augmentation.
+
+CMA-ES already learns an inverse-Hessian-like covariance from ranked population history, so feeding every candidate's raw gradient or Hessian directly into the core update is probably the wrong first design. The more promising use of reweighting is to provide cheap local curvature information around a small number of directly simulated points, especially the generation mean or the top `1-3` elites.
+
+### Why This Could Help
+
+Because a direct MC point already stores the per-trajectory decomposition needed for nearby reweighting, one expensive direct evaluation can support several cheap local score probes around the same donor point.
+
+In the current `2d` control problem, a local quadratic model is affordable:
+
+- center `f(r1, r2)`
+- axial probes `f(x +/- delta e1)`, `f(x +/- delta e2)` for the gradient and diagonal curvature
+- corner probes `f(x +/- delta e1 +/- delta e2)` for the mixed curvature
+
+That would yield:
+
+- local gradient `g`
+- local Hessian `H`
+- jackknife error bars on both, if the current block-replica machinery is extended from gradients to Hessian entries
+
+If `g` and `H` are reliable, they can tell CMA-ES which directions are stiff, flat, or badly correlated before the rank-based covariance update has enough generations to learn that structure itself.
+
+### Why Not Give Every Candidate Its Own Gradient And Hessian
+
+That would likely help less than it sounds.
+
+- CMA-ES is robust partly because it updates from ranks rather than trusting noisy derivatives.
+- A per-candidate Hessian is only local to that candidate; across a spread-out population these local models can disagree strongly.
+- If every individual contributes both a function value and a noisy curvature tensor, the algorithm stops behaving like plain CMA-ES but does not yet become a clean trust-region Newton method either.
+- The expensive part is still the direct MC point. Reweighting is cheap relative to that, but not free enough to justify a full Hessian build for the entire population unless the population is tiny.
+- Bad Hessians are dangerous: negative curvature, near-singularity, and mixed-observable compromise directions can produce overconfident steps.
+
+So the right comparison is not
+
+- plain CMA-ES
+- versus CMA-ES where every point has a Hessian
+
+but rather
+
+- plain staged-fidelity CMA-ES
+- versus CMA-ES plus a small number of curvature-guided local proposals.
+
+### Proposed Hybrid
+
+1. Keep direct `total_score` as the only quantity that decides selection and the CMA-ES rank update.
+2. At each generation, choose a small curvature set: the current mean and the top `1-2` elites after cheap direct evaluation.
+3. For each curvature point, use local histogram reweighting to estimate `g`, `H`, and jackknife uncertainties.
+4. Regularize `H` aggressively:
+	- symmetrize it
+	- floor eigenvalues
+	- reject or downweight it when curvature SNR is poor or the condition number is extreme
+5. Use the regularized inverse Hessian only to augment proposal generation, not to replace CMA-ES:
+	- initialize or warm-start the local sampling covariance near the mean
+	- add one or two trust-region Newton proposals `x_newton = x - alpha (H + lambda I)^-1 g`
+	- whiten mutation directions using `(H + lambda I)^-1` inside a bounded local radius
+6. Evaluate those extra proposals with direct MC and let normal CMA-ES ranking decide whether they survive.
+7. Fall back to plain staged-fidelity CMA-ES whenever curvature quality is poor.
+
+### Expected Benefit
+
+This should reduce the number of generations needed to learn the dominant anisotropy inside a basin.
+
+It is most likely to help:
+
+- after CMA-ES has already found the right basin
+- when the local score surface is smooth enough for nearby reweighting to be trustworthy
+- when the covariance learned from the population is still lagging behind the local ridge geometry
+
+It is less likely to help:
+
+- very far from the basin
+- when the objective is still multimodal or strongly non-quadratic over the current population radius
+- when the cheap-budget MC noise is already large enough to destabilize the current gradient estimates
+
+### Minimal Experiment
+
+The first version should be narrow.
+
+1. Run staged-fidelity CMA-ES exactly as already proposed.
+2. At the generation mean only, build a local reweight quadratic model from one direct payload.
+3. Spawn one extra trust-region Newton candidate and one extra Hessian-whitened random candidate.
+4. Score those two candidates with direct MC and include them in the same generation ranking.
+5. Compare against baseline CMA-ES at matched direct-MC cost:
+	- best score versus direct evaluations
+	- time to reach the current basin floor
+	- stability of repeated runs with different seeds
+	- agreement between predicted and direct improvement for the curvature-guided candidates
+
+### Recommendation
+
+So the answer is:
+
+- gradients would probably help CMA-ES find the minimum faster if they are used to bias a few local proposals
+- Hessians could help even more by exposing the local ridge geometry
+- but a full "every point gets a gradient and Hessian" design is probably too noisy and too complicated for the first pass
+- the right first experiment is a curvature-augmented CMA-ES where reweighting informs elite local proposals while CMA-ES keeps the global, rank-based search logic
+
+The good news is that this does not require inventing a new data path. The current local reweight score probes already exist, and the current jackknife gradient machinery already shows how to attach uncertainty estimates to local derivative objects.
+
+## 2026-06-08: Launched 50-Step Far-Start Live-Covariance Runs And Sketched Two Next Optimizer Variants
+
+### 50-Step Runs Launched
+
+After validating the live-updating covariance-aware trajectory plots on the `5`-step farther-start runs from
+
+- `(r1, r2) = (0.5, 5.0)`
+- `n_traj = 10000`
+- `n_therm = 1000`
+- fit sizes `{32, 28, 24, 20, 16, 12, 8, 4}`
+
+I launched matching `50`-step continuations under fresh roots:
+
+- `responsible_method_tests/reweighting/iso111_gradient_flow_10k_start_r0p500_r5p000_scalar_snr_steps50_livecov_20260608/`
+- `responsible_method_tests/reweighting/iso111_gradient_flow_10k_start_r0p500_r5p000_covariance_steps50_livecov_20260608/`
+
+Both roots were preseeded from the completed `5`-step live-cov runs by copying
+
+- `_target/`
+- `raw/`
+
+from the corresponding `steps5_livecov` roots. So the first five steps should be cache hits and the new work should begin at the first not-yet-sampled proposal beyond those earlier trajectories.
+
+The driver now rewrites
+
+- `trajectory.tsv`
+- `trajectory.png`
+
+after every attempted step, and the live figure includes
+
+- the parameter-space path
+- the score history
+- covariance components by step
+- the latest `2 x 2` gradient-covariance heatmap
+
+which makes the long run much easier to inspect while it is still active.
+
+### 50-Step Outcomes
+
+Both `50`-step runs are now complete.
+
+#### Scalar-SNR (`steps50_livecov`)
+
+Root:
+
+- `responsible_method_tests/reweighting/iso111_gradient_flow_10k_start_r0p500_r5p000_scalar_snr_steps50_livecov_20260608/`
+
+Final summary:
+
+- final point `(0.5934887434906397, 4.968642287164648)`
+- final score `0.03850576492914759`
+- accepted / attempted = `3 / 4`
+- stop reason = `gradient_snr_below_threshold`
+
+Important observation: giving scalar-SNR `50` allowed steps did **not** change the outcome relative to the earlier `5`-step run. It hit the same SNR wall at the same point. So in this regime the controlling limitation is the cheap-budget gradient noise floor, not `num_steps`.
+
+#### Covariance (`steps50_livecov`)
+
+Root:
+
+- `responsible_method_tests/reweighting/iso111_gradient_flow_10k_start_r0p500_r5p000_covariance_steps50_livecov_20260608/`
+
+Final summary:
+
+- final point `(0.5745067081108214, 4.605038046221583)`
+- final score `0.034821679542951706`
+- accepted / attempted = `23 / 24`
+- stop reason = `gradient_snr_below_threshold`
+
+This is materially different from scalar-SNR. At the same `10k / 1k` budget and the same farther start `(0.5, 5.0)`, the covariance-preconditioned descent direction remained usable for a long time, continuing through `23` accepted steps before finally hitting the SNR gate.
+
+#### Comparison / Continuation Context
+
+The key result from this `50`-step test is:
+
+- scalar-SNR stops early because the local gradient estimate becomes noise-dominated almost immediately
+- covariance continues to make progress for much longer at the same budget
+- covariance also reaches the lower final score (`0.03482` vs `0.03851`)
+
+So the live conclusion to carry forward is not simply “more steps help.” It is narrower and more important:
+
+- increasing `num_steps` alone is useless once the gradient SNR gate is the limiting factor
+- covariance preconditioning substantially delays that failure mode
+- the next useful improvement is therefore **adaptive budget escalation**, not just larger step budgets
+
+If we resume later, the first place to look is the covariance `steps50_livecov` root, especially
+
+- `trajectory.tsv`
+- `trajectory.png`
+- `trajectory_path.png` after rerendering if needed
+
+because that run contains the longest successful cheap-budget descent we have so far from the farther start.
+
+### Potential Plan A: CMA-ES On The Direct-MC Objective
+
+The clean version of a CMA-ES follow-up would be:
+
+1. Optimize directly in `(r1, r2)` using the same `total_score` objective now used by gradient flow.
+2. Treat each candidate evaluation as a full direct MC point, reusing the existing cached `raw/L*/.../selected_observables_bundle.dat` outputs.
+3. Start with a deliberately cheap evaluation budget for the whole population, then selectively reevaluate elites at higher stats before updating the CMA distribution.
+
+The practical design I would propose is:
+
+- state: `x = (r1, r2)` in the existing bounded box
+- initial mean: either the user start point or the best point from a short gradient pre-run
+- initial sigma: chosen from the desired exploration radius, not from the gradient covariance
+- objective: direct `total_score`
+- cache policy: exact reuse by `(r1, r2, sizes, n_traj, n_therm, n_skip)`
+
+To keep CMA-ES sane under Monte Carlo noise, it should not update from single noisy scores alone. The minimum viable noise handling would be:
+
+- evaluate the whole population at a cheap baseline budget
+- reevaluate the top `k` candidates at the same budget with independent seeds to estimate rank stability
+- optionally promote the best `1-3` candidates to a higher budget before the generation update
+
+That creates a staged-fidelity CMA-ES rather than a naive one-shot noisy CMA-ES.
+
+The main reason this is attractive is that CMA-ES can still move when the local gradient estimate becomes too noisy or too anisotropic to trust. The main reason to be careful is cost: a population-based method can burn through many direct points quickly if we do not aggressively cache and stage the fidelity.
+
+### Potential Plan B: Gradient Flow With Adaptive Budget Escalation
+
+The second follow-up should keep the current local-reweight gradient logic but adapt the Monte Carlo budget as the walker approaches the floor and the signal-to-noise ratio degrades.
+
+The key idea is:
+
+- far from the minimum, use cheap MC because the gradient is large and the direction is easy
+- near the minimum, increase trajectories and/or the lattice ladder because the gradient norm shrinks and the acceptance decision becomes noise-limited
+
+The clean control variables are:
+
+- `grad_norm_snr`
+- `gradient_vector_snr`
+- gradient covariance anisotropy / correlation
+- disagreement between predicted and direct proposal scores
+- actual accepted step norm
+
+A practical tiered scheme would be:
+
+1. Start with a cheap budget, for example `n_traj = 10000`, `n_therm = 1000`, fit sizes `{32, 28, 24, 20, 16, 12, 8, 4}`.
+2. If `grad_norm_snr` falls below a target band, rerun the current point at a higher budget before giving up on the step.
+3. If the gradient remains noisy, promote the fit ladder first toward larger lattices and then promote `n_traj` if needed.
+4. Near the floor, require the local gradient to be resolved at the promoted budget before accepting another move.
+5. Stop only after the largest allowed budget still cannot recover a robust descent signal.
+
+There are two natural versions of this:
+
+- trajectory-first escalation: keep the same sizes, but increase `n_traj`
+- ladder-first escalation: drop the noisiest small sizes or add emphasis to the largest sizes before increasing trajectories
+
+My current expectation is that a mixed schedule will work best:
+
+- use fewer / cheaper sizes far away
+- broaden and stabilize the ladder near the minimum
+- only pay for high `n_traj` once the walker is already in a narrow basin
+
+This should preserve the basin-local efficiency of the gradient method while avoiding the current failure mode where the walker stops simply because the cheap-budget local gradient becomes noise-dominated.
+
+## 2026-06-08: Local Reweight Gradient Stepping Looks Plausible As A Basin-Local Optimizer, But Not As Uncontrolled Fixed-Step Descent
+
+### Question
+
+Evaluate whether the geometry-fit workflow could shift from a grid search to a loop of the form:
+
+- choose one coupling point `(r1, r2)`
+- run direct Monte Carlo there
+- use reweighting from that same run to estimate the local score gradient
+- take a downhill step
+- run Monte Carlo again at the new point
+- repeat
+
+The comparison point is the existing local-grid workflow, where many points are run directly and then ranked.
+
+### Data Used
+
+I used the new direct local-reweight gradient outputs for the iso111 control:
+
+- gradient PNG:
+	- `responsible_method_tests/reweighting/iso111_grid5x5_sizes32_28_24_20_16_12_8_4_hi100k_20260606/gradient_fields_target_L64_qw_norm_local_reweight/target_L64_qw_norm_local_reweight_aggregate_gradient_fields.png`
+- gradient TSV:
+	- `responsible_method_tests/reweighting/iso111_grid5x5_sizes32_28_24_20_16_12_8_4_hi100k_20260606/gradient_fields_target_L64_qw_norm_local_reweight/target_L64_qw_norm_local_reweight_aggregate_gradient_fields.tsv`
+- refined `2x` score landscape:
+	- `responsible_method_tests/reweighting/iso111_grid5x5_sizes32_28_24_20_16_12_8_4_hi100k_20260606/heatmaps_target_L64_qw_norm_refined2x_neighbor_interp/target_L64_qw_norm_refined2x_neighbor_interp_landscape.tsv`
+
+Important distinction: this gradient field is **not** the old `np.gradient` of an interpolated surface. Each arrow now comes from local reweighting around the current base donor point at
+
+$$
+(r_1, r_2) \to (r_1 \pm \delta, r_2), (r_1, r_2 \pm \delta)
+$$
+
+with `delta = 0.0125`, using the exact per-trajectory energy decomposition already saved in the selected-observable bundles.
+
+So this test is really about a **local reweight-derived optimizer step**, not about trusting a globally interpolated score surface.
+
+### Visual Read Of The Field
+
+The total-score field is not random-looking. Over most of the `5 x 5` base grid, the arrows point coherently toward the lower-score basin around
+
+- `r1 ~ 0.95 - 1.00`
+- `r2 ~ 0.95 - 1.00`
+
+The large-score corners `(1.10, 0.90)` and `(0.90, 1.10)` both point back toward that basin. That is already qualitatively different from a useless noisy vector field.
+
+### Quantitative One-Step Check
+
+To turn that into something harder than eyeballing, I took every base-grid point, moved one normalized steepest-descent step of length `0.025`, snapped that proposal to the nearest refined `2x` grid node, and compared the refined total score before and after.
+
+Result over all `25` base points:
+
+- improved: `23 / 25`
+- unchanged: `1 / 25`
+- worsened: `1 / 25`
+
+The unchanged case was the lower-left boundary point `(0.90, 0.90)`, where the downhill direction points outside the box and the snapped proposal stays on the boundary.
+
+Representative cases:
+
+| start | start score | downhill proposal | proposal score | change |
+| --- | ---: | --- | ---: | ---: |
+| `(1.00, 1.00)` | `1.74612e-05` | `(0.975, 0.975)` | `5.2265e-06` | `-1.22347e-05` |
+| `(1.10, 0.90)` | `9.36150e-05` | `(1.075, 0.925)` | `4.46532e-05` | `-4.89618e-05` |
+| `(0.90, 1.10)` | `6.72256e-05` | `(0.925, 1.075)` | `3.48513e-05` | `-3.23743e-05` |
+| `(0.95, 0.95)` | `9.12240e-06` | `(0.950, 0.975)` | `7.1705e-06` | `-1.95190e-06` |
+| `(0.95, 1.00)` | `3.80040e-06` | `(0.975, 1.000)` | `5.9690e-06` | `+2.16860e-06` |
+
+This is the key evidence.
+
+Far from the basin, the local reweight gradient gives a very usable downhill direction. Near the apparent minimum, a fixed step can already overshoot and get worse.
+
+### Interpretation
+
+This makes the gradient-step idea look **materially better** than the earlier nearest-donor surface interpolation idea.
+
+The earlier failure mode was:
+
+- use a donor grid to infer missing points elsewhere
+- trust that interpolated/reweighted surrogate enough to rank the whole surface
+
+That failed badly even when histogram overlap stayed excellent.
+
+What is different here is that the reweighting is used only **locally around the current Monte Carlo point**. That is a much narrower and more defensible use case.
+
+The present evidence supports the following statement:
+
+- local reweighting is probably good enough to tell you a downhill direction inside a basin
+
+but it does **not** yet support the stronger statement:
+
+- a naive fixed-step gradient descent can safely replace grid search everywhere
+
+There are at least four reasons for that caution.
+
+First, the near-minimum counterexample is real. At the current base-grid best point `(0.95, 1.00)`, the local gradient is not small enough to stop a fixed `0.025` step from moving uphill on the refined landscape.
+
+Second, the objective is a compromise of multiple sectors, and those sectors do not have the same preferred location. On the refined landscape,
+
+- `midpoint_score` best is at `(0.95, 1.00)`
+- `quarter_score` best is at `(1.075, 1.050)`
+- `total_score` best is again at `(0.95, 1.00)`
+
+So the total score is not a simple isotropic bowl; it is a negotiated multi-observable landscape. That makes overconfident raw gradient descent risky.
+
+Third, the current gradient field is sampled only on the coarse `5 x 5` base nodes. The proposed workflow itself avoids that limitation, because after each accepted move you would run a new direct MC and recompute the gradient there. But it does mean that the present test validates **one-step local usefulness**, not full multi-step convergence.
+
+Fourth, the gradient magnitude changes a lot across the box. For the total score it runs from about
+
+- `5.31e-05` near `(0.95, 1.00)`
+- up to `8.94e-04` at `(1.10, 0.90)`
+
+So a single fixed spatial step is not likely to be optimal everywhere.
+
+### What This Says About Workflow Design
+
+The practical conclusion is:
+
+- do **not** replace the grid search with uncontrolled fixed-step gradient descent
+- do consider replacing it with a **local optimizer loop** driven by direct MC plus local reweight probes
+
+In other words, the promising object here is not “gradient descent” in the abstract. It is a **trust-region / line-search workflow** whose local model comes from exact reweighting around the current direct run.
+
+The sensible version would look like:
+
+1. run direct MC at the current point `x_k`
+2. use reweighting from that same payload to estimate the gradient and evaluate a few candidate points along `-grad`, for example `alpha in {delta/2, delta, 2 delta}`
+3. accept a step only if the predicted score decrease is clear and the local overlap / effective sample size remain healthy
+4. rerun direct MC at the accepted point `x_{k+1}`
+5. repeat until no tested step gives a robust decrease
+
+That is a much more defensible workflow than either of these extremes:
+
+- full brute-force dense grid search everywhere
+- blind raw gradient descent with one hard-coded step size
+
+### Recommendation
+
+My current recommendation is a **hybrid**:
+
+- use a coarse grid search only to locate the basin and guard against missing disconnected valleys
+- once inside a basin, switch to direct-MC plus local-reweight stepping
+- use line search or a trust radius, not a fixed step
+- near the floor, validate each accepted move with another direct run before trusting the direction further
+
+So the answer is:
+
+- **yes**, this looks promising as a replacement for the expensive inner part of a grid search
+- **no**, it is not yet convincing as a full drop-in replacement for global search without safeguards
+
+The present iso111 field is strong evidence that local reweight-derived gradients contain real optimization signal. The same field also shows why the method should be wrapped in a conservative step-acceptance rule rather than used as pure unconstrained gradient descent.
+
+## 2026-06-08: Implemented A Direct-MC Plus Local-Reweight Gradient-Flow Driver
+
+I added
+
+- `responsible_method_tests/scripts/run_reweight_gradient_flow.py`
+
+to turn the previous gradient-field reasoning into an executable workflow.
+
+### What It Does
+
+The script runs a discrete optimizer loop:
+
+1. start from a user-chosen `(r1, r2)`
+2. run direct MC for all requested fit sizes at that point
+3. estimate the local score gradient by reweighting that same direct payload to
+	- `(r1 - delta, r2)`
+	- `(r1 + delta, r2)`
+	- `(r1, r2 - delta)`
+	- `(r1, r2 + delta)`
+4. propose a downhill step
+5. run direct MC at the proposal point
+6. either accept the step or stop, depending on the acceptance rule
+
+So this is the actual “direct MC + local reweight gradient + direct MC again” workflow, not just a post-hoc plotter.
+
+### User Controls
+
+The main user-facing controls are now exposed directly on the CLI:
+
+- `--start-r1`, `--start-r2`
+- `--step-size`
+- `--num-steps`
+
+plus supporting knobs:
+
+- `--step-mode {normalized,raw}`
+- `--gradient-step`
+- `--accept-rule {always,direct_decrease}`
+- `--metric-key`
+- target size / target point / fit sizes / MC statistics / bounds / output root
+
+Default objective is the total score for the chosen balance mode.
+
+Default acceptance is conservative:
+
+- `direct_decrease`
+
+meaning the script only accepts a step if the **next direct MC score** is no worse than the current direct score.
+
+### Outputs
+
+For each run it writes:
+
+- `trajectory.tsv`
+- `trajectory.png`
+- `summary.json`
+
+under the chosen output root, while reusing cached direct raw bundles if they already exist.
+
+### Smoke Validation
+
+A small low-stat smoke run completed successfully with
+
+- start `(1.0, 1.0)`
+- `step_size = 0.02`
+- `num_steps = 2`
+- fit sizes `{12, 8, 4}`
+- target size `16`
+- `n_traj = 200`, `n_therm = 50`, `n_skip = 10`
+
+Output root:
+
+- `responsible_method_tests/results/_smoke_reweight_gradient_flow/`
+
+In that smoke run the first step was accepted, the second was rejected by the conservative rule, and the script stopped with
+
+- `final_reason = direct_score_increase`
+
+which is exactly the intended safeguard behavior near an overshooting proposal.
+
 ## 2026-06-04: Nearest-Donor Histogram Reweighting Does Not Yet Preserve The Iso111 Geometry-Match Grid
 
 ### Goal
@@ -1512,3 +2007,222 @@ So the ranking pass was useful as diagnosis, but the current decision is to stop
 - sizes `96,112,128,144`
 - couplings = exact target, current large-target winner, current small-target winner
 - start at `n_traj = 40000`
+
+## 2026-06-08: Background Fixed-Step 100k Run Launched From `(0.5, 5.0)`
+
+### Why This Was Started
+
+I wanted a live `100k` run advancing in the cloud while away from the editor, using the farther-start iso111 gradient-flow setup at
+
+- start point `(r1, r2) = (0.5, 5.0)`
+- `n_traj = 100000`
+- `n_therm = 10000`
+- `n_skip = 10`
+- fit sizes `{32, 28, 24, 20, 16, 12, 8, 4}`
+- `step_mode = normalized`
+- `step_adaptation = fixed`
+- `step_size = 0.025`
+- `num_steps = 50`
+- `min_gradient_snr = 1.0`
+
+### Important Behavior Reminder
+
+`responsible_method_tests/scripts/run_reweight_gradient_flow.py` now forces
+
+- `accept_rule = "gradient_only"`
+
+inside `main()`, regardless of the CLI value.
+
+So this live fixed-step run is **not** using the old `direct_decrease` stopping logic from the earlier summaries. The active stopping conditions are now:
+
+- gradient SNR falls below the threshold
+- zero or clipped step
+- requested step budget exhausted
+
+This matters because the direct score at the proposal can worsen while the move is still accepted.
+
+### Live Output Root And Process
+
+Fresh detached run root:
+
+- `responsible_method_tests/reweighting/iso111_gradient_flow_100k_start_r0p500_r5p000_fixed_steps50_bg_20260608_173456/`
+
+Runner PID recorded in that root:
+
+- `8116`
+
+The run was launched with `nohup` from the workspace `.venv` Python and is intended to keep running without an attached terminal.
+
+### Cache / Seeding Context
+
+To avoid starting cold, I seeded the new background root by copying
+
+- `_target/`
+- `raw/`
+
+from the earlier partial fixed-step root
+
+- `responsible_method_tests/reweighting/iso111_gradient_flow_100k_start_r0p500_r5p000_fixed_steps50_livecov_20260608/`
+
+I did **not** copy the old trajectory tables or PNGs, so the new root writes a clean live trajectory while still reusing any already-generated raw MC bundles.
+
+### State At Handoff Time
+
+The live files already existed when I stopped checking:
+
+- `trajectory.tsv`
+- `trajectory.png`
+- `runner.pid`
+- `nohup.log`
+
+`nohup.log` was still empty at that moment, which is expected here because the script only prints the final JSON summary to stdout at the end.
+
+The first written trajectory row was:
+
+- current point `(0.5000000000, 5.0000000000)`
+- proposal `(0.5237861689, 4.9923046656)`
+- predicted score `5.2658145826e-02`
+- direct proposal score `5.5600831763e-02`
+- accepted = `True`
+
+So the new background root had definitely started and was no longer just sitting at launch.
+
+### Fast Resume Checklist
+
+When picking this up later, the first things to inspect are:
+
+- `ps -p 8116 -o pid,ppid,etimes,%cpu,%mem,cmd=`
+- `responsible_method_tests/reweighting/iso111_gradient_flow_100k_start_r0p500_r5p000_fixed_steps50_bg_20260608_173456/trajectory.tsv`
+- `responsible_method_tests/reweighting/iso111_gradient_flow_100k_start_r0p500_r5p000_fixed_steps50_bg_20260608_173456/trajectory.png`
+
+Interpretation guide:
+
+- if `summary.json` exists, the run finished cleanly
+- if the PID is gone and `summary.json` is missing, inspect `nohup.log`
+- if the PID is alive and `trajectory.tsv` is growing, just let it continue
+
+This new `_bg_...` root is the active one to follow, not the older `...fixed_steps50_livecov_20260608/` root.
+
+## 2026-06-08: Current-Stack CMA-ES Runner, Resume Support, And Acute456 Handoff
+
+I added a new current-stack CMA-ES driver in
+
+- `responsible_method_tests/scripts/run_reweight_cmaes.py`
+
+The intent is to keep the optimizer on the same direct-MC / reweight-aware stack as the newer responsible-method scripts, rather than falling back to the old production optimizer code.
+
+### What The New Runner Already Does
+
+- optimizes the direct objective using the same current-stack evaluator path as `run_reweight_gradient_flow.py`
+- writes `evals.tsv`, `generations.tsv`, `summary.json`, and `trajectory.png`
+- renders the learned Gaussian covariance as `1 sigma` and `2 sigma` ellipses so the search distribution can be inspected generation by generation
+- supports `--save-frames` for a per-generation history if needed
+- now defaults its output root into `responsible_method_tests/reweighting/`
+
+### Iso111 Smoke Validation
+
+The first cheap smoke run succeeded at
+
+- start `(r1, r2) = (0.5, 5.0)`
+- target = iso111 square-untwisted current-stack target
+- cheap budget: `target_size = 16`, fit sizes `{12, 8, 4}`, `n_traj = 200`, `n_therm = 50`, `n_skip = 1`
+
+Smoke root:
+
+- `responsible_method_tests/reweighting/iso111_cmaes_smoke_farstart_r0p500_r5p000_ntraj200_20260608/`
+
+Smoke outcome:
+
+- `18` direct evaluations
+- `3` generations
+- best score `0.004411952874`
+- best point `(2.2636599282860415, 4.979669551335301)`
+
+### Iso111 10k Far-Start Run
+
+The first full current-stack iso111 run used
+
+- start `(0.5, 5.0)`
+- target size `64`
+- fit sizes `{32, 28, 24, 20, 16, 12, 8, 4}`
+- `n_traj = 10000`, `n_therm = 1000`, `n_skip = 10`
+- `popsize = 8`
+
+Run root:
+
+- `responsible_method_tests/reweighting/iso111_cmaes_10k_farstart_r0p500_r5p000_total_score_pop8_eval120_20260608/`
+
+The first `120`-evaluation run finished at `15` generations with
+
+- best score `0.00044441459766`
+- best point `(4.339072827435914, 4.172406504258914)`
+- final mean `(3.30829212930538, 3.1153852978291643)`
+
+That was still in the wrong basin, so I added true in-place resume support.
+
+### Resume Support
+
+`run_reweight_cmaes.py` now supports resuming a prior run root by reconstructing the CMA-ES state from
+
+- `summary.json`
+- `evals.tsv`
+- `generations.tsv`
+
+The new CLI path is
+
+- `--resume-root <existing_root>`
+- `--additional-gens <n>`
+
+One replay bug mattered here: the selected offspring must be replayed in score-ranked order, otherwise the weighted CMA update is wrong even if the same set of points is present. That bug is fixed.
+
+Resume was validated first on a copied smoke root and then on the real far-start iso111 run.
+
+### Iso111 Continuation Results
+
+After two successful resumptions, the same far-start iso111 run reached `35` generations / `280` evaluations.
+
+Best-so-far progression:
+
+- `15` generations: best `(4.339072827435914, 4.172406504258914)`, score `4.4441459766e-04`
+- `25` generations: best `(1.738291649523858, 1.4716631387912569)`, score `1.2049723474e-04`
+- `35` generations: best `(1.0531621969384206, 0.9342590147317011)`, score `4.8576189672e-05`
+
+Final `35`-generation state:
+
+- final mean `(1.0351051708550236, 0.9630145677144921)`
+- final sigma `0.43798858407914937`
+
+So the important scientific result is that the current-stack CMA-ES did eventually leave the far-start wrong basin and enter the neighborhood of the true iso111 target, but it needed more generations than the initial `120`-evaluation run allowed.
+
+### Acute456 / 4-5-6 Handoff State
+
+The next requested step was a detached `35`-generation CMA-ES run using the acute `4-5-6` target, but the original iso111 path could not truthfully do that because it depends on the square-untwisted `_run_point(...)` machinery in `test_geometry_match_grid_interpolation.py`.
+
+To keep the work on the current stack, I started extending `run_reweight_cmaes.py` with a separate
+
+- `--target-mode acute456`
+
+path that reuses the existing acute456 helper code already present in the repo, especially
+
+- `responsible_method_tests/scripts/run_acute456_pow2_blind_holdout.py`
+- `responsible_method_tests/scripts/plot_standard_acute456_center_fss.py`
+
+The new acute456 mode is meant to
+
+- simulate untwisted families at candidate `(r1, r2)`
+- compare them against the current acute456 twisted reference target
+- score candidates with the existing aggregate target-score machinery instead of the iso111 square objective
+
+Important handoff status:
+
+- the acute456 mode has been patched into `run_reweight_cmaes.py`
+- imports and parser wiring are in place
+- file-level syntax checks passed
+- but the acute456 path was **not yet smoke-tested** at handoff time
+- the detached `35`-generation acute456 run was therefore **not launched yet**
+
+So the next concrete step, before trusting any `4-5-6` detached production run, is:
+
+1. run a focused cheap smoke test with `--target-mode acute456`
+2. confirm that the family directories, per-size outputs, and scalar aggregate score are all written correctly
+3. only then launch the detached `35`-generation run into `responsible_method_tests/reweighting/`

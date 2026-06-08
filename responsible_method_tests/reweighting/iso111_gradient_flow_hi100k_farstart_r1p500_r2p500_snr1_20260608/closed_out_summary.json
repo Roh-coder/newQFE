@@ -1,0 +1,19 @@
+{
+  "closed_out_points_tsv": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_gradient_flow_hi100k_farstart_r1p500_r2p500_snr1_20260608/closed_out_points.tsv",
+  "final_point": {
+    "r1": 1.179381,
+    "r2": 0.778042
+  },
+  "final_reason": "manual_closeout_after_completed_L4_point",
+  "n_accepted_steps": 17,
+  "n_completed_points": 18,
+  "start_point": {
+    "r1": 1.5,
+    "r2": 0.5
+  },
+  "target_point": {
+    "r1": 1.0,
+    "r2": 1.0
+  },
+  "trajectory_path_png": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_gradient_flow_hi100k_farstart_r1p500_r2p500_snr1_20260608/trajectory_path.png"
+}

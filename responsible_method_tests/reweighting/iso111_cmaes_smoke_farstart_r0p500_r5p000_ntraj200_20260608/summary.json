@@ -1,0 +1,97 @@
+{
+  "args": {
+    "accept_rule": "gradient_only",
+    "adaptive_step_scale_max": 3.0,
+    "adaptive_step_scale_min": 0.5,
+    "adaptive_step_snr_reference": 3.0,
+    "balance_mode": "none",
+    "cma_csigma": null,
+    "cma_dsigma": null,
+    "cma_seed": 2026060802,
+    "fit_sizes": [
+      12,
+      8,
+      4
+    ],
+    "ghost_generations": 10,
+    "gradient_jackknife_blocks": 16,
+    "gradient_step": null,
+    "max_evals": 18,
+    "max_gens": 3,
+    "metric_key": "total_score",
+    "min_gradient_snr": 0.0,
+    "n_skip": 1,
+    "n_therm": 50,
+    "n_traj": 200,
+    "num_steps": 1,
+    "output_root": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_cmaes_smoke_farstart_r0p500_r5p000_ntraj200_20260608",
+    "plot_every_gens": 1,
+    "popsize": 6,
+    "r1_max": 10.0,
+    "r1_min": 0.1,
+    "r2_max": 10.0,
+    "r2_min": 0.1,
+    "save_frames": true,
+    "seed_base": 2026060801,
+    "sigma0": 0.5,
+    "start_r1": 0.5,
+    "start_r2": 5.0,
+    "step_adaptation": "fixed",
+    "step_mode": "normalized",
+    "step_size": 0.025,
+    "target_r1": 1.0,
+    "target_r2": 1.0,
+    "target_size": 16,
+    "tolfun": 1e-06,
+    "tolx": 0.005
+  },
+  "best_eval_id": 16,
+  "best_point": {
+    "r1": 2.2636599282860415,
+    "r2": 4.979669551335301
+  },
+  "best_score": 0.004411952874,
+  "evals_tsv": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_cmaes_smoke_farstart_r0p500_r5p000_ntraj200_20260608/evals.tsv",
+  "final_gaussian": {
+    "actual_covariance": [
+      [
+        1.236086217629778,
+        0.08423352644916265
+      ],
+      [
+        0.08423352644916265,
+        0.2981917613146878
+      ]
+    ],
+    "mean": [
+      2.1994051354111197,
+      5.112703896319538
+    ],
+    "normalized_covariance": [
+      [
+        2.227129007709968,
+        0.1517684830564327
+      ],
+      [
+        0.1517684830564327,
+        0.5372695787819044
+      ]
+    ],
+    "sigma": 0.7449921468667763
+  },
+  "frames_dir": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_cmaes_smoke_farstart_r0p500_r5p000_ntraj200_20260608/frames_history",
+  "generations_tsv": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_cmaes_smoke_farstart_r0p500_r5p000_ntraj200_20260608/generations.tsv",
+  "metric_key": "total_score",
+  "n_evals": 18,
+  "n_generations": 3,
+  "start_point": {
+    "r1": 0.5,
+    "r2": 5.0
+  },
+  "status": "completed",
+  "target_point": {
+    "r1": 1.0,
+    "r2": 1.0
+  },
+  "trajectory_png": "/workspaces/newQFE/responsible_method_tests/reweighting/iso111_cmaes_smoke_farstart_r0p500_r5p000_ntraj200_20260608/trajectory.png"
+}

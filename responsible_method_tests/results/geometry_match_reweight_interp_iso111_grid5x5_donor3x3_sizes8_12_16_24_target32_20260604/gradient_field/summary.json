@@ -1,0 +1,32 @@
+{
+  "delta_cost_range": [
+    -13.67970638802579,
+    8.706382341818156
+  ],
+  "direct_cost_range": [
+    0.5690947562045753,
+    16.55880942838767
+  ],
+  "grid_tsv": "/workspaces/newQFE/responsible_method_tests/results/geometry_match_reweight_interp_iso111_grid5x5_donor3x3_sizes8_12_16_24_target32_20260604/grid_scores.tsv",
+  "max_gradient_mismatch_norm": 5544.45321187062,
+  "mean_gradient_mismatch_norm": 1628.4472357284228,
+  "output_dir": "/workspaces/newQFE/responsible_method_tests/results/geometry_match_reweight_interp_iso111_grid5x5_donor3x3_sizes8_12_16_24_target32_20260604/gradient_field",
+  "r1_values": [
+    0.99,
+    0.995,
+    1.0,
+    1.005,
+    1.01
+  ],
+  "r2_values": [
+    0.99,
+    0.995,
+    1.0,
+    1.005,
+    1.01
+  ],
+  "reweighted_cost_range": [
+    0.5355279884830674,
+    16.55882838938959
+  ]
+}

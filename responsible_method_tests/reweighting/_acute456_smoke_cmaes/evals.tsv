@@ -1,0 +1,3 @@
+eval_id	generation	candidate_index	sampled_r1	sampled_r2	eval_r1	eval_r2	score	selected	generation_best	out_of_bounds	best_score_so_far
+1	1	0	3.4180571314	3.7256113727	3.4180571314	3.7256113727	3.0397834782e-01	True	True	False	3.0397834782e-01
+2	1	1	3.4815542291	4.1865271473	3.4815542291	4.1865271473	9.4425844587e-01	False	False	False	3.0397834782e-01
