@@ -2226,3 +2226,81 @@ So the next concrete step, before trusting any `4-5-6` detached production run, 
 1. run a focused cheap smoke test with `--target-mode acute456`
 2. confirm that the family directories, per-size outputs, and scalar aggregate score are all written correctly
 3. only then launch the detached `35`-generation run into `responsible_method_tests/reweighting/`
+
+## 2026-06-09: Acute456 Detached CMA-ES Launch, Live-Refresh Patch, And Overnight Handoff
+
+The `acute456` current-stack path has now been smoke-tested and the detached production-style run has been launched.
+
+### Smoke Validation
+
+Fresh smoke root:
+
+- `responsible_method_tests/reweighting/_acute456_smoke_cmaes_20260609/`
+
+That focused check confirmed that `run_reweight_cmaes.py --target-mode acute456`
+
+- reads the current large twisted acute456 target
+- writes per-candidate untwisted family directories
+- produces `evals.tsv`, `generations.tsv`, `summary.json`, and `trajectory.png`
+- returns a scalar aggregate `total_score` without falling back to the old production optimizer stack
+
+### Detached Run Launched
+
+Detached run root:
+
+- `responsible_method_tests/reweighting/acute456_cmaes_10k_start_r3p000_r4p000_total_score_pop8_eval280_20260609/`
+
+Launch configuration:
+
+- `target_mode = acute456`
+- start `(r1, r2) = (3, 4)`
+- bounds `r1, r2 >= 0.5`
+- `n_traj = 10000`, `n_therm = 1000`, `n_skip = 10`
+- `popsize = 8`
+- `max_evals = 280`
+- `save_frames = true`
+
+The run was left active in a detached terminal and was still writing output at the time of this note.
+
+### Current Checkpoint At Handoff
+
+At the checkpoint used for this handoff, the on-disk state had reached `2` completed generations / `16` completed evaluations.
+
+Best-so-far progression visible in the live TSVs:
+
+- generation `1`: best point `(2.8808346557, 4.5967903410)`, best score `3.7200530604e-01`
+- generation `2`: best point `(3.6773289378, 5.1382313644)`, best score `1.5025178748e-01`
+
+Current generation distribution row at that checkpoint:
+
+- mean `(3.6096304676, 4.7899528540)`
+- sigma `0.8716234865`
+
+Primary live artifacts to inspect tomorrow:
+
+- `responsible_method_tests/reweighting/acute456_cmaes_10k_start_r3p000_r4p000_total_score_pop8_eval280_20260609/evals.tsv`
+- `responsible_method_tests/reweighting/acute456_cmaes_10k_start_r3p000_r4p000_total_score_pop8_eval280_20260609/generations.tsv`
+- `responsible_method_tests/reweighting/acute456_cmaes_10k_start_r3p000_r4p000_total_score_pop8_eval280_20260609/trajectory.png`
+- `responsible_method_tests/reweighting/acute456_cmaes_10k_start_r3p000_r4p000_total_score_pop8_eval280_20260609/launch.log`
+
+### Live-Trajectory Update Note
+
+During the run review I found that the original live plotting path only rewrote `trajectory.png` after a full CMA-ES generation completed. For acute456 that makes the figure appear frozen for long stretches because each generation evaluates `8` candidates and each candidate runs the full six-size lattice ladder.
+
+`responsible_method_tests/scripts/run_reweight_cmaes.py` has now been patched so that new runs rewrite
+
+- `evals.tsv`
+- `generations.tsv`
+- `trajectory.png`
+
+after each completed evaluation, not only after each completed generation.
+
+That per-evaluation refresh behavior was validated separately under:
+
+- `responsible_method_tests/reweighting/_acute456_live_refresh_validate_20260609/`
+
+Important caveat: the already-running detached acute456 production run was launched **before** this patch. So that specific run will continue to redraw only at generation boundaries. Future runs from the patched script should show genuine mid-generation live updates.
+
+### Practical Overnight Expectation
+
+Nothing in the current detached run is waiting for interactive input. So the run should continue on its own provided the codespace / container stays alive and nobody explicitly kills the terminal. That is an environment caveat rather than an algorithmic blocker.

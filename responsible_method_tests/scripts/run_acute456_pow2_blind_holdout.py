@@ -194,7 +194,11 @@ def stable_seed(label: str) -> int:
 
 
 def latest_point_file(data_dir: Path) -> Path | None:
-    candidates = sorted(data_dir.rglob("two_point_all_to_all.dat"), key=lambda path: path.stat().st_mtime)
+    return latest_output_file(data_dir, "two_point_all_to_all.dat")
+
+
+def latest_output_file(data_dir: Path, file_name: str) -> Path | None:
+    candidates = sorted(data_dir.rglob(file_name), key=lambda path: path.stat().st_mtime)
     return candidates[-1] if candidates else None
 
 
@@ -211,6 +215,10 @@ def save_json(path: Path, payload: dict[str, Any]) -> None:
     with path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2)
         handle.write("\n")
+
+
+def _selected_disp_arg(selected_disp_list: tuple[tuple[int, int], ...]) -> str:
+    return ",".join(f"{int(m_value)}:{int(n_value)}" for m_value, n_value in selected_disp_list)
 
 
 def couplings_with_ratios(method_cfg: dict[str, Any]) -> dict[str, float]:
@@ -307,10 +315,24 @@ def run_simulation(
     data_dir: Path,
     label: str,
     single_disp: tuple[int, int] | None = None,
+    selected_disp_list: tuple[tuple[int, int], ...] | None = None,
+    selected_disp_bundle_name: str | None = None,
     force: bool = False,
 ) -> tuple[Path, str]:
     ensure_dir(data_dir)
-    existing = None if force else latest_point_file(data_dir)
+    bundle_disps = tuple((int(m_value), int(n_value)) for m_value, n_value in (selected_disp_list or ()))
+    if single_disp is not None and bundle_disps:
+        raise ValueError("choose either single_disp or selected_disp_list, not both")
+    if bundle_disps:
+        if not selected_disp_bundle_name:
+            raise ValueError("selected_disp_bundle_name is required when selected_disp_list is provided")
+        expected_name = str(selected_disp_bundle_name)
+    else:
+        if selected_disp_bundle_name is not None:
+            raise ValueError("selected_disp_bundle_name requires selected_disp_list")
+        expected_name = "two_point_all_to_all.dat"
+
+    existing = None if force else latest_output_file(data_dir, expected_name)
     if existing is not None:
         print(f"reusing {label}: {existing}", flush=True)
         return existing, ""
@@ -337,11 +359,20 @@ def run_simulation(
     ]
     if single_disp is not None:
         cmd.extend(["--single_disp_m", str(single_disp[0]), "--single_disp_n", str(single_disp[1])])
+    elif bundle_disps:
+        cmd.extend(["--selected_disp_list", _selected_disp_arg(bundle_disps), "--selected_disp_bundle_name", expected_name])
+
+    if single_disp is not None:
+        disp_label: str | list[int] = [int(single_disp[0]), int(single_disp[1])]
+    elif bundle_disps:
+        disp_label = f"bundle[{len(bundle_disps)}]"
+    else:
+        disp_label = "all"
 
     print(
         (
             f"running {label}: lattice={list(lattice)} "
-            f"disp={list(single_disp) if single_disp is not None else 'all'} "
+            f"disp={disp_label} "
             f"mc=(n_therm={n_therm}, n_traj={n_traj}, n_skip={n_skip})"
         ),
         flush=True,
@@ -353,9 +384,9 @@ def run_simulation(
             f"simulation failed for {label}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
         )
 
-    output_file = latest_point_file(data_dir)
+    output_file = latest_output_file(data_dir, expected_name)
     if output_file is None:
-        raise RuntimeError(f"no two_point_all_to_all.dat found under {data_dir} for {label}")
+        raise RuntimeError(f"no {expected_name} found under {data_dir} for {label}")
     print(f"finished {label}: {output_file}", flush=True)
     return output_file, result.stdout
 

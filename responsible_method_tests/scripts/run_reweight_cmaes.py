@@ -18,12 +18,13 @@ import numpy as np
 
 from run_reweight_gradient_flow import GradientFlowRunner
 from run_acute456_pow2_blind_holdout import exact_triangular_ising_beta, lattice_tag, run_simulation
-from test_geometry_match_grid_interpolation import CouplingPoint
+from test_geometry_match_grid_interpolation import CouplingPoint, _parse_selected_bundle
 from plot_standard_acute456_center_fss import (
     DEFAULT_TWISTED_DAT as ACUTE456_DEFAULT_TWISTED_DAT,
     TWISTED_LATTICE as ACUTE456_DEFAULT_TWISTED_LATTICE,
     UNTWISTED_LATTICES as ACUTE456_DEFAULT_UNTWISTED_LATTICES,
     _aggregate_by_fraction,
+    _boundary_paths,
     _build_twisted_target_payload,
     _compute_aggregate_target_score,
     _find_point_by_mn,
@@ -36,7 +37,9 @@ from plot_standard_acute456_center_fss import (
     _shared_fit_target_prediction,
     _sqrt_volume,
     _target_value_for_point,
+    _to_ab,
     _untwisted_dat_path,
+    _wrap_unit,
 )
 
 
@@ -44,6 +47,7 @@ HERE = Path(__file__).resolve().parent
 RESPONSIBLE_ROOT = HERE.parent
 ACUTE456_TARGET_R1 = 4.702782819756
 ACUTE456_TARGET_R2 = 7.353910143333
+ACUTE456_SPARSE_DAT_COLUMNS = ("d", "m", "n", "corr", "err", "corr_conn", "err_conn")
 
 
 def parse_args() -> argparse.Namespace:
@@ -76,6 +80,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--acute456-fit-sizes", nargs="+", type=int, default=[lattice[0] for lattice in ACUTE456_DEFAULT_UNTWISTED_LATTICES])
     parser.add_argument("--acute456-target-r1", type=float, default=ACUTE456_TARGET_R1)
     parser.add_argument("--acute456-target-r2", type=float, default=ACUTE456_TARGET_R2)
+    parser.add_argument(
+        "--acute456-eval-workflow",
+        choices=["selected_bundle", "legacy_all_to_all"],
+        default="selected_bundle",
+        help="How acute456 candidate families are generated before scoring.",
+    )
     parser.add_argument("--acute456-fit-mode", choices=["individual", "shared"], default="individual")
     parser.add_argument("--acute456-n-panels", type=int, default=4)
     parser.add_argument("--acute456-normalization-mode", choices=["raw", "anchor_ratio", "l8_ratio"], default="raw")
@@ -161,6 +171,186 @@ def _unique_ints_preserve_order(values: list[int]) -> list[int]:
     return ordered
 
 
+def _acute456_wrap_distance(lhs: float, rhs: float) -> float:
+    delta = abs(float(lhs) - float(rhs)) % 1.0
+    return min(delta, 1.0 - delta)
+
+
+def _acute456_point_from_mn(
+    lattice: tuple[int, int, int, int],
+    *,
+    embedding_cycles: tuple[int, int],
+    m_value: int,
+    n_value: int,
+) -> dict[str, Any]:
+    a_raw, b_raw = _to_ab(
+        int(m_value),
+        int(n_value),
+        lattice[0],
+        lattice[1],
+        lattice[2],
+        lattice[3],
+        embedding_cycles=embedding_cycles,
+    )
+    return {
+        "m": int(m_value),
+        "n": int(n_value),
+        "a_wrap": _wrap_unit(a_raw),
+        "b_wrap": _wrap_unit(b_raw),
+    }
+
+
+def _acute456_point_from_fraction(
+    lattice: tuple[int, int, int, int],
+    *,
+    embedding_cycles: tuple[int, int],
+    a_wrap: float,
+    b_wrap: float,
+) -> dict[str, Any]:
+    paths = _boundary_paths(lattice[0], lattice[1], lattice[2], lattice[3])
+    (dm_a, dn_a), (dm_b, dn_b) = [paths[idx] for idx in embedding_cycles]
+    m_value = int(round(float(a_wrap) * float(dm_a) + float(b_wrap) * float(dm_b)))
+    n_value = int(round(float(a_wrap) * float(dn_a) + float(b_wrap) * float(dn_b)))
+    point = _acute456_point_from_mn(
+        lattice,
+        embedding_cycles=embedding_cycles,
+        m_value=m_value,
+        n_value=n_value,
+    )
+    if _acute456_wrap_distance(float(point["a_wrap"]), float(a_wrap)) > 1.0e-9:
+        raise ValueError(f"acute456 a_wrap mapping failed for lattice {lattice}: {a_wrap} -> {point}")
+    if _acute456_wrap_distance(float(point["b_wrap"]), float(b_wrap)) > 1.0e-9:
+        raise ValueError(f"acute456 b_wrap mapping failed for lattice {lattice}: {b_wrap} -> {point}")
+    return point
+
+
+def _acute456_select_base_points_for_lattice(
+    lattice: tuple[int, int, int, int],
+    *,
+    embedding_cycles: tuple[int, int],
+    n_panels: int,
+) -> list[dict[str, Any]]:
+    search_radius = max(max(abs(int(value)) for value in lattice), 1)
+    candidates: dict[tuple[float, float], dict[str, Any]] = {}
+    for n_value in range(-search_radius, search_radius + 1):
+        point = _acute456_point_from_mn(
+            lattice,
+            embedding_cycles=embedding_cycles,
+            m_value=0,
+            n_value=n_value,
+        )
+        if 0.0 < float(point["b_wrap"]) <= 0.5 + 1.0e-12:
+            key = (round(float(point["a_wrap"]), 12), round(float(point["b_wrap"]), 12))
+            previous = candidates.get(key)
+            if previous is None or abs(int(point["n"])) < abs(int(previous["n"])):
+                candidates[key] = point
+    if not candidates:
+        raise ValueError(f"no acute456 representative base points found on lattice {lattice}")
+    ordered = sorted(candidates.values(), key=lambda item: (float(item["b_wrap"]), float(item["a_wrap"]), int(item["n"])))
+    return ordered[: max(1, min(int(n_panels), len(ordered)))]
+
+
+def _acute456_jackknife_sigma(leave_one_out: list[float]) -> float:
+    if len(leave_one_out) < 2:
+        return float("nan")
+    jk = np.asarray(leave_one_out, dtype=float)
+    return float(np.sqrt((jk.size - 1.0) / jk.size * np.sum((jk - np.mean(jk)) ** 2)))
+
+
+def _acute456_block_slices(n_samples: int, n_blocks: int = 16) -> list[tuple[int, int]]:
+    block_count = max(2, min(int(n_blocks), max(int(n_samples) // 4, 2)))
+    block = int(n_samples) // block_count
+    slices: list[tuple[int, int]] = []
+    for index in range(block_count):
+        lo = index * block
+        hi = (index + 1) * block if index < block_count - 1 else int(n_samples)
+        if hi > lo:
+            slices.append((lo, hi))
+    return slices
+
+
+def _acute456_mean_with_sigma(samples: np.ndarray) -> tuple[float, float]:
+    sample_array = np.asarray(samples, dtype=float)
+    if sample_array.size == 0:
+        return float("nan"), float("nan")
+    value = float(np.mean(sample_array))
+    leave_one_out: list[float] = []
+    for lo, hi in _acute456_block_slices(int(sample_array.size)):
+        mask = np.ones(int(sample_array.size), dtype=bool)
+        mask[lo:hi] = False
+        if np.count_nonzero(mask) == 0:
+            continue
+        leave_one_out.append(float(np.mean(sample_array[mask])))
+    return value, _acute456_jackknife_sigma(leave_one_out)
+
+
+def _acute456_connected_with_sigma(corr_samples: np.ndarray, mag_samples: np.ndarray) -> tuple[float, float]:
+    corr_array = np.asarray(corr_samples, dtype=float)
+    mag_array = np.asarray(mag_samples, dtype=float)
+    if corr_array.size == 0 or mag_array.size == 0 or corr_array.size != mag_array.size:
+        return float("nan"), float("nan")
+    mean_corr = float(np.mean(corr_array))
+    mean_mag = float(np.mean(mag_array))
+    connected = float(mean_corr - mean_mag * mean_mag)
+    leave_one_out: list[float] = []
+    for lo, hi in _acute456_block_slices(int(corr_array.size)):
+        mask = np.ones(int(corr_array.size), dtype=bool)
+        mask[lo:hi] = False
+        if np.count_nonzero(mask) == 0:
+            continue
+        corr_leave = np.asarray(corr_array[mask], dtype=float)
+        mag_leave = np.asarray(mag_array[mask], dtype=float)
+        mean_corr_leave = float(np.mean(corr_leave))
+        mean_mag_leave = float(np.mean(mag_leave))
+        leave_one_out.append(float(mean_corr_leave - mean_mag_leave * mean_mag_leave))
+    return connected, _acute456_jackknife_sigma(leave_one_out)
+
+
+def _acute456_sparse_rows_from_bundle(
+    bundle_payload: dict[str, Any],
+    lattice_specs: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    mag_samples = np.asarray(bundle_payload["mag"], dtype=float)
+    rows: list[dict[str, Any]] = []
+    for index, spec in enumerate(lattice_specs, start=1):
+        corr_samples = np.asarray(bundle_payload["corr"][str(spec["label"])], dtype=float)
+        corr_value, corr_sigma = _acute456_mean_with_sigma(corr_samples)
+        corr_conn, corr_conn_sigma = _acute456_connected_with_sigma(corr_samples, mag_samples)
+        rows.append(
+            {
+                "d": int(index),
+                "m": int(spec["m"]),
+                "n": int(spec["n"]),
+                "corr": float(corr_value),
+                "err": float(corr_sigma),
+                "corr_conn": float(corr_conn),
+                "err_conn": float(corr_conn_sigma),
+            }
+        )
+    return rows
+
+
+def _write_acute456_sparse_dat(path: Path, rows: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        handle.write("# d m n corr err corr_conn err_conn\n")
+        for row in rows:
+            handle.write(
+                " ".join(
+                    [
+                        str(int(row["d"])),
+                        str(int(row["m"])),
+                        str(int(row["n"])),
+                        _format_float(float(row["corr"])),
+                        _format_float(float(row["err"])),
+                        _format_float(float(row["corr_conn"])),
+                        _format_float(float(row["err_conn"])),
+                    ]
+                )
+                + "\n"
+            )
+
+
 class Acute456Runner:
     def __init__(self, args: argparse.Namespace) -> None:
         self.args = args
@@ -186,6 +376,7 @@ class Acute456Runner:
         if not self.twisted_dat.is_file():
             raise FileNotFoundError(f"acute456 twisted target data not found: {self.twisted_dat}")
         self.twisted_lattice = tuple(int(value) for value in args.acute456_twisted_lattice)
+        self.eval_workflow = str(args.acute456_eval_workflow)
         self.metric_key = "total_score"
         self.target_point = CouplingPoint(float(args.acute456_target_r1), float(args.acute456_target_r2))
         self.family_root = (
@@ -193,6 +384,32 @@ class Acute456Runner:
             / f"acute456_families_traj{int(args.n_traj)}_therm{int(args.n_therm)}_skip{int(args.n_skip)}"
         )
         self.family_root.mkdir(parents=True, exist_ok=True)
+        self.anchor_point = _acute456_point_from_mn(
+            self.fit_lattices[0],
+            embedding_cycles=self.untwisted_embedding_cycles,
+            m_value=self.anchor_m,
+            n_value=self.anchor_n,
+        )
+        selected_points = _acute456_select_base_points_for_lattice(
+            self.fit_lattices[0],
+            embedding_cycles=self.untwisted_embedding_cycles,
+            n_panels=int(self.args.acute456_n_panels),
+        )
+        anchor_key = (round(float(self.anchor_point["a_wrap"]), 12), round(float(self.anchor_point["b_wrap"]), 12))
+        self.selected_points: list[dict[str, Any]] = []
+        self.bundle_specs: list[dict[str, Any]] = [dict(self.anchor_point, label="anchor")]
+        panel_index = 1
+        for point in selected_points:
+            point_key = (round(float(point["a_wrap"]), 12), round(float(point["b_wrap"]), 12))
+            if point_key == anchor_key:
+                self.selected_points.append(dict(self.anchor_point, label="anchor"))
+                continue
+            label = f"panel_{panel_index:02d}"
+            spec = dict(point, label=label)
+            self.selected_points.append(spec)
+            self.bundle_specs.append(spec)
+            panel_index += 1
+        self._lattice_bundle_specs: dict[tuple[int, int, int, int], list[dict[str, Any]]] = {}
         self._target_payload: dict[str, Any] | None = None
         self.score_cache: dict[tuple[float, float], dict[str, Any]] = {}
         self.sample_cache: dict[tuple[str, int, int], dict[str, np.ndarray]] = {}
@@ -215,6 +432,22 @@ class Acute456Runner:
         if source_meta.is_file():
             shutil.copy2(source_meta, dest_dir / "two_point_all_to_all.meta.json")
 
+    def _bundle_specs_for_lattice(self, lattice: tuple[int, int, int, int]) -> list[dict[str, Any]]:
+        cached = self._lattice_bundle_specs.get(lattice)
+        if cached is not None:
+            return [dict(spec) for spec in cached]
+        lattice_specs: list[dict[str, Any]] = []
+        for spec in self.bundle_specs:
+            lattice_point = _acute456_point_from_fraction(
+                lattice,
+                embedding_cycles=self.untwisted_embedding_cycles,
+                a_wrap=float(spec["a_wrap"]),
+                b_wrap=float(spec["b_wrap"]),
+            )
+            lattice_specs.append(dict(lattice_point, label=str(spec["label"])))
+        self._lattice_bundle_specs[lattice] = [dict(spec) for spec in lattice_specs]
+        return [dict(spec) for spec in lattice_specs]
+
     def _ensure_family_data(self, point: CouplingPoint) -> Path:
         family_dir = self._family_dir(point)
         couplings = {"k1": float(point.r1), "k2": float(point.r2), "k3": 1.0}
@@ -226,7 +459,24 @@ class Acute456Runner:
                 continue
             raw_dir = flat_dir / "_raw"
             label = f"acute456_cmaes_{lattice_tag(lattice)}_{family_dir.name}"
-            output_file, _ = run_simulation(
+            if self.eval_workflow == "legacy_all_to_all":
+                output_file, _ = run_simulation(
+                    lattice=lattice,
+                    couplings=couplings,
+                    beta=beta_c,
+                    n_traj=int(self.args.n_traj),
+                    n_skip=int(self.args.n_skip),
+                    n_therm=int(self.args.n_therm),
+                    data_dir=raw_dir,
+                    label=label,
+                    single_disp=None,
+                    force=False,
+                )
+                self._flatten_dat(Path(output_file), flat_dir)
+                continue
+
+            lattice_specs = self._bundle_specs_for_lattice(lattice)
+            bundle_path, _ = run_simulation(
                 lattice=lattice,
                 couplings=couplings,
                 beta=beta_c,
@@ -235,46 +485,30 @@ class Acute456Runner:
                 n_therm=int(self.args.n_therm),
                 data_dir=raw_dir,
                 label=label,
-                single_disp=None,
+                selected_disp_list=tuple((int(spec["m"]), int(spec["n"])) for spec in lattice_specs),
+                selected_disp_bundle_name="selected_observables_bundle.dat",
                 force=False,
             )
-            self._flatten_dat(Path(output_file), flat_dir)
+            bundle_payload = _parse_selected_bundle(Path(bundle_path), [str(spec["label"]) for spec in lattice_specs])
+            sparse_rows = _acute456_sparse_rows_from_bundle(bundle_payload, lattice_specs)
+            _write_acute456_sparse_dat(flat_dat, sparse_rows)
         return family_dir
 
-    def _ensure_target_payload(self, smallest_rows: list[dict[str, Any]]) -> dict[str, Any]:
+    def _ensure_target_payload(self) -> dict[str, Any]:
         if self._target_payload is None:
-            anchor_point = _find_point_by_mn(
-                smallest_rows,
-                self.fit_lattices[0],
-                embedding_cycles=self.untwisted_embedding_cycles,
-                target_m=self.anchor_m,
-                target_n=self.anchor_n,
-            )
             self._target_payload = _build_twisted_target_payload(
                 dat_path=str(self.twisted_dat),
                 lattice=self.twisted_lattice,
                 embedding_cycles=self.twisted_embedding_cycles,
-                anchor_point=anchor_point,
+                anchor_point=self.anchor_point,
                 label="acute456 twisted target",
             )
         return self._target_payload
 
     def _score_family(self, family_dir: Path) -> dict[str, Any]:
         smallest_lattice = self.fit_lattices[0]
-        smallest_rows = _load_dat_rows(_untwisted_dat_path(str(family_dir), smallest_lattice))
-        anchor_point = _find_point_by_mn(
-            smallest_rows,
-            smallest_lattice,
-            embedding_cycles=self.untwisted_embedding_cycles,
-            target_m=self.anchor_m,
-            target_n=self.anchor_n,
-        )
-        selected_points = _select_base_points(
-            smallest_rows,
-            smallest_lattice,
-            embedding_cycles=self.untwisted_embedding_cycles,
-            n_panels=int(self.args.acute456_n_panels),
-        )
+        anchor_point = dict(self.anchor_point)
+        selected_points = [dict(point) for point in self.selected_points]
         if self.normalization_mode == "anchor_ratio":
             selected_points = [
                 point
@@ -284,7 +518,7 @@ class Acute456Runner:
         if not selected_points:
             raise ValueError("acute456 score has no selected points after normalization filtering")
 
-        target_payload = self._ensure_target_payload(smallest_rows)
+        target_payload = self._ensure_target_payload()
         untwisted_maps: dict[tuple[int, int, int, int], dict[tuple[float, float], dict[str, Any]]] = {}
         for lattice in self.fit_lattices:
             rows = _load_dat_rows(_untwisted_dat_path(str(family_dir), lattice))
@@ -456,6 +690,8 @@ def _resume_args_from_summary(cli_args: argparse.Namespace) -> tuple[argparse.Na
     summary_args = dict(summary.get("args", {}))
     if not summary_args:
         raise ValueError(f"summary.json in {resume_root} does not contain saved args")
+    if summary_args.get("target_mode") == "acute456" and "acute456_eval_workflow" not in summary_args:
+        summary_args["acute456_eval_workflow"] = "legacy_all_to_all"
     summary_args["output_root"] = str(resume_root)
     summary_args["save_frames"] = bool(summary_args.get("save_frames", False) or bool(cli_args.save_frames))
     return argparse.Namespace(**summary_args), summary
@@ -1189,6 +1425,17 @@ def main() -> None:
                 batch_row_indices.append(len(eval_rows) - 1)
                 completed_y.append(np.asarray(ys[candidate_index], dtype=float))
                 completed_z.append(np.asarray(zs[candidate_index], dtype=float))
+
+                _write_eval_tsv(eval_tsv, eval_rows)
+                _write_generation_tsv(generation_tsv, generation_rows)
+                _plot_state(
+                    output_png,
+                    eval_rows=eval_rows,
+                    generation_rows=generation_rows,
+                    target_point=runner.target_point,
+                    metric_key=runner.metric_key,
+                    ghost_generations=int(args.ghost_generations),
+                )
 
             if not batch_scores:
                 status = "no completed evaluations"

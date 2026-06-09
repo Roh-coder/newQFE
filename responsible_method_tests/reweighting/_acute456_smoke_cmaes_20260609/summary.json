@@ -1,0 +1,135 @@
+{
+  "args": {
+    "accept_rule": "gradient_only",
+    "acute456_anchor_m": 0,
+    "acute456_anchor_n": -1,
+    "acute456_fit_mode": "individual",
+    "acute456_fit_sizes": [
+      8,
+      16,
+      24,
+      32,
+      48,
+      64
+    ],
+    "acute456_n_panels": 4,
+    "acute456_normalization_mode": "raw",
+    "acute456_target_r1": 4.702782819756,
+    "acute456_target_r2": 7.353910143333,
+    "acute456_twisted_dat": "/workspaces/newQFE/responsible_method_tests/standard/data/acute456/twisted/reference/Lx144_Ly144_Tx72_Ty24/two_point_all_to_all.dat",
+    "acute456_twisted_embedding_cycles": [
+      0,
+      1
+    ],
+    "acute456_twisted_lattice": [
+      144,
+      144,
+      72,
+      24
+    ],
+    "acute456_untwisted_embedding_cycles": [
+      0,
+      1
+    ],
+    "adaptive_step_scale_max": 3.0,
+    "adaptive_step_scale_min": 0.5,
+    "adaptive_step_snr_reference": 3.0,
+    "additional_gens": 0,
+    "balance_mode": "none",
+    "cma_csigma": null,
+    "cma_dsigma": null,
+    "cma_seed": 2026060802,
+    "fit_sizes": [
+      32,
+      28,
+      24,
+      20,
+      16,
+      12,
+      8,
+      4
+    ],
+    "ghost_generations": 10,
+    "gradient_jackknife_blocks": 16,
+    "gradient_step": null,
+    "max_evals": 2,
+    "max_gens": 1,
+    "metric_key": null,
+    "min_gradient_snr": 0.0,
+    "n_skip": 2,
+    "n_therm": 10,
+    "n_traj": 20,
+    "num_steps": 1,
+    "output_root": "/workspaces/newQFE/responsible_method_tests/reweighting/_acute456_smoke_cmaes_20260609",
+    "plot_every_gens": 1,
+    "popsize": 2,
+    "r1_max": 10.0,
+    "r1_min": 0.1,
+    "r2_max": 10.0,
+    "r2_min": 0.1,
+    "resume_root": null,
+    "save_frames": true,
+    "seed_base": 2026060801,
+    "sigma0": 0.5,
+    "start_r1": 3.0,
+    "start_r2": 4.0,
+    "step_adaptation": "fixed",
+    "step_mode": "normalized",
+    "step_size": 0.025,
+    "target_mode": "acute456",
+    "target_r1": 1.0,
+    "target_r2": 1.0,
+    "target_size": 64,
+    "tolfun": 1e-06,
+    "tolx": 0.005
+  },
+  "best_eval_id": 1,
+  "best_point": {
+    "r1": 3.41805713139712,
+    "r2": 3.7256113726949516
+  },
+  "best_score": 0.30397834782,
+  "evals_tsv": "/workspaces/newQFE/responsible_method_tests/reweighting/_acute456_smoke_cmaes_20260609/evals.tsv",
+  "final_gaussian": {
+    "actual_covariance": [
+      [
+        0.19012022993458755,
+        -0.013701006371542316
+      ],
+      [
+        -0.013701006371542316,
+        0.1782379972047197
+      ]
+    ],
+    "mean": [
+      3.41805713139712,
+      3.7256113726949516
+    ],
+    "normalized_covariance": [
+      [
+        0.934384826330307,
+        -0.06733640319827425
+      ],
+      [
+        -0.06733640319827425,
+        0.8759871588672822
+      ]
+    ],
+    "sigma": 0.4510776163646404
+  },
+  "frames_dir": "/workspaces/newQFE/responsible_method_tests/reweighting/_acute456_smoke_cmaes_20260609/frames_history",
+  "generations_tsv": "/workspaces/newQFE/responsible_method_tests/reweighting/_acute456_smoke_cmaes_20260609/generations.tsv",
+  "metric_key": "total_score",
+  "n_evals": 2,
+  "n_generations": 1,
+  "start_point": {
+    "r1": 3.0,
+    "r2": 4.0
+  },
+  "status": "completed",
+  "target_point": {
+    "r1": 4.702782819756,
+    "r2": 7.353910143333
+  },
+  "trajectory_png": "/workspaces/newQFE/responsible_method_tests/reweighting/_acute456_smoke_cmaes_20260609/trajectory.png"
+}

@@ -1,0 +1,2 @@
+generation	mean_r1	mean_r2	sigma	norm_cov_11	norm_cov_12	norm_cov_22	cov_11	cov_12	cov_22	major_radius	minor_radius	angle_deg	condition	corr	generation_best_score	global_best_score	n_completed_evals
+0	3.0	4.0	1.0	1.0	0.0	1.0	1.0	0.0	1.0	1.0	1.0	90.0	1.0	0.0	nan	nan	0
